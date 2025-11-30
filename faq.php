@@ -193,7 +193,9 @@ require_once 'includes/header.php';
                                 continue;
                             }
                             $seen[$lower] = true;
-                            echo '<span class="badge bg-secondary me-1">' . htmlspecialchars($tag) . '</span>';
+                            $safeTag = htmlspecialchars($tag, ENT_QUOTES, 'UTF-8');
+                            $safeUrl = 'tag.php?tag=' . urlencode($tag);
+                            echo '<button type="button" class="badge bg-secondary me-1 text-decoration-none tag-link" data-href="' . $safeUrl . '" data-tag="' . $safeTag . '">' . $safeTag . '</button>';
                         }
                         ?>
                     </div>
@@ -387,6 +389,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial check
     setTimeout(trackReadingProgress, 1000);
+
+    // Ensure tag clicks always navigate (even if rendered as spans)
+    document.querySelectorAll('.faq-tags .badge').forEach(tagEl => {
+        const tagText = (tagEl.dataset.tag || tagEl.textContent || '').trim();
+        const href = tagEl.dataset.href || (tagText ? ('tag.php?tag=' + encodeURIComponent(tagText)) : '');
+        tagEl.dataset.href = href;
+        tagEl.setAttribute('role', 'button');
+        tagEl.tabIndex = 0;
+
+        const go = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (href) {
+                window.location.href = href;
+            }
+        };
+
+        tagEl.addEventListener('click', go);
+        tagEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                go(e);
+            }
+        });
+    });
 });
 </script>
 

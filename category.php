@@ -166,8 +166,15 @@ function category_icon_fallback($name, $icon) {
                                             <small class="text-muted">Tags: </small>
                                             <?php 
                                             $tags = explode(',', $faq['tags']);
-                                            foreach ($tags as $tag): ?>
-                                                <span class="badge bg-secondary me-1"><?php echo trim(htmlspecialchars($tag)); ?></span>
+                                            foreach ($tags as $tag):
+                                                $trimmed = trim($tag);
+                                                if ($trimmed === '') continue;
+                                                $safeTag = htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8');
+                                                $tagUrl = 'tag.php?tag=' . urlencode($trimmed);
+                                            ?>
+                                                <a href="<?php echo $tagUrl; ?>" class="badge bg-secondary me-1 text-decoration-none tag-link" role="button" data-tag="<?php echo $safeTag; ?>">
+                                                    <?php echo $safeTag; ?>
+                                                </a>
                                             <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
@@ -247,6 +254,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({faq_id: faqId})
             });
+        });
+    });
+
+    // Ensure tag clicks navigate
+    document.querySelectorAll('.faq-tags .tag-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+        link.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                if (href) {
+                    window.location.href = href;
+                }
+            }
         });
     });
 });
