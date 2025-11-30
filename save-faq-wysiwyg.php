@@ -21,6 +21,9 @@ try {
     $date_submitted = trim($_POST['date_submitted'] ?? '');
     $is_draft = isset($_POST['save_draft']);
     $question_plain = trim(strip_tags($question));
+    $tags_raw = trim($_POST['tags'] ?? '');
+    $tags_array = array_unique(array_filter(array_map('trim', explode(',', $tags_raw))));
+    $tags_clean = implode(', ', $tags_array);
     
     // Validation
     if (empty($title)) {
@@ -49,7 +52,8 @@ try {
         'answer' => $main_answer,
         'author' => $author ?: null,
         'date_submitted' => $date_submitted ?: null,
-        'display_order' => $display_order
+        'display_order' => $display_order,
+        'tags' => $tags_clean
     ];
     
     if ($faq_id > 0) {
@@ -62,7 +66,8 @@ try {
                 answer = :answer, 
                 author = :author,
                 date_submitted = :date_submitted,
-                display_order = :display_order
+                display_order = :display_order,
+                tags = :tags
                 WHERE id = :id";
         
         $data['id'] = $faq_id;
@@ -86,8 +91,8 @@ try {
         
     } else {
         // Create new FAQ
-        $sql = "INSERT INTO faqs (title, slug, question, category_id, answer, author, date_submitted, display_order) 
-                VALUES (:title, :slug, :question, :category_id, :answer, :author, :date_submitted, :display_order)";
+        $sql = "INSERT INTO faqs (title, slug, question, category_id, answer, author, date_submitted, display_order, tags) 
+                VALUES (:title, :slug, :question, :category_id, :answer, :author, :date_submitted, :display_order, :tags)";
         
         $stmt = $pdo->prepare($sql);
         

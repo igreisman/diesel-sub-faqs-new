@@ -28,6 +28,7 @@ if ($faq && isset($faq['answer'])) {
 }
 
 $initial_title = $faq && isset($faq['title']) ? htmlspecialchars($faq['title']) : '';
+$initial_tags = $faq && isset($faq['tags']) ? htmlspecialchars($faq['tags']) : '';
 $initial_question = '';
 if ($faq && isset($faq['question'])) {
     // Render stored question content so Quill shows formatted text instead of raw Markdown/HTML
@@ -155,6 +156,17 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                                value="<?php echo $faq && !empty($faq['date_submitted']) ? date('Y-m-d', strtotime($faq['date_submitted'])) : ''; ?>">
                         <label for="date_submitted"><i class="fas fa-calendar-alt"></i> Date Submitted (optional)</label>
                     </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="tags" name="tags"
+                               value="<?php echo $initial_tags; ?>" placeholder="hull, submarine, boat, war">
+                        <label for="tags"><i class="fas fa-tags"></i> Tags (comma-separated)</label>
+                    </div>
+                    <small class="text-muted">Add, edit, or remove tags; separate each tag with a comma.</small>
                 </div>
             </div>
 
