@@ -1,0 +1,21 @@
+{
+  "name": "railway-hello-world",
+  "version": "1.0.0",
+  "description": "Simple Hello World server for Railway deployment testing",
+  "main": "hello-world.js",
+  "scripts": {
+    "start": "node hello-world.js",
+    "dev": "node hello-world.js"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diesel-subs/Diesel-Electric-Sub-FAQs.git"
+  },
+  "keywords": ["railway", "hello-world", "nodejs"],
+  "author": "",
+  "license": "ISC"
+}

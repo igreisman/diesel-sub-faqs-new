@@ -1,0 +1,107 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/formatted-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/corrected-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/auth.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/manage-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/database-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/database-manage-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/correspondence.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/migrate-faqs.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "welcome.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/faqs",
+      "dest": "/api/formatted-faqs.js"
+    },
+    {
+      "src": "/api/corrected-faqs",
+      "dest": "/api/corrected-faqs.js"
+    },
+    {
+      "src": "/api/auth",
+      "dest": "/api/auth.js"
+    },
+    {
+      "src": "/api/manage-faqs",
+      "dest": "/api/manage-faqs.js"
+    },
+    {
+      "src": "/api/database-faqs",
+      "dest": "/api/database-faqs.js"
+    },
+    {
+      "src": "/api/database-manage-faqs",
+      "dest": "/api/database-manage-faqs.js"
+    },
+    {
+      "src": "/api/correspondence",
+      "dest": "/api/correspondence.js"
+    },
+    {
+      "src": "/api/migrate-faqs",
+      "dest": "/api/migrate-faqs.js"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/welcome.html",
+      "dest": "/welcome.html"
+    },
+    {
+      "src": "/dolphins-insignia.png",
+      "dest": "/public/dolphins-insignia.png"
+    },
+    {
+      "src": "/nps-arrowhead.svg",
+      "dest": "/public/nps-arrowhead.svg"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
+  ]
+}
