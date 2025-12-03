@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Simple password check - you can enhance this later with proper user management
     if ($password === '1945') {
         $_SESSION['admin_logged_in'] = true;
-        header('Location: index.php');
+        header('Location: admin/dashboard.php');
         exit;
     } else {
         $error = 'Invalid password';
@@ -42,12 +42,6 @@ require_once 'includes/header.php';
                         </div>
                     </form>
                     
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> 
-                            Demo password: 1945
-                        </small>
-                    </div>
                 </div>
             </div>
         </div>

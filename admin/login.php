@@ -13,17 +13,15 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
-    
-    // Simple authentication (you can enhance this later)
-    if ($username === 'admin' && $password === 'submarine2024!') {
+
+    // Simple password-only authentication
+    if ($password === '1945') {
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_username'] = $username;
         header('Location: dashboard.php');
         exit;
     } else {
-        $error = 'Invalid username or password';
+        $error = 'Invalid password';
     }
 }
 ?>
@@ -55,17 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endif; ?>
 
                         <form method="POST">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                    <input type="text" class="form-control" id="username" name="username" required 
-                                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
-                                </div>
-                            </div>
-
                             <div class="mb-4">
-                                <label for="password" class="form-label">Password</label>
+                                <label for="password" class="form-label">Admin Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                     <input type="password" class="form-control" id="password" name="password" required>
@@ -85,15 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </small>
                         </div>
 
-                        <hr class="my-4">
-                        
-                        <div class="text-center">
-                            <small class="text-muted">
-                                <strong>Demo Credentials:</strong><br>
-                                Username: <code>admin</code><br>
-                                Password: <code>submarine2024!</code>
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>
