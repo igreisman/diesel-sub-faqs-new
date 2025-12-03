@@ -178,11 +178,11 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                         <label for="author"><i class="fas fa-user"></i> Author (optional)</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2 col-sm-6">
                     <div class="form-floating">
                         <input type="date" class="form-control" id="date_submitted" name="date_submitted"
                                value="<?php echo $faq && !empty($faq['date_submitted']) ? date('Y-m-d', strtotime($faq['date_submitted'])) : ''; ?>">
-                        <label for="date_submitted"><i class="fas fa-calendar-alt"></i> Date Submitted (optional)</label>
+                        <label for="date_submitted"><i class="fas fa-calendar-alt"></i> Date (optional)</label>
                     </div>
                 </div>
             </div>

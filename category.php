@@ -161,23 +161,6 @@ function category_icon_fallback($name, $icon) {
                                             <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if (!empty($faq['tags'])): ?>
-                                        <div class="faq-tags mt-3">
-                                            <small class="text-muted">Tags: </small>
-                                            <?php 
-                                            $tags = explode(',', $faq['tags']);
-                                            foreach ($tags as $tag):
-                                                $trimmed = trim($tag);
-                                                if ($trimmed === '') continue;
-                                                $safeTag = htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8');
-                                                $tagUrl = 'tag.php?tag=' . urlencode($trimmed);
-                                            ?>
-                                                <a href="<?php echo $tagUrl; ?>" class="badge bg-secondary me-1 text-decoration-none tag-link" role="button" data-tag="<?php echo $safeTag; ?>">
-                                                    <?php echo $safeTag; ?>
-                                                </a>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
                                     <?php 
                                     $current_faq = $faq;
                                     include 'includes/feedback-widget.php'; 
