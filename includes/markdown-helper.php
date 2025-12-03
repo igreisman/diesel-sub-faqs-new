@@ -10,18 +10,31 @@ require_once __DIR__ . '/Parsedown.php';
  */
 function render_markdown($text) {
     static $parsedown = null;
-    
+
     if ($parsedown === null) {
         $parsedown = new Parsedown();
-        
+
         // Security: escape HTML by default to prevent XSS
         $parsedown->setSafeMode(true);
-        
+
         // Enable line breaks (GitHub-style)
         $parsedown->setBreaksEnabled(true);
     }
-    
-    return $parsedown->text($text);
+
+    // Let Parsedown handle tables natively now that duplicate helper is removed
+    $html = $parsedown->text($text);
+
+    // Add spacing between table columns
+    $html = preg_replace_callback('#<table>(.*?)</table>#s', function($matches) {
+        $table = $matches[0];
+        // Inject a simple class for spacing if not present
+        if (strpos($table, 'class="md-table"') === false) {
+            $table = str_replace('<table', '<table class="md-table table table-sm"', $table);
+        }
+        return $table;
+    }, $html);
+
+    return $html;
 }
 
 /**
@@ -196,5 +209,65 @@ function get_content_preview($text, $length = 160) {
     }
     
     return htmlspecialchars($preview);
+}
+
+/**
+ * Convert GitHub-style pipe tables into HTML placeholders, capturing the HTML for later insertion.
+ */
+function convert_markdown_tables($text, &$tableMap) {
+    $lines = explode("\n", $text);
+    $output = [];
+    $i = 0;
+
+    while ($i < count($lines)) {
+        $line = $lines[$i];
+        $next = $lines[$i + 1] ?? '';
+
+        // Detect header + separator line
+        $looksLikeHeader = strpos($line, '|') !== false;
+        $looksLikeSeparator = preg_match('/^\\s*\\|?\\s*[:\\-]+[\\s\\|:\\-]*$/', $next);
+
+        if ($looksLikeHeader && $looksLikeSeparator) {
+            // Parse header cells
+            $headers = array_values(array_filter(array_map('trim', explode('|', $line)), 'strlen'));
+            // Collect body rows
+            $rows = [];
+            $i += 2; // skip header + separator
+            while ($i < count($lines)) {
+                $rowLine = $lines[$i];
+                if (trim($rowLine) === '' || strpos($rowLine, '|') === false) {
+                    break;
+                }
+                $cells = array_values(array_filter(array_map('trim', explode('|', $rowLine)), 'strlen'));
+                $rows[] = $cells;
+                $i++;
+            }
+
+            // Build HTML table
+            $tableHtml = '<table class="table table-bordered table-sm"><thead><tr>';
+            foreach ($headers as $cell) {
+                $tableHtml .= '<th>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</th>';
+            }
+            $tableHtml .= '</tr></thead><tbody>';
+            foreach ($rows as $cells) {
+                $tableHtml .= '<tr>';
+                foreach ($cells as $cell) {
+                    $tableHtml .= '<td>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</td>';
+                }
+                $tableHtml .= '</tr>';
+            }
+            $tableHtml .= '</tbody></table>';
+
+            $placeholder = '%%TABLE_' . count($tableMap) . '%%';
+            $tableMap[$placeholder] = $tableHtml;
+            $output[] = $placeholder;
+            continue;
+        } else {
+            $output[] = $line;
+            $i++;
+        }
+    }
+
+    return implode("\n", $output);
 }
 ?>

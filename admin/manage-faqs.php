@@ -136,7 +136,7 @@ $faqs = $stmt->fetchAll();
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" class="row g-3">
+            <form method="GET" class="row g-3" id="filter-form">
                 <div class="col-md-4">
                     <label for="search" class="form-label">Search</label>
                     <input type="text" class="form-control" id="search" name="search" 
@@ -269,6 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Table drag-drop reorder
     const tableBody = document.getElementById('faq-table-rows');
     const filterCategorySelect = document.getElementById('category');
+    const filterForm = document.getElementById('filter-form');
+
+    if (filterCategorySelect && filterForm) {
+        filterCategorySelect.addEventListener('change', () => filterForm.submit());
+    }
+
     if (tableBody && filterCategorySelect) {
         let draggedRow = null;
         const tableRows = Array.from(tableBody.querySelectorAll('.faq-row-table'));

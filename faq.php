@@ -64,6 +64,17 @@ $page_title = $faq['title'];
 $page_description = substr($faq['answer'], 0, 160);
 require_once 'includes/header.php';
 ?>
+<style>
+/* Hide question header row on FAQ page */
+.faq-question { display: none !important; }
+.faq-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+</style>
+<?php
+?>
 
 <div class="container mt-4">
     <div class="row">
@@ -73,7 +84,6 @@ require_once 'includes/header.php';
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Home</a></li>
                     <li class="breadcrumb-item"><a href="category.php?cat=<?php echo urlencode($faq['category_name']); ?>"><?php echo htmlspecialchars($faq['category_name']); ?></a></li>
-                    <li class="breadcrumb-item active"><?php echo htmlspecialchars($faq['title']); ?></li>
                 </ol>
             </nav>
 
@@ -83,46 +93,40 @@ require_once 'includes/header.php';
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h1 class="faq-title"><?php echo htmlspecialchars($faq['title']); ?></h1>
-                            <div class="faq-meta text-muted mb-3">
-                                <span class="badge bg-primary me-2"><?php echo htmlspecialchars($faq['category_name']); ?></span>
-                                <small><i class="fas fa-eye"></i> <?php echo number_format($faq['views']); ?> views</small>
+                            <div class="faq-meta text-muted mb-3 d-flex align-items-center flex-wrap gap-3">
                                 <?php if (!empty($faq['author'])): ?>
-                                    <small class="ms-2"><i class="fas fa-user"></i> <?php echo htmlspecialchars($faq['author']); ?></small>
+                                    <small class="d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-user"></i> <?php echo htmlspecialchars($faq['author']); ?>
+                                    </small>
                                 <?php endif; ?>
-                                <?php if (!empty($faq['date_submitted'])): ?>
-                                    <small class="ms-2"><i class="fas fa-calendar-alt"></i> <?php echo date('M j, Y', strtotime($faq['date_submitted'])); ?></small>
+                                <?php 
+                                $createdDate = !empty($faq['date_submitted']) ? $faq['date_submitted'] : ($faq['created_at'] ?? '');
+                                if (!empty($createdDate)): ?>
+                                    <small class="d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-calendar-alt"></i> <?php echo format_date($createdDate); ?>
+                                    </small>
                                 <?php endif; ?>
                                 <?php if ($faq['featured']): ?>
                                     <span class="badge bg-warning text-dark ms-2">
                                         <i class="fas fa-star"></i> Featured
                                     </span>
                                 <?php endif; ?>
+                                <small class="d-inline-flex align-items-center gap-1">
+                                    <i class="fas fa-eye"></i> <?php echo number_format($faq['views']); ?> views
+                                </small>
                             </div>
                         </div>
                         <div class="faq-actions">
                             <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
                                 <div class="btn-group me-2">
                                     <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit"></i> WYSIWYG Edit
-                                    </a>
-                                    <a href="edit-faq.php?id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-code"></i> Markdown
+                                        <i class="fas fa-edit"></i> Edit
                                     </a>
                                 </div>
                             <?php endif; ?>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard(window.location.href)">
-                                <i class="fas fa-share"></i> Share
-                            </button>
                         </div>
                     </div>
                 </header>
-
-                <div class="faq-question mb-4">
-                    <h2 class="h4 text-primary">
-                        <i class="fas fa-question-circle"></i>
-                        <?php echo render_content($faq['question']); ?>
-                    </h2>
-                </div>
 
                 <div class="faq-answer">
                     <div class="answer-content" id="faq-content">
@@ -130,17 +134,7 @@ require_once 'includes/header.php';
                     </div>
                 </div>
 
-                <?php if (!empty($faq['author']) || !empty($faq['date_submitted'])): ?>
-                    <div class="text-muted mt-2 mb-1">
-                        <strong>Created by:</strong>
-                        <?php if (!empty($faq['author'])): ?>
-                            <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($faq['author']); ?></span>
-                        <?php endif; ?>
-                        <?php if (!empty($faq['date_submitted'])): ?>
-                            <span class="ms-3"><i class="fas fa-calendar-alt"></i> <?php echo date('M j, Y', strtotime($faq['date_submitted'])); ?></span>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
+               
 
                 <?php if (!empty($contributions)): ?>
                     <div class="mt-1 text-muted">
@@ -209,18 +203,14 @@ require_once 'includes/header.php';
 
                 <div class="faq-footer mt-4 pt-3 border-top">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <small class="text-muted">
                                 Last updated: <?php echo format_date($faq['updated_at']); ?>
                             </small>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <a href="feedback.php?faq_id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-edit"></i> Suggest Improvements
-                            </a>
-                        </div>
                     </div>
                 </div>
+
             </article>
         </div>
 

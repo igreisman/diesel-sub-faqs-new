@@ -151,6 +151,10 @@ body {
 .faq-actions .btn {
   margin-right: 0.5rem;
 }
+.md-table {
+  border-collapse: separate;
+  border-spacing: 8px 4px;
+}
 
 /* Search Styles */
 .category-search input {

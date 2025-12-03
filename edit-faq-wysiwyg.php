@@ -23,12 +23,11 @@ if ($faq_id > 0) {
 
 $initial_answer = '';
 if ($faq && isset($faq['answer'])) {
-    // Show existing content as HTML so Markdown answers render correctly in the WYSIWYG editor
-    $initial_answer = render_content($faq['answer']);
+    // Show existing content as rendered Markdown/HTML so tables and formatting appear correctly
+    $initial_answer = render_markdown($faq['answer']);
 }
 
 $initial_title = $faq && isset($faq['title']) ? htmlspecialchars($faq['title']) : '';
-$initial_tags = $faq && isset($faq['tags']) ? htmlspecialchars($faq['tags']) : '';
 $initial_question = '';
 if ($faq && isset($faq['question'])) {
     // Render stored question content so Quill shows formatted text instead of raw Markdown/HTML
@@ -96,15 +95,44 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             font-weight: 600;
             color: #6c757d;
         }
+        .editor-toggle .form-check-input {
+            width: 0.375em;
+            height: 0.375em;
+            margin-top: 0.15rem;
+            margin-right: 0.15rem;
+            margin-left: 0;
+        }
+        .editor-toggle .form-check-label {
+            font-size: 0.8rem;
+            line-height: 1.1;
+            margin-left: 0;
+        }
+        .editor-toggle .form-check-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.1rem;
+            margin-right: 0.2rem !important;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid mt-4">
         <div class="row mb-4">
             <div class="col-12">
+                <?php
+                    $editorQuery = $faq ? '?id=' . $faq['id'] : ($preset_category_id ? '?category_id=' . $preset_category_id : '');
+                ?>
                 <div class="d-flex justify-content-between align-items-center">
                     <h1><i class="fas fa-edit text-primary"></i> <?php echo $faq ? 'Edit FAQ' : 'Create New FAQ'; ?></h1>
-                    <div>
+                    <div class="editor-toggle d-flex align-items-center">
+                        <div class="form-check form-check-inline me-3">
+                            <input class="form-check-input" type="radio" name="editorToggle" id="editorWysiwyg" value="wysiwyg" checked>
+                            <label class="form-check-label" for="editorWysiwyg">WYSIWYG</label>
+                        </div>
+                        <div class="form-check form-check-inline me-2">
+                            <input class="form-check-input" type="radio" name="editorToggle" id="editorMarkdown" value="markdown">
+                            <label class="form-check-label" for="editorMarkdown">Markdown</label>
+                        </div>
                         <a href="<?php echo $faq ? 'faq.php?id=' . $faq['id'] : 'index.php'; ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
@@ -156,17 +184,6 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                                value="<?php echo $faq && !empty($faq['date_submitted']) ? date('Y-m-d', strtotime($faq['date_submitted'])) : ''; ?>">
                         <label for="date_submitted"><i class="fas fa-calendar-alt"></i> Date Submitted (optional)</label>
                     </div>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="tags" name="tags"
-                               value="<?php echo $initial_tags; ?>" placeholder="hull, submarine, boat, war">
-                        <label for="tags"><i class="fas fa-tags"></i> Tags (comma-separated)</label>
-                    </div>
-                    <small class="text-muted">Add, edit, or remove tags; separate each tag with a comma.</small>
                 </div>
             </div>
 
@@ -285,12 +302,19 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         const quill = new Quill('#quill-editor', {
             modules: {
                 toolbar: toolbarOptions,
+                table: true,
                 history: {
                     delay: 2000,
                     maxStack: 500,
                     userOnly: true
                 }
             },
+            formats: [
+                'header', 'bold', 'italic', 'underline', 'strike',
+                'list', 'bullet', 'link', 'image', 'video', 'formula',
+                'color', 'background', 'font', 'align', 'size',
+                'script', 'indent', 'direction', 'table'
+            ],
             placeholder: 'Enter your detailed FAQ answer here. Use the toolbar above to format your text...',
             theme: 'snow'
         });
@@ -303,18 +327,20 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         // Keep hidden question field in sync
         questionQuill.on('text-change', function() {
             document.getElementById('question').value = questionQuill.root.innerHTML;
+            saveLocalDraft();
         });
 
         // Load existing content if editing
-        const existingContent = document.getElementById('main_answer').value;
+        const existingContent = document.getElementById('main_answer').value || <?php echo json_encode($initial_answer); ?> || '';
         if (existingContent) {
-            quill.root.innerHTML = existingContent;
+            quill.clipboard.dangerouslyPasteHTML(normalizeTables(existingContent));
         }
 
         // Update hidden textarea when content changes
         quill.on('text-change', function() {
             document.getElementById('main_answer').value = quill.root.innerHTML;
             updateWordCount();
+            saveLocalDraft();
         });
 
         // Update word counts
@@ -323,6 +349,9 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             
             document.getElementById('mainAnswerCount').textContent = mainContent.trim() ? mainContent.trim().split(/\s+/).length : 0;
         }
+        
+        const faqId = <?php echo $faq ? (int)$faq['id'] : 'null'; ?>;
+        const draftKey = `faq_draft_${faqId || 'new'}`;
         
         // Preview content
         function previewContent() {
@@ -366,6 +395,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             .then(data => {
                 if (data.success) {
                     showStatus('Draft saved successfully!', 'success');
+                    clearLocalDraft();
                 } else {
                     showStatus('Error saving draft: ' + data.error, 'danger');
                 }
@@ -403,6 +433,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             if (questionText) {
                 document.getElementById('title-hidden').value = questionText;
             }
+            clearLocalDraft();
         });
         
         // Event listeners
@@ -427,7 +458,153 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             updateWordCount();
+            loadLocalDraft();
+
+            ['question', 'category_id', 'author', 'date_submitted'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', saveLocalDraft);
+                    el.addEventListener('change', saveLocalDraft);
+                }
+            });
+
+            // Restore from draft if available
+            const raw = localStorage.getItem(draftKey);
+            const switchPayloadRaw = sessionStorage.getItem('faq_switch_payload');
+            if (switchPayloadRaw) {
+                sessionStorage.removeItem('faq_switch_payload');
+            }
+            const combined = switchPayloadRaw ? JSON.parse(switchPayloadRaw) : (raw ? JSON.parse(raw) : null);
+            if (combined) {
+                try {
+                    if (combined.question && document.getElementById('question')) {
+                        document.getElementById('question').value = combined.question;
+                        questionQuill.root.innerHTML = combined.question;
+                    }
+                    if (combined.category_id && document.getElementById('category_id')) {
+                        document.getElementById('category_id').value = combined.category_id;
+                    }
+                    if (combined.author !== undefined && document.getElementById('author')) {
+                        document.getElementById('author').value = combined.author;
+                    }
+                    if (combined.date_submitted && document.getElementById('date_submitted')) {
+                        document.getElementById('date_submitted').value = combined.date_submitted;
+                    }
+                    if (combined.answer && document.getElementById('main_answer')) {
+                        document.getElementById('main_answer').value = combined.answer;
+                        // If the answer looks like Markdown (no HTML tags), render it to HTML before pasting
+                        if (combined.answer.indexOf('<') === -1) {
+                            renderMarkdownToHtml(combined.answer).then(html => {
+                                quill.clipboard.dangerouslyPasteHTML(normalizeTables(html));
+                                updateWordCount();
+                            }).catch(() => {
+                                quill.clipboard.dangerouslyPasteHTML(normalizeTables(combined.answer));
+                                updateWordCount();
+                            });
+                        } else {
+                            quill.clipboard.dangerouslyPasteHTML(normalizeTables(combined.answer));
+                            updateWordCount();
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to load combined draft/switch payload for FAQ', e);
+                }
+            }
+
+            // Editor toggle
+            document.querySelectorAll('input[name="editorToggle"]').forEach(r => {
+                r.addEventListener('change', function() {
+                    if (!this.checked) return;
+                    if (this.value === 'markdown') {
+                        saveLocalDraft();
+                        const targetUrl = 'edit-faq.php<?php echo $editorQuery; ?>';
+                        // allow storage write
+                        setTimeout(() => window.location.href = targetUrl, 50);
+                    }
+                });
+            });
         });
+
+        function saveLocalDraft() {
+            const draft = {
+                question: document.getElementById('question')?.value || '',
+                category_id: document.getElementById('category_id')?.value || '',
+                author: document.getElementById('author')?.value || '',
+                date_submitted: document.getElementById('date_submitted')?.value || '',
+                answer: document.getElementById('main_answer')?.value || '',
+                saved_at: new Date().toISOString()
+            };
+            localStorage.setItem(draftKey, JSON.stringify(draft));
+        }
+
+        function loadLocalDraft() {
+            const raw = localStorage.getItem(draftKey);
+            if (!raw) return;
+            try {
+                const draft = JSON.parse(raw);
+                if (draft.question && document.getElementById('question')) {
+                    document.getElementById('question').value = draft.question;
+                    questionQuill.root.innerHTML = draft.question;
+                }
+                if (draft.category_id && document.getElementById('category_id')) {
+                    document.getElementById('category_id').value = draft.category_id;
+                }
+                if (draft.author !== undefined && document.getElementById('author')) {
+                    document.getElementById('author').value = draft.author;
+                }
+                if (draft.date_submitted && document.getElementById('date_submitted')) {
+                    document.getElementById('date_submitted').value = draft.date_submitted;
+                }
+                if (draft.answer && document.getElementById('main_answer')) {
+                    document.getElementById('main_answer').value = draft.answer;
+                    quill.clipboard.dangerouslyPasteHTML(normalizeTables(draft.answer));
+                    updateWordCount();
+                }
+            } catch (e) {
+                console.warn('Failed to load local draft', e);
+            }
+        }
+
+        function clearLocalDraft() {
+            localStorage.removeItem(draftKey);
+        }
+
+        async function renderMarkdownToHtml(markdown) {
+            const response = await fetch('render-markdown.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'content=' + encodeURIComponent(markdown) + '&force_markdown=1'
+            });
+            return response.text();
+        }
+
+        // Normalize tables so Quill displays headers correctly
+        function normalizeTables(html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                doc.querySelectorAll('table').forEach(table => {
+                    const thead = table.querySelector('thead');
+                    const tbody = table.querySelector('tbody') || table.appendChild(doc.createElement('tbody'));
+                    if (thead) {
+                        const rows = Array.from(thead.querySelectorAll('tr'));
+                        rows.forEach((tr, idx) => {
+                            const newTr = doc.createElement('tr');
+                            tr.querySelectorAll('th,td').forEach(cell => {
+                                const td = doc.createElement('td');
+                                td.innerHTML = cell.innerHTML;
+                                newTr.appendChild(td);
+                            });
+                            tbody.insertBefore(newTr, tbody.firstChild);
+                        });
+                        thead.remove();
+                    }
+                });
+                return doc.body.innerHTML;
+            } catch (e) {
+                return html;
+            }
+        }
     </script>
 </body>
 </html>
