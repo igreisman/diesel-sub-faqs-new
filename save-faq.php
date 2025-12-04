@@ -47,6 +47,14 @@ try {
         'display_order' => $display_order
     ];
     
+    $returnUrl = '';
+    if (!empty($_POST['return_url'])) {
+        $candidate = trim($_POST['return_url']);
+        if ($candidate && !preg_match('/^https?:\\/\\//i', $candidate)) {
+            $returnUrl = $candidate;
+        }
+    }
+
     if ($faq_id > 0) {
         // Update existing FAQ
         $sql = "UPDATE faqs SET 
@@ -66,7 +74,11 @@ try {
         if ($stmt->execute($data)) {
             // If it's not a draft save via AJAX, redirect to the FAQ page
             if (!$is_draft) {
-                header("Location: faq.php?id={$faq_id}&updated=1");
+                if ($returnUrl) {
+                    header("Location: {$returnUrl}");
+                } else {
+                    header("Location: faq.php?id={$faq_id}&updated=1");
+                }
                 exit;
             }
             
@@ -91,7 +103,11 @@ try {
             
             // If it's not a draft save via AJAX, redirect to the new FAQ page
             if (!$is_draft) {
-                header("Location: faq.php?id={$new_id}&created=1");
+                if ($returnUrl) {
+                    header("Location: {$returnUrl}");
+                } else {
+                    header("Location: faq.php?id={$new_id}&created=1");
+                }
                 exit;
             }
             

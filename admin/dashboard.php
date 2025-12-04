@@ -85,7 +85,7 @@ try {
                                 <i class="fas fa-comments"></i>
                                 <span>Feedback</span>
                             </a>
-                            <a href="manage-contributions.php" class="btn btn-outline-primary btn-lg quick-action-btn">
+                            <a href="manage-contributions.php" class="btn btn-primary btn-lg quick-action-btn">
                                 <i class="fas fa-hands-helping"></i>
                                 <span>Contributors</span>
                             </a>

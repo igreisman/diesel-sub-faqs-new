@@ -88,7 +88,12 @@ function category_icon_fallback($name, $icon) {
             </div>
 
             <!-- Category name below breadcrumb -->
-            <h1 class="mb-4"><?php echo htmlspecialchars($category['name']); ?></h1>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <h1 class="mb-0"><?php echo htmlspecialchars($category['name']); ?></h1>
+                <a href="edit-faq-wysiwyg.php?category_id=<?php echo (int)$category['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Add FAQ to this Category
+                </a>
+            </div>
 
             <?php if (empty($faqs)): ?>
                 <div class="alert alert-info">
@@ -173,6 +178,20 @@ function category_icon_fallback($name, $icon) {
                                             <i class="fas fa-copy"></i> Copy Link
                                         </button>
                                     </div>
+                                    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+                                        <div class="faq-actions mt-2">
+                                            <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form method="POST" action="admin/manage-faqs.php" class="d-inline" onsubmit="return confirm('Delete this FAQ? This cannot be undone.');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="faq_id" value="<?php echo $faq['id']; ?>">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </li>

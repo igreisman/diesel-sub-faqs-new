@@ -5,6 +5,7 @@ require_once 'includes/markdown-helper.php';
 
 $faq_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $preset_category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$return_url = isset($_GET['return']) ? trim($_GET['return']) : '';
 $faq = null;
 $display_title = '';
 
@@ -147,6 +148,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             <?php endif; ?>
             <input type="hidden" name="display_order" value="<?php echo $display_order_value; ?>">
             <input type="hidden" id="title-hidden" name="title" value="<?php echo $initial_title; ?>">
+            <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($return_url, ENT_QUOTES, 'UTF-8'); ?>">
             
             <div class="row mb-3">
                 <div class="col-md-4">
