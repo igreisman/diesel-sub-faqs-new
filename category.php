@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 600;
 }
 .glossary-term {
-    border-bottom: 2px solid #000;
+    border-bottom: 2px dotted #c00;
     cursor: help;
     color: inherit;
 }

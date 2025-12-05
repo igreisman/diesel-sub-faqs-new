@@ -31,6 +31,17 @@ try {
     
     $stmt = $pdo->query("SELECT SUM(view_count) as total FROM faqs");
     $totalViews = $stmt->fetch()['total'] ?? 0;
+
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM faq_contributions");
+    $totalContributors = $stmt->fetch()['count'];
+
+    // Glossary count (table may not exist on older installs)
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM glossary");
+        $totalGlossary = $stmt->fetch()['count'];
+    } catch (Exception $e) {
+        $totalGlossary = 0;
+    }
     
     // Recent FAQs
     $stmt = $pdo->query("SELECT id, title, created_at, view_count FROM faqs ORDER BY created_at DESC LIMIT 5");
@@ -67,33 +78,37 @@ try {
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="quick-actions">
-                                    <a href="manage-faqs.php" class="btn btn-success btn-lg quick-action-btn">
-                                        <i class="fas fa-list"></i>
-                                        <span>FAQs (<?php echo number_format($totalFaqs); ?>)</span>
-                                    </a>
-                                    <a href="manage-categories.php" class="btn btn-info btn-lg quick-action-btn">
-                                        <i class="fas fa-folder-open"></i>
-                                        <span>Categories (<?php echo number_format($totalCategories); ?>)</span>
-                                    </a>
-                            <a href="feedback-review.php" class="btn btn-warning btn-lg quick-action-btn">
-                                <i class="fas fa-comments"></i>
-                                <span>Feedback<?php echo isset($pendingFeedback) ? ' (' . number_format($pendingFeedback) . ' open)' : ''; ?></span>
-                            </a>
-                            <a href="manage-contributions.php" class="btn btn-primary btn-lg quick-action-btn">
-                                <i class="fas fa-hands-helping"></i>
-                                <span>Contributors</span>
-                            </a>
-                        </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <a href="manage-faqs.php" class="btn btn-success btn-lg quick-action-btn">
+                            <i class="fas fa-list"></i>
+                            <span>FAQs (<?php echo number_format($totalFaqs); ?>)</span>
+                        </a>
+                        <a href="manage-categories.php" class="btn btn-info btn-lg quick-action-btn">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Categories (<?php echo number_format($totalCategories); ?>)</span>
+                        </a>
+                        <a href="feedback-review.php" class="btn btn-warning btn-lg quick-action-btn">
+                            <i class="fas fa-comments"></i>
+                            <span>Feedback<?php echo isset($pendingFeedback) ? ' (' . number_format($pendingFeedback) . ')' : ''; ?></span>
+                        </a>
+                        <a href="manage-contributions.php" class="btn btn-primary btn-lg quick-action-btn">
+                            <i class="fas fa-hands-helping"></i>
+                            <span>Contributors (<?php echo number_format($totalContributors ?? 0); ?>)</span>
+                        </a>
+                        <a href="../glossary-admin.php" class="btn btn-secondary btn-lg quick-action-btn">
+                            <i class="fas fa-book"></i>
+                            <span>Glossary (<?php echo number_format($totalGlossary ?? 0); ?>)</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
     <div class="row">
         <!-- Recent FAQs -->

@@ -130,8 +130,8 @@ require_once 'includes/header.php';
                         <thead class="table-light">
                             <tr>
                                 <th style="width: 25%;">Term</th>
-                                <th>Definition (preview)</th>
-                                <th class="text-end" style="width: 140px;">Actions</th>
+                                <th>Definition</th>
+                                <th class="text-center" style="width: 140px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,17 +141,19 @@ require_once 'includes/header.php';
                                     <td class="text-muted">
                                         <?php echo htmlspecialchars(mb_strimwidth(strip_tags($item['definition']), 0, 120, '...')); ?>
                                     </td>
-                                    <td class="text-end">
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="loadGlossaryItem(<?php echo (int)$item['id']; ?>)" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form method="POST" action="" class="d-inline" onsubmit="return confirm('Delete this glossary term?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="glossary_id" value="<?php echo (int)$item['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="fas fa-trash-alt"></i>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadGlossaryItem(<?php echo (int)$item['id']; ?>)" title="Edit">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form method="POST" action="" class="d-inline" onsubmit="return confirm('Delete this glossary term?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="glossary_id" value="<?php echo (int)$item['id']; ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
