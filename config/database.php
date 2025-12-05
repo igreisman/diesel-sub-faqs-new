@@ -1,10 +1,20 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Database configuration
-define('DB_HOST', $_ENV['MYSQLHOST'] ?? 'localhost');
-define('DB_PORT', $_ENV['MYSQLPORT'] ?? '3306');
-define('DB_USERNAME', $_ENV['MYSQLUSER'] ?? 'dieselsu_dbuser');
-define('DB_PASSWORD', $_ENV['MYSQLPASSWORD'] ?? 'codjuw-xojWo6-datqem');
-define('DB_NAME', $_ENV['MYSQLDATABASE'] ?? 'dieselsu_faqs');
+define('DB_HOST', '127.0.0.1'); // force TCP to avoid local socket permission issues
+define('DB_PORT', '3306');
+define('DB_USERNAME', 'dieselsu_dbuser');
+define('DB_PASSWORD', 'codjuw-xojWo6-datqem');
+define('DB_NAME', 'dieselsu_faqs'); // force the correct DB locally
+
+// Database configuration
+// define('DB_HOST', $_ENV['MYSQLHOST'] ?? 'localhost');
+// define('DB_PORT', $_ENV['MYSQLPORT'] ?? '3306');
+// define('DB_USERNAME', $_ENV['MYSQLUSER'] ?? 'dieselsu_dbuser');
+// define('DB_PASSWORD', $_ENV['MYSQLPASSWORD'] ?? 'codjuw-xojWo6-datqem');
+// define('DB_NAME', $_ENV['MYSQLDATABASE'] ?? 'dieselsu_faqs');
 define('DB_CHARSET', 'utf8mb4');
 // define('DB_USERNAME', $_ENV['MYSQLUSER'] ?? 'dieselsu_user_faqs');
 // define('DB_PASSWORD', $_ENV['MYSQLPASSWORD'] ?? 'qipCu9-ramwos-bubfoq');
@@ -28,7 +38,7 @@ try {
     );
 } catch (PDOException $e) {
     error_log("Database connection failed: " . $e->getMessage());
-    die("Database connection failed. Please check your configuration.");
+    die("Database connection failed. Please check your configuration.<br>" . htmlspecialchars($e->getMessage()));
 }
 
 // Session configuration - only start if not already active

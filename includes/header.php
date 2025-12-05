@@ -46,10 +46,14 @@ if (empty($navCategories)) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
+                        <a class="nav-link" href="/index.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.php">About</a>
+                        <?php $isAdmin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true; ?>
+                        <a class="nav-link" href="<?php echo $isAdmin ? '/glossary-admin.php' : '/glossary.php'; ?>">Glossary</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about.php">About</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="feedbackDropdown" role="button" data-bs-toggle="dropdown">

@@ -83,7 +83,7 @@ try {
                                     </a>
                             <a href="feedback-review.php" class="btn btn-warning btn-lg quick-action-btn">
                                 <i class="fas fa-comments"></i>
-                                <span>Feedback</span>
+                                <span>Feedback<?php echo isset($pendingFeedback) ? ' (' . number_format($pendingFeedback) . ' open)' : ''; ?></span>
                             </a>
                             <a href="manage-contributions.php" class="btn btn-primary btn-lg quick-action-btn">
                                 <i class="fas fa-hands-helping"></i>
