@@ -54,6 +54,15 @@ try {
     ");
     $contrib_stmt->execute([$faq['id']]);
     $contributions = $contrib_stmt->fetchAll();
+
+    // Get glossary terms for tooltip highlighting
+    $glossary_terms = [];
+    try {
+        $gStmt = $pdo->query("SELECT term, definition FROM glossary");
+        $glossary_terms = $gStmt->fetchAll();
+    } catch (Exception $e) {
+        $glossary_terms = [];
+    }
     
 } catch (Exception $e) {
     header('Location: index.php');
@@ -71,6 +80,14 @@ require_once 'includes/header.php';
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+}
+.glossary-term {
+    border-bottom: 2px dotted #c00;
+    cursor: help;
+    color: inherit;
+}
+.glossary-term[data-bs-toggle="tooltip"]::after {
+    content: '';
 }
 </style>
 <?php
@@ -404,6 +421,96 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+
+<script>
+    // Glossary highlighting with tooltips in FAQ answer
+    function initGlossaryTooltipsFaq() {
+        const glossary = <?php echo json_encode($glossary_terms, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+        if (!glossary || !glossary.length) return;
+
+        const patterns = glossary.map(({term, definition}) => {
+            const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return {
+                term,
+                definition,
+                regex: new RegExp(`\\b${esc}\\b`, 'gi')
+            };
+        });
+
+        const containers = document.querySelectorAll('#faq-content');
+        const walkerOptions = {
+            acceptNode(node) {
+                if (node.parentNode && node.parentNode.classList && node.parentNode.classList.contains('glossary-term')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        };
+
+        function highlightTextNode(textNode) {
+            const text = textNode.nodeValue;
+            let cursor = 0;
+            const frag = document.createDocumentFragment();
+            let changed = false;
+
+            while (cursor < text.length) {
+                let earliest = null;
+                let earliestPattern = null;
+
+                for (const p of patterns) {
+                    p.regex.lastIndex = cursor;
+                    const m = p.regex.exec(text);
+                    if (m && (earliest === null || m.index < earliest.index)) {
+                        earliest = m;
+                        earliestPattern = p;
+                    }
+                }
+
+                if (!earliest) break;
+
+                if (earliest.index > cursor) {
+                    frag.appendChild(document.createTextNode(text.slice(cursor, earliest.index)));
+                }
+
+                const span = document.createElement('span');
+                span.className = 'glossary-term';
+                span.textContent = earliest[0];
+                span.setAttribute('data-bs-toggle', 'tooltip');
+                span.setAttribute('title', earliestPattern.definition);
+                frag.appendChild(span);
+
+                cursor = earliest.index + earliest[0].length;
+                changed = true;
+            }
+
+            if (changed) {
+                if (cursor < text.length) {
+                    frag.appendChild(document.createTextNode(text.slice(cursor)));
+                }
+                textNode.parentNode.replaceChild(frag, textNode);
+            }
+        }
+
+        containers.forEach(container => {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, walkerOptions);
+            const nodes = [];
+            let node;
+            while ((node = walker.nextNode())) {
+                nodes.push(node);
+            }
+            nodes.forEach(highlightTextNode);
+        });
+
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(el => {
+            if (window.bootstrap && window.bootstrap.Tooltip) {
+                new bootstrap.Tooltip(el);
+            }
+        });
+    }
+
+    window.addEventListener('load', initGlossaryTooltipsFaq);
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
