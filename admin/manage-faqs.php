@@ -104,7 +104,7 @@ $sql = "
     FROM faqs f 
     LEFT JOIN categories c ON f.category_id = c.id 
     $whereClause 
-    ORDER BY f.created_at DESC
+    ORDER BY f.display_order ASC, f.featured DESC, f.title ASC
 ";
 
 $stmt = $pdo->prepare($sql);
