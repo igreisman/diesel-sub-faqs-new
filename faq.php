@@ -83,8 +83,9 @@ require_once 'includes/header.php';
 }
 .glossary-term {
     border-bottom: 2px dotted #c00;
-    cursor: help;
+    cursor: pointer;
     color: inherit;
+    text-decoration: none !important;
 }
 .glossary-term[data-bs-toggle="tooltip"]::after {
     content: '';
