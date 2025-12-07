@@ -220,21 +220,22 @@ function category_icon_fallback($name, $icon) {
 
 <script>
 // Category search functionality
-document.getElementById('category-search').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const faqItems = document.querySelectorAll('.faq-item');
-    
-    faqItems.forEach(item => {
-        const title = item.querySelector('.btn-link').textContent.toLowerCase();
-        const content = item.querySelector('.faq-content').textContent.toLowerCase();
-        
-        if (title.includes(searchTerm) || content.includes(searchTerm)) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
+(function() {
+    const searchInput = document.getElementById('category-search');
+    if (!searchInput) return;
+    searchInput.addEventListener('input', function() {
+        const term = this.value.trim().toLowerCase();
+        const items = document.querySelectorAll('.faqs-list .faq-row');
+        items.forEach(item => {
+            const titleEl = item.querySelector('.faq-question');
+            const contentEl = item.querySelector('.faq-content');
+            const title = titleEl ? titleEl.textContent.toLowerCase() : '';
+            const content = contentEl ? contentEl.textContent.toLowerCase() : '';
+            const match = term === '' || title.includes(term) || content.includes(term);
+            item.style.display = match ? '' : 'none';
+        });
     });
-});
+})();
 
 // Copy link functionality
 function copyLink(faqId) {
