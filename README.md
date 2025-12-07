@@ -90,7 +90,7 @@ docker compose down           # stop containers
 ```
 
 - App: http://127.0.0.1:8080
-- DB: mysql host `db`, user `submarine_user`, password `submarine2024!`, db `submarine_faqs` (schema auto-loaded from `database/schema.sql`).
+- DB: mysql host `db`, user `dieselsu_dbuser`, password `codjuw-xojWo6-datqem`, db `dieselsu_faqs` (schema auto-loaded from `database/schema.sql`).
 
 ## Content Organization
 

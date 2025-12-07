@@ -80,6 +80,7 @@ if (empty($navCategories)) {
                             Admin
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/release-checklist.php"><i class="fas fa-clipboard-check"></i> Release Checklist</a></li>
                             <li><a class="dropdown-item" href="/admin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>
                     </li>

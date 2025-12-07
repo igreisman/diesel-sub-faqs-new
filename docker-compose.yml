@@ -14,9 +14,9 @@ services:
       # These align with config/database.php fallbacks
       MYSQLHOST: db
       MYSQLPORT: 3306
-      MYSQLUSER: submarine_user
-      MYSQLPASSWORD: submarine2024!
-      MYSQLDATABASE: submarine_faqs
+      MYSQLUSER: dieselsu_dbuser
+      MYSQLPASSWORD: codjuw-xojWo6-datqem
+      MYSQLDATABASE: dieselsu_faqs
     depends_on:
       - db
   phpmyadmin:
@@ -28,8 +28,8 @@ services:
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: submarine_user
-      PMA_PASSWORD: submarine2024!
+      PMA_USER: dieselsu_dbuser
+      PMA_PASSWORD: codjuw-xojWo6-datqem
     depends_on:
       - db
 
@@ -40,9 +40,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: submarine_faqs
-      MYSQL_USER: submarine_user
-      MYSQL_PASSWORD: submarine2024!
+      MYSQL_DATABASE: dieselsu_faqs
+      MYSQL_USER: dieselsu_dbuser
+      MYSQL_PASSWORD: codjuw-xojWo6-datqem
     volumes:
       - db_data:/var/lib/mysql
     ports:
