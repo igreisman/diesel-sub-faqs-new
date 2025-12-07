@@ -6,6 +6,9 @@ require_once 'includes/markdown-helper.php';
 $faq_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $preset_category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 $return_url = isset($_GET['return']) ? trim($_GET['return']) : '';
+if ($return_url === '' && isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    $return_url = '/admin/manage-faqs.php';
+}
 $faq = null;
 $editorQuery = '';
 
@@ -76,7 +79,7 @@ if ($faq_id > 0) {
                             <input class="form-check-input" type="radio" name="editorToggle" id="editorMarkdown" value="markdown" checked>
                             <label class="form-check-label" for="editorMarkdown">Markdown</label>
                         </div>
-                        <a href="<?php echo $faq ? 'faq.php?id=' . $faq['id'] : 'index.php'; ?>" class="btn btn-outline-secondary">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
@@ -164,11 +167,11 @@ if ($faq_id > 0) {
                 <div class="col-12">
                     <div class="d-flex justify-content-end">
                         <div>
-                            <button type="button" class="btn btn-outline-secondary me-2" onclick="saveDraft()">
-                                <i class="fas fa-save"></i> Save Draft
-                            </button>
+                            <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary me-2">
+                                Cancel
+                            </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check"></i> <?php echo $faq ? 'Update FAQ' : 'Create FAQ'; ?>
+                                <i class="fas fa-check"></i> <?php echo $faq ? 'Update' : 'Create FAQ'; ?>
                             </button>
                         </div>
                     </div>

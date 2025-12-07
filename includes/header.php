@@ -73,6 +73,18 @@ if (empty($navCategories)) {
                         </ul>
                     </li>
                 </ul>
+                <?php if ($isAdmin): ?>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                            Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <?php endif; ?>
             </div>
         </div>
     </nav>

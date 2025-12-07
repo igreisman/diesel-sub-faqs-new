@@ -59,14 +59,6 @@ try {
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
-        <div>
-            <a href="../index.php" class="btn btn-outline-primary me-2" target="_blank">
-                <i class="fas fa-external-link-alt"></i> View Site
-            </a>
-            <a href="logout.php" class="btn btn-outline-danger">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
     </div>
 
     <?php if (isset($error)): ?>

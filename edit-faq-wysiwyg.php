@@ -6,6 +6,9 @@ require_once 'includes/markdown-helper.php';
 $faq_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $preset_category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 $return_url = isset($_GET['return']) ? trim($_GET['return']) : '';
+if ($return_url === '' && isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    $return_url = '/admin/manage-faqs.php';
+}
 $faq = null;
 $display_title = '';
 
@@ -134,7 +137,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                             <input class="form-check-input" type="radio" name="editorToggle" id="editorMarkdown" value="markdown">
                             <label class="form-check-label" for="editorMarkdown">Markdown</label>
                         </div>
-                        <a href="<?php echo $faq ? 'faq.php?id=' . $faq['id'] : 'index.php'; ?>" class="btn btn-outline-secondary">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
@@ -218,43 +221,19 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
 
             <div class="row mt-4 mb-5">
                 <div class="col-12">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <button type="button" class="btn btn-outline-info me-2" onclick="previewContent()">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary me-2" onclick="saveDraft()">
-                                <i class="fas fa-save"></i> Save Draft
-                            </button>
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check"></i> <?php echo $faq ? 'Update FAQ' : 'Create FAQ'; ?>
-                            </button>
-                        </div>
+                    <div class="d-flex justify-content-end align-items-center gap-2">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> <?php echo $faq ? 'Update' : 'Create FAQ'; ?>
+                        </button>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 
-    <!-- Preview Modal -->
-    <div class="modal fade" id="previewModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">FAQ Preview</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="previewContent">
-                    <!-- Preview content will be loaded here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Status Indicator -->
     <div id="statusIndicator" class="status-indicator"></div>
@@ -355,58 +334,6 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         const faqId = <?php echo $faq ? (int)$faq['id'] : 'null'; ?>;
         const draftKey = `faq_draft_${faqId || 'new'}`;
         
-        // Preview content
-        function previewContent() {
-            const title = document.getElementById('title').value;
-            const question = document.getElementById('question').value;
-            const mainContent = quill.root.innerHTML;
-            
-            const previewHtml = `
-                <div class="faq-preview">
-                    <h2>${title || 'Untitled FAQ'}</h2>
-                    <div class="alert alert-primary">
-                        <h5><i class="fas fa-question-circle"></i> ${question || 'No question entered'}</h5>
-                    </div>
-                    <div class="answer-content">
-                        ${mainContent || '<p class="text-muted">No detailed answer entered</p>'}
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('previewContent').innerHTML = previewHtml;
-            new bootstrap.Modal(document.getElementById('previewModal')).show();
-        }
-        
-        // Save draft
-        function saveDraft() {
-            showStatus('Saving draft...', 'info');
-            
-            // Update hidden textarea with current Quill content
-            document.getElementById('question').value = questionQuill.root.innerHTML;
-            document.getElementById('main_answer').value = quill.root.innerHTML;
-            document.getElementById('title-hidden').value = questionQuill.getText().trim() || document.getElementById('title-hidden').value;
-            
-            const formData = new FormData(document.getElementById('faqForm'));
-            formData.append('save_draft', '1');
-            
-            fetch('save-faq-wysiwyg.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showStatus('Draft saved successfully!', 'success');
-                    clearLocalDraft();
-                } else {
-                    showStatus('Error saving draft: ' + data.error, 'danger');
-                }
-            })
-            .catch(error => {
-                showStatus('Error saving draft: ' + error.message, 'danger');
-            });
-        }
-        
         // Show status messages
         function showStatus(message, type) {
             const indicator = document.getElementById('statusIndicator');
@@ -447,11 +374,9 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                 switch(e.key) {
                     case 's':
                         e.preventDefault();
-                        saveDraft();
                         break;
                     case 'p':
                         e.preventDefault();
-                        previewContent();
                         break;
                 }
             }
@@ -527,6 +452,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             });
         });
 
+        // Draft helpers (kept for editor switching)
         function saveLocalDraft() {
             const draft = {
                 question: document.getElementById('question')?.value || '',
