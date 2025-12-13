@@ -34,6 +34,9 @@ RewriteRule ^category/([^/]+)/?$ category.php?cat=$1 [L,QSA]
 RewriteRule ^faq/([0-9]+)/?$ faq.php?id=$1 [L,QSA]
 RewriteRule ^faq/([^/]+)/?$ faq.php?slug=$1 [L,QSA]
 
+# Redirect raw Markdown welcome page to styled HTML version
+RewriteRule ^welcome\.md$ /welcome.html [L,R=302]
+
 # Deny access to sensitive files
 <Files "config/database.php">
     Order Allow,Deny
@@ -85,3 +88,5 @@ Options -Indexes
 
 # Set default character set
 AddDefaultCharset UTF-8
+AddType text/markdown; charset=UTF-8 .md
+AddCharset UTF-8 .md

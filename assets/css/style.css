@@ -156,6 +156,41 @@ body {
   border-spacing: 8px 4px;
 }
 
+/* Rendered FAQ table borders */
+.faq-content table,
+.answer-content table {
+  border-collapse: collapse;
+  width: auto;
+  margin: 1rem 0;
+}
+.faq-content th,
+.faq-content td,
+.answer-content th,
+.answer-content td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+}
+.faq-content th,
+.answer-content th {
+  background: #f6f6f6;
+  font-weight: 600;
+}
+
+/* WYSIWYG table borders */
+.ql-editor table {
+  border-collapse: collapse;
+  width: auto;
+}
+.ql-editor th,
+.ql-editor td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+}
+.ql-editor th {
+  background: #f6f6f6;
+  font-weight: 600;
+}
+
 /* Search Styles */
 .category-search input {
   border-radius: 2rem;
