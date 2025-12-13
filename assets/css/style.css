@@ -175,6 +175,12 @@ body {
   background: #f6f6f6;
   font-weight: 600;
 }
+.faq-content table tr:first-child th,
+.faq-content table tr:first-child td,
+.answer-content table tr:first-child th,
+.answer-content table tr:first-child td {
+  background: #e6f2ff;
+}
 
 /* WYSIWYG table borders */
 .ql-editor table {
