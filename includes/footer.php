@@ -13,7 +13,6 @@
                         <li><a href="index.php" class="text-light">Home</a></li>
                         <li><a href="search.php" class="text-light">Search</a></li>
                         <li><a href="about.php" class="text-light">About</a></li>
-                        <li><a href="contact.php" class="text-light">Contact</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">

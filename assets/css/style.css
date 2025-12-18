@@ -152,34 +152,68 @@ body {
   margin-right: 0.5rem;
 }
 .md-table {
-  border-collapse: separate;
-  border-spacing: 8px 4px;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
 }
 
 /* Rendered FAQ table borders */
 .faq-content table,
 .answer-content table {
   border-collapse: collapse;
-  width: auto;
+  width: 100%;
   margin: 1rem 0;
+}
+.faq-content,
+.answer-content {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .faq-content th,
 .faq-content td,
 .answer-content th,
 .answer-content td {
-  border: 1px solid #ccc;
+  border: 1px solid #bcd6f2;
+  padding: 6px 10px;
+}
+.md-table th,
+.md-table td {
+  border: 1px solid #bcd6f2;
   padding: 6px 10px;
 }
 .faq-content th,
 .answer-content th {
-  background: #f6f6f6;
+  background: #e6f2ff;
   font-weight: 600;
 }
+.md-table th {
+  background: #e6f2ff;
+  font-weight: 600;
+}
+/* Keep header row aligned with new light-blue styling */
 .faq-content table tr:first-child th,
 .faq-content table tr:first-child td,
 .answer-content table tr:first-child th,
 .answer-content table tr:first-child td {
   background: #e6f2ff;
+}
+.md-table tr:first-child th,
+.md-table tr:first-child td {
+  background: #e6f2ff;
+}
+
+/* Enforce table header styling across FAQ/answer content */
+.faq-content th,
+.answer-content th {
+  background: #e6f2ff !important; /* light blue */
+  border: 1px solid #bcd6f2;
+}
+.faq-content tr:first-child th,
+.faq-content tr:first-child td,
+.answer-content tr:first-child th,
+.answer-content tr:first-child td {
+  background: #e6f2ff !important;
+  font-weight: 600;
 }
 
 /* WYSIWYG table borders */

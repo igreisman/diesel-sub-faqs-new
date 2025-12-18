@@ -33,8 +33,26 @@ try {
     $faq = $stmt->fetch();
     
     if (!$faq) {
+        // Fallback: if a static HTML exists for this slug, redirect to it in static view
+        if ($faq_slug) {
+            $categoriesDir = __DIR__ . '/categories';
+            $it = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($categoriesDir, FilesystemIterator::SKIP_DOTS)
+            );
+            foreach ($it as $file) {
+                if ($file->isFile() && $file->getExtension() === 'html') {
+                    if ($file->getBasename('.html') === $faq_slug) {
+                        $relPath = str_replace(__DIR__, '', $file->getPathname());
+                        $relPath = str_replace(DIRECTORY_SEPARATOR, '/', $relPath);
+                        header('Location: ' . $relPath . '?view=static', true, 302);
+                        exit;
+                    }
+                }
+            }
+        }
+
         header('HTTP/1.0 404 Not Found');
-        include '404.php';
+        require __DIR__ . '/404.php';
         exit;
     }
     
@@ -89,6 +107,11 @@ require_once 'includes/header.php';
 }
 .glossary-term[data-bs-toggle="tooltip"]::after {
     content: '';
+}
+.tooltip-inner {
+    white-space: normal;
+    max-width: 280px;
+    text-align: left;
 }
 </style>
 <?php
@@ -430,11 +453,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const glossary = <?php echo json_encode($glossary_terms, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
         if (!glossary || !glossary.length) return;
 
+        const sanitizeTooltip = (text) => {
+            return String(text || '')
+                .replace(/<[^>]+>/g, ' ')   // strip HTML/markdown tags
+                .replace(/\s+/g, ' ')       // collapse whitespace
+                .trim();
+        };
+
         const patterns = glossary.map(({term, definition}) => {
             const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             return {
                 term,
-                definition,
+                definition: sanitizeTooltip(definition),
                 regex: new RegExp(`\\b${esc}\\b`, 'gi')
             };
         });
@@ -474,12 +504,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     frag.appendChild(document.createTextNode(text.slice(cursor, earliest.index)));
                 }
 
-                const span = document.createElement('span');
-                span.className = 'glossary-term';
-                span.textContent = earliest[0];
-                span.setAttribute('data-bs-toggle', 'tooltip');
-                span.setAttribute('title', earliestPattern.definition);
-                frag.appendChild(span);
+                // Only highlight the first occurrence of each term
+                if (!earliestPattern._used) {
+                    earliestPattern._used = true;
+                    const span = document.createElement('span');
+                    span.className = 'glossary-term';
+                    span.textContent = earliest[0];
+                    span.setAttribute('data-bs-toggle', 'tooltip');
+                    span.setAttribute('title', earliestPattern.definition);
+                    frag.appendChild(span);
+                } else {
+                    frag.appendChild(document.createTextNode(earliest[0]));
+                }
 
                 cursor = earliest.index + earliest[0].length;
                 changed = true;

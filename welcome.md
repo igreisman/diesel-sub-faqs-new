@@ -32,9 +32,9 @@ Here’s how to get started:
 
 - **Just curious?**  
   Jump to a few short, easy reads:
-  - [Life Aboard a WWII Submarine](#)  
-  - [How Did They Sleep, Eat, and Shower?](#)  
-  - [What Did Submarines Actually Do in the War?](#)
+- [How Different Are Modern Submarines?](/faq/how-different-are-modern-submarines)  
+- [Where Do the Torpedoes Come Out?](/faq/where-do-the-torpedoes-come-out)  
+- [Why So Many Doorways to Go Through?](/faq/why-are-there-so-many-doorways-to-go-through)  
 
 - **Saw a specific TikTok?**  
   Look for a link in the video description, or browse:
@@ -86,7 +86,7 @@ Choose your own path:
 
 If a TikTok video (or a visit to a museum sub) sparked a question we haven’t answered yet, we’d love to hear it:
 
-- 👉 [Send us a question or suggestion](#)
+- 👉 [Send us a question or suggestion](feedback.php)
 
 Your questions help us decide what to cover next — both here and in future videos.
 
