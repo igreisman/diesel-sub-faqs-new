@@ -81,7 +81,6 @@ function displaySearchResults(data, container) {
                         <div>
                             <h6><a href="faq.php?id=${result.id}">${result.title}</a></h6>
                             <p class="mb-1 text-muted">${result.excerpt}</p>
-                            <small class="text-muted">Category: ${category}</small>
                         </div>
                         <small class="text-muted">${result.views} views</small>
                     </div>

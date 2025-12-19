@@ -1,11 +1,28 @@
 <?php
+// Check if this is the user's first visit
+if (!isset($_COOKIE['visited']) && !isset($_GET['skip_welcome'])) {
+    header('Location: welcome.html');
+    exit();
+}
+
+// Set cookie for future visits (expires in 1 year)
+if (!isset($_COOKIE['visited'])) {
+    setcookie('visited', '1', time() + (365 * 24 * 60 * 60), '/');
+}
+
 require_once 'config/database.php';
 require_once 'includes/header.php';
 
-// Load categories ordered by sort_order
+// Load categories ordered by sort_order with FAQ counts
 $categoryCards = [];
 try {
-    $stmt = $pdo->query("SELECT name, description, icon FROM categories ORDER BY sort_order ASC, name ASC");
+    $stmt = $pdo->query("
+        SELECT c.id, c.name, c.description, c.icon, COUNT(f.id) as faq_count
+        FROM categories c
+        LEFT JOIN faqs f ON c.id = f.category_id
+        GROUP BY c.id, c.name, c.description, c.icon
+        ORDER BY c.sort_order ASC, c.name ASC
+    ");
     $categoryCards = $stmt->fetchAll();
 } catch (Exception $e) {
     $categoryCards = [];
@@ -67,6 +84,7 @@ if (empty($categoryCards)) {
                             <h5 class="card-title">
                                 <i class="<?php echo htmlspecialchars(category_icon_fallback($cat['name'], $cat['icon'] ?? '')); ?>"></i>
                                 <?php echo htmlspecialchars($cat['name']); ?>
+                                <small class="text-muted">(<?php echo isset($cat['faq_count']) ? $cat['faq_count'] : 0; ?>)</small>
                             </h5>
                             <a href="category.php?cat=<?php echo urlencode($cat['name']); ?>" class="btn btn-primary">
                                 Explore FAQs
@@ -157,7 +175,6 @@ function loadRecentQuestions() {
                     if (question.category && question.category !== 'undefined') {
                         html += `<li class="list-group-item">
                             <a href="faq.php?id=${question.id}">${question.title}</a>
-                            <small class="text-muted d-block">Category: ${question.category}</small>
                         </li>`;
                     }
                 });

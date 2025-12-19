@@ -1,6 +1,9 @@
 # Apache configuration for Submarine FAQ site
 RewriteEngine On
 
+# Set index.php as the default directory index
+DirectoryIndex index.php index.html
+
 # ========================================
 # UNDER CONSTRUCTION MODE
 # ========================================

@@ -135,7 +135,7 @@ require_once 'includes/header.php';
                         <a href="index.php" class="btn btn-primary me-3">
                             <i class="fas fa-home"></i> Return to Home
                         </a>
-                        <a href="search.php" class="btn btn-outline-primary">
+                        <a href="index.php#search-input" class="btn btn-outline-primary">
                             <i class="fas fa-search"></i> Search FAQs
                         </a>
                     </div>

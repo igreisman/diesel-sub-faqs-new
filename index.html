@@ -2,13 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=index.php">
   <title>Redirecting…</title>
   <script>
-    window.location.href = 'index.php';
+    // Check if user has visited before
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    
+    // Redirect to welcome page for first-time visitors, otherwise to main site
+    if (!getCookie('visited')) {
+      window.location.href = 'welcome.html';
+    } else {
+      window.location.href = 'index.php';
+    }
   </script>
 </head>
 <body>
-  <p>If you are not redirected automatically, <a href="index.php">click here</a>.</p>
+  <p>If you are not redirected automatically, <a href="welcome.html">click here</a>.</p>
 </body>
 </html>

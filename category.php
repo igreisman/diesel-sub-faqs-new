@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'config/database.php';
 require_once 'includes/markdown-helper.php';
 
@@ -99,9 +100,11 @@ function category_icon_fallback($name, $icon) {
             <!-- Category name below breadcrumb -->
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <h1 class="mb-0"><?php echo htmlspecialchars($category['name']); ?></h1>
+                <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
                 <a href="edit-faq-wysiwyg.php?category_id=<?php echo (int)$category['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-primary">
                     <i class="fas fa-plus-circle"></i> Add FAQ to this Category
                 </a>
+                <?php endif; ?>
             </div>
 
             <?php if (empty($faqs)): ?>

@@ -3,25 +3,16 @@
     <footer class="bg-dark text-light mt-5 py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <h5><?php echo SITE_NAME; ?></h5>
                     <p>A comprehensive resource for diesel-electric submarine information, with detailed focus on World War II US submarines.</p>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <h6>Quick Links</h6>
                     <ul class="list-unstyled">
                         <li><a href="index.php" class="text-light">Home</a></li>
                         <li><a href="search.php" class="text-light">Search</a></li>
                         <li><a href="about.php" class="text-light">About</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h6>Categories</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="category.php?cat=US WW2 Subs in General" class="text-light">US WW2 Subs</a></li>
-                        <li><a href="category.php?cat=Hull and Compartments" class="text-light">Hull & Compartments</a></li>
-                        <li><a href="category.php?cat=Operating US Subs in WW2" class="text-light">Operations</a></li>
-                        <li><a href="category.php?cat=Life Aboard WW2 US Subs" class="text-light">Life Aboard</a></li>
                     </ul>
                 </div>
             </div>
@@ -118,16 +109,11 @@
         }, 2000);
     }
     
-    // Detect exit intent (mouse leaving window area)
-    document.addEventListener('mouseleave', function(e) {
-        if (e.clientY <= 0) {
-            showExitIntentFeedback();
-        }
-    });
-    
-    // Also trigger on beforeunload for mobile
-    window.addEventListener('beforeunload', function() {
-        if (Math.random() < 0.3) { // Show to 30% of users
+    // Detect exit intent (mouse leaving top of viewport)
+    document.addEventListener('mouseout', function(e) {
+        // Only trigger if mouse leaves through the top of the viewport
+        // This typically means user is heading to close tab or navigate away
+        if (!e.relatedTarget && e.clientY <= 10) {
             showExitIntentFeedback();
         }
     });
