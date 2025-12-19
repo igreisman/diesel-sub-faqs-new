@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     let client = null;
     
     try {
-        // For now, just simulate database operations until Railway database is properly configured
+        // Simulate database operations for development
         console.log('Feedback API called:', req.method, req.body);
         
         // Temporary in-memory storage simulation

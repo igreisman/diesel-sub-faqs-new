@@ -4,7 +4,7 @@ Welcome to the MkDocs-powered knowledge base for the Diesel-Electric Submarine F
 
 ## What you will find
 - Detailed FAQ chapters on hulls, operations, crew life, and combat actions.
-- Deployment and hosting guides for Railway, PlanetScale, HostGator, and Vercel.
+- Deployment and hosting guides for PlanetScale, HostGator, and local development.
 - Markdown integration notes plus editor demos and sample FAQ content.
 
 ## Working locally

@@ -14,17 +14,7 @@ This guide explains how to set up a database for the Submarine FAQ application t
    DATABASE_URL=mysql://username:password@aws.connect.psdb.cloud/submarine-faqs?ssl={"rejectUnauthorized":true}
    ```
 
-### Option 2: Railway
-
-1. **Sign up at [Railway](https://railway.app/)**
-2. **Create a MySQL database**
-3. **Copy connection string** from Railway dashboard
-4. **Set environment variable**:
-   ```
-   DATABASE_URL=mysql://root:password@containers-us-west-1.railway.app:port/railway
-   ```
-
-### Option 3: Local MySQL (Development)
+### Option 2: Local MySQL (Development)
 
 1. **Install MySQL locally**
 2. **Create database**: `CREATE DATABASE submarine_faqs;`

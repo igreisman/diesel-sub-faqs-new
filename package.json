@@ -23,7 +23,7 @@
     "type": "git",
     "url": "git+https://github.com/diesel-subs/Diesel-Electric-Sub-FAQs.git"
   },
-  "keywords": ["submarine", "faqs", "nodejs", "mysql", "railway"],
+  "keywords": ["submarine", "faqs", "nodejs", "mysql"],
   "author": "",
   "license": "ISC",
   "bugs": {

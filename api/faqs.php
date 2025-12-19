@@ -4,16 +4,9 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Database configuration for Railway
-$host = 'viaduct.proxy.rlwy.net';
-$port = 26748;
-$dbname = 'submarine_faqs';
-$username = 'submarine_user';
-$password = 'submarine2024!';
+require_once '../config/database.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $action = $_GET['action'] ?? 'categories';
     
@@ -59,7 +52,9 @@ try {
                     SELECT f.*, c.name as category_name 
                     FROM faqs f 
                     JOIN categories c ON f.category_id = c.id 
-                    WHERE f.question LIKE ? OR f.answer LIKE ?
+                    WHERE (f.question LIKE ? OR f.answer LIKE ?)
+                    AND f.category_id IS NOT NULL
+                    AND c.name IS NOT NULL
                     ORDER BY f.question
                 ");
                 $stmt->execute(["%$query%", "%$query%"]);

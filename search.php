@@ -222,17 +222,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let html = '';
             results.forEach(result => {
-                html += `
-                    <div class="border-bottom pb-3 mb-3">
-                        <h6><a href="faq.php?slug=${result.slug}" class="text-decoration-none">${result.title}</a></h6>
-                        <p class="text-muted small mb-2">${result.question}</p>
-                        <p class="mb-2">${result.answer.substring(0, 200)}...</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-secondary">${result.category_name}</span>
-                            <small class="text-muted">${result.views} views</small>
+                if (result.category_name && result.category_name !== 'undefined') {
+                    html += `
+                        <div class="border-bottom pb-3 mb-3">
+                            <h6><a href="faq.php?slug=${result.slug}" class="text-decoration-none">${result.title}</a></h6>
+                            <p class="text-muted small mb-2">${result.question}</p>
+                            <p class="mb-2">${result.answer.substring(0, 200)}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary">${result.category_name}</span>
+                                <small class="text-muted">${result.views} views</small>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             });
             
             resultsContainer.innerHTML = html;

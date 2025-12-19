@@ -4,9 +4,6 @@ node_modules/
 site/
 .mkdocs-cache/
 
-# Railway
-.railway/
-
 # Local development
 .env
 *.log

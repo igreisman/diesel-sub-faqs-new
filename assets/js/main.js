@@ -68,21 +68,26 @@ function performLiveSearch(query) {
 }
 
 function displaySearchResults(data, container) {
+  console.log('Search results received:', data); // Debug log
   if (data.success && data.results && data.results.length > 0) {
     let html = '<h5>Search Results:</h5><div class="search-results"><ul class="list-group">';
     data.results.forEach(result => {
-      html += `
+      const category = result.category_name || result.category;
+      console.log('Result:', result.title, 'Category:', category); // Debug log
+      if (category && category !== 'undefined' && category !== 'null') {
+        html += `
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h6><a href="faq.php?id=${result.id}">${result.title}</a></h6>
                             <p class="mb-1 text-muted">${result.excerpt}</p>
-                            <small class="text-muted">Category: ${result.category}</small>
+                            <small class="text-muted">Category: ${category}</small>
                         </div>
                         <small class="text-muted">${result.views} views</small>
                     </div>
                 </li>
             `;
+      }
     });
     html += '</ul></div>';
     container.innerHTML = html;

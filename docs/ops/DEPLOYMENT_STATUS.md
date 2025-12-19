@@ -1,12 +1,10 @@
-# Deployment Status - Updated for Vercel
+# Deployment Status
 
-## Latest Status: Deploying to Vercel
+## Current Status: Local Development
 
-- Railway had persistent deployment issues despite multiple fixes
-- Switched to Vercel for more reliable Node.js hosting
-- Updated Node.js from 18.x to 20.x (current LTS)
-- Added vercel.json configuration for proper routing
-- Vercel should handle the Express server deployment smoothly
+- Site configured for local development with PHP
+- Uses local MySQL database or PlanetScale for production
+- PHP server can be started with: `php -S localhost:8000`
 
 ## Test URLs
 
@@ -16,12 +14,15 @@
 
 ## Database Connection
 
-Now uses Railway MySQL environment variables:
+Uses environment variables for database configuration:
 
-- MYSQLHOST
-- MYSQLPORT  
-- MYSQLUSER
-- MYSQLPASSWORD
-- MYSQLDATABASE
+- DB_HOST
+- DB_PORT  
+- DB_USER
+- DB_PASSWORD
+- DB_NAME
 
-The app should now connect properly to the Railway database with all 185 submarine FAQs.
+Or connection string:
+- DATABASE_URL (for cloud databases like PlanetScale)
+
+The database contains all submarine FAQs organized by category.

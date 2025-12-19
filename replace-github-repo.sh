@@ -58,7 +58,6 @@ git commit -m "Replace repository with Submarine FAQ project
 - Community feedback system with admin dashboard
 - Mobile-responsive Bootstrap design
 - Under construction mode for maintenance
-- Railway deployment ready
 - Database export included (submarine_faqs_backup.sql)
 
 Features:
@@ -72,7 +71,6 @@ Features:
 ✅ Community dashboard with analytics
 ✅ Under construction pages (HTML & PHP)
 ✅ HostGator migration package included
-✅ Railway deployment configuration
 ✅ Git-based deployment workflow
 
 Tech Stack: PHP 8.4, MySQL 9.5, Bootstrap 5, JavaScript"
@@ -92,12 +90,11 @@ if [ $? -eq 0 ]; then
     echo "🎉 Your submarine FAQ project is now live on GitHub!"
     echo ""
     echo "📁 Repository URL: $REPO_URL"
-    echo "🌐 You can now deploy to Railway, Vercel, or other platforms"
+    echo "🌐 You can now deploy to hosting platforms"
     echo ""
     echo "🚀 Next steps:"
     echo "1. Visit your GitHub repository to verify the upload"
-    echo "2. Deploy to Railway: https://railway.app"
-    echo "3. Or deploy to Vercel: https://vercel.com"
+    echo "2. Deploy to your preferred hosting service"
     echo ""
 else
     echo ""

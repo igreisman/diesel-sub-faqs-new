@@ -14,6 +14,8 @@ try {
         FROM faqs f 
         JOIN categories c ON f.category_id = c.id 
         WHERE f.status = 'published'
+        AND f.category_id IS NOT NULL
+        AND c.name IS NOT NULL
         ORDER BY f.created_at DESC, f.views DESC
         LIMIT 5
     ";

@@ -27,7 +27,7 @@ try {
     // Build dynamic search query
     $selectFields = "f.id, f.title, f.slug, f.views, f.question, f.answer, f.tags, c.name as category_name";
     $fromClause = "FROM faqs f JOIN categories c ON f.category_id = c.id";
-    $whereClause = "WHERE f.status = 'published'";
+    $whereClause = "WHERE f.status = 'published' AND f.category_id IS NOT NULL AND c.name IS NOT NULL";
     $orderClause = "";
     $params = [];
     

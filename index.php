@@ -153,10 +153,13 @@ function loadRecentQuestions() {
             if (data.success && data.questions) {
                 let html = '<ul class="list-group">';
                 data.questions.forEach(question => {
-                    html += `<li class="list-group-item">
-                        <a href="faq.php?id=${question.id}">${question.title}</a>
-                        <small class="text-muted d-block">Category: ${question.category}</small>
-                    </li>`;
+                    // Skip questions with undefined or null category
+                    if (question.category && question.category !== 'undefined') {
+                        html += `<li class="list-group-item">
+                            <a href="faq.php?id=${question.id}">${question.title}</a>
+                            <small class="text-muted d-block">Category: ${question.category}</small>
+                        </li>`;
+                    }
                 });
                 html += '</ul>';
                 container.innerHTML = html;
