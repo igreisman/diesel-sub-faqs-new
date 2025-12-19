@@ -1,6 +1,9 @@
-name: Deploy (Manual)
+name: Deploy to HawkHost
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
