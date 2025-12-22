@@ -205,55 +205,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Boat Number *</label>
                             <input type="text" name="boat_number" class="form-control" 
-                                   value="<?= htmlspecialchars($submarine['boat_number'] ?? '') ?>" 
-                                   placeholder="SS-195">
+                                value="<?= htmlspecialchars($submarine['boat_number'] ?? '') ?>">
                             <div class="help-text">e.g., SS-195, SS-131</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Name *</label>
                             <input type="text" name="name" class="form-control" 
-                                   value="<?= htmlspecialchars($submarine['name'] ?? '') ?>" 
-                                   placeholder="Sealion" required>
+                                value="<?= htmlspecialchars($submarine['name'] ?? '') ?>" required>
                             <div class="help-text">Short name (e.g., Sealion, S-36)</div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Designation</label>
-                        <input type="text" name="designation" class="form-control" 
-                               value="<?= htmlspecialchars($submarine['designation'] ?? '') ?>" 
-                               placeholder="USS Sealion (SS-195)">
+                           <input type="text" name="designation" class="form-control" 
+                               value="<?= htmlspecialchars($submarine['designation'] ?? '') ?>">
                         <div class="help-text">Full designation (e.g., USS Sealion (SS-195))</div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Class Info</label>
-                        <input type="text" name="class_info" class="form-control" 
-                               value="<?= htmlspecialchars($submarine['class_info'] ?? '') ?>" 
-                               placeholder="Sargo class submarine completed in 1939 by Electric Boat in Groton, CT.">
+                           <input type="text" name="class_info" class="form-control" 
+                               value="<?= htmlspecialchars($submarine['class_info'] ?? '') ?>">
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Captain</label>
                             <input type="text" name="last_captain" class="form-control" 
-                                   value="<?= htmlspecialchars($submarine['last_captain'] ?? '') ?>" 
-                                   placeholder="LCDR Richard G. Voge">
+                                value="<?= htmlspecialchars($submarine['last_captain'] ?? '') ?>">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Date Lost</label>
                             <input type="text" name="date_lost" class="form-control" 
-                                   value="<?= htmlspecialchars($submarine['date_lost'] ?? '') ?>" 
-                                   placeholder="1941-12-10 or December 10, 1941">
+                                value="<?= htmlspecialchars($submarine['date_lost'] ?? '') ?>">
                             <div class="help-text">Any format (YYYY-MM-DD recommended)</div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Location</label>
-                        <input type="text" name="location" class="form-control" 
-                               value="<?= htmlspecialchars($submarine['location'] ?? '') ?>" 
-                               placeholder="Cavite, Philippine Islands">
+                           <input type="text" name="location" class="form-control" 
+                               value="<?= htmlspecialchars($submarine['location'] ?? '') ?>">
                     </div>
 
                     <div class="mb-3">
@@ -264,9 +257,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="mb-3">
                         <label class="form-label">Cause of Loss</label>
-                        <input type="text" name="cause" class="form-control" 
-                               value="<?= htmlspecialchars($submarine['cause'] ?? '') ?>" 
-                               placeholder="Destroyed by Japanese bombs">
+                           <input type="text" name="cause" class="form-control" 
+                               value="<?= htmlspecialchars($submarine['cause'] ?? '') ?>">
                     </div>
 
                     <div class="row">
@@ -303,9 +295,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="mb-3">
                         <label class="form-label">Photo URL</label>
-                        <input type="text" name="photo_url" class="form-control" 
-                               value="<?= $submarine['photo_url'] !== null ? htmlspecialchars($submarine['photo_url']) : '' ?>" 
-                               placeholder="https://example.com/photo.jpg">
+                                     <input type="text" name="photo_url" class="form-control" 
+                                         value="<?= $submarine['photo_url'] !== null ? htmlspecialchars($submarine['photo_url']) : '' ?>">
                         <div class="help-text">Optional: URL to photo of the submarine</div>
                     </div>
 
