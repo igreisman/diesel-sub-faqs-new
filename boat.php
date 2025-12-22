@@ -55,6 +55,14 @@ try {
                     </div>
                     <?php endif; ?>
 
+                    <?php if (!empty($boat['photo_url_2'])): ?>
+                    <div class="text-center mb-4">
+                        <img src="<?php echo htmlspecialchars($boat['photo_url_2']); ?>" 
+                             alt="<?php echo htmlspecialchars($boat['name']) . ' captain'; ?>" 
+                             class="img-fluid rounded" style="max-width:240px;">
+                    </div>
+                    <?php endif; ?>
+
                     <?php if ($boat['class_info']): ?>
                     <p><?php echo htmlspecialchars($boat['class_info']); ?></p>
                     <?php endif; ?>
