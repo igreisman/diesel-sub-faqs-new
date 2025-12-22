@@ -608,6 +608,9 @@ The summary of our submarine losses in WW2 is as follows:
 
   Unknown                  7
   --------------------------
+  --------------------------
+
+![USS F-4 Captain](images/f4-captain-source.jpg)
 
 **Was everyone on board lost when a submarine sank?**
 
