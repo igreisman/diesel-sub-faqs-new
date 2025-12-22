@@ -26,12 +26,122 @@ function render_markdown($text) {
 
     // Add spacing between table columns
     $html = preg_replace_callback('#<table>(.*?)</table>#s', function($matches) {
-        $table = $matches[0];
-        // Inject a simple class for spacing if not present
-        if (strpos($table, 'class="md-table"') === false) {
-            $table = str_replace('<table', '<table class="md-table table table-sm"', $table);
+        $tableHtml = $matches[0];
+        // Ensure table has expected classes
+        if (strpos($tableHtml, 'class="md-table"') === false) {
+            $tableHtml = str_replace('<table', '<table class="md-table table table-sm"', $tableHtml);
         }
-        return $table;
+
+        // Try to compute column widths from content length (character count)
+        try {
+            libxml_use_internal_errors(true);
+            $doc = new DOMDocument();
+            // Load a fragment by wrapping in a full HTML structure
+            $doc->loadHTML('<?xml encoding="utf-8"?><html><body>' . $tableHtml . '</body></html>');
+            $xpath = new DOMXPath($doc);
+            $tableNode = $xpath->query('//table')->item(0);
+            if ($tableNode) {
+                // Collect rows (header + body)
+                $rows = [];
+                // Header cells
+                $thead = $tableNode->getElementsByTagName('thead')->item(0);
+                if ($thead) {
+                    foreach ($thead->getElementsByTagName('tr') as $tr) {
+                        $cells = [];
+                        foreach ($tr->childNodes as $cell) {
+                            if ($cell->nodeType === XML_ELEMENT_NODE) {
+                                $cells[] = trim($cell->textContent);
+                            }
+                        }
+                        if ($cells) $rows[] = $cells;
+                    }
+                }
+                // Body rows
+                $tbody = $tableNode->getElementsByTagName('tbody')->item(0);
+                if ($tbody) {
+                    foreach ($tbody->getElementsByTagName('tr') as $tr) {
+                        $cells = [];
+                        foreach ($tr->childNodes as $cell) {
+                            if ($cell->nodeType === XML_ELEMENT_NODE) {
+                                $cells[] = trim($cell->textContent);
+                            }
+                        }
+                        if ($cells) $rows[] = $cells;
+                    }
+                }
+
+                if (!empty($rows)) {
+                    // Determine column count (max cells in any row)
+                    $colCount = 0;
+                    foreach ($rows as $r) {
+                        $colCount = max($colCount, count($r));
+                    }
+
+                    // Compute max length per column
+                    $maxLens = array_fill(0, $colCount, 0);
+                    foreach ($rows as $r) {
+                        for ($i = 0; $i < $colCount; $i++) {
+                            $cell = $r[$i] ?? '';
+                            $len = mb_strlen($cell, 'UTF-8');
+                            if ($len > $maxLens[$i]) $maxLens[$i] = $len;
+                        }
+                    }
+
+                    $total = array_sum($maxLens) ?: 1;
+                    // Minimum percentage per column to avoid zero width
+                    $minPct = 5;
+                    $widths = [];
+                    foreach ($maxLens as $len) {
+                        $pct = max($minPct, round(($len / $total) * 100));
+                        $widths[] = $pct;
+                    }
+
+                    // Normalize to 100% if sum differs
+                    $sum = array_sum($widths);
+                    if ($sum !== 100) {
+                        // Adjust largest column to absorb difference
+                        $diff = 100 - $sum;
+                        $maxIdx = array_search(max($widths), $widths);
+                        $widths[$maxIdx] += $diff;
+                    }
+
+                    // Build colgroup
+                    $colgroup = $doc->createElement('colgroup');
+                    foreach ($widths as $w) {
+                        $col = $doc->createElement('col');
+                        $col->setAttribute('style', 'width: ' . $w . '%');
+                        $colgroup->appendChild($col);
+                    }
+
+                    // Insert colgroup as first child of table (before thead/tbody)
+                    if ($tableNode->firstChild) {
+                        $tableNode->insertBefore($colgroup, $tableNode->firstChild);
+                    } else {
+                        $tableNode->appendChild($colgroup);
+                    }
+
+                    // Export the modified table HTML
+                    $newTable = '';
+                    foreach ($tableNode->childNodes as $child) {
+                        $newTable .= $doc->saveHTML($child);
+                    }
+                    // Reconstruct full table tag with attributes
+                    $tableTag = '<table';
+                    if ($tableNode->hasAttributes()) {
+                        foreach ($tableNode->attributes as $attr) {
+                            $tableTag .= ' ' . $attr->nodeName . '="' . htmlspecialchars($attr->nodeValue, ENT_QUOTES) . '"';
+                        }
+                    }
+                    $tableTag .= '>' . $newTable . '</table>';
+
+                    return $tableTag;
+                }
+            }
+        } catch (Exception $e) {
+            // on failure, fall back to original table HTML
+        }
+
+        return $tableHtml;
     }, $html);
 
     return $html;
@@ -243,15 +353,51 @@ function convert_markdown_tables($text, &$tableMap) {
                 $i++;
             }
 
-            // Build HTML table
-            $tableHtml = '<table class="table table-bordered table-sm"><thead><tr>';
+            // Build HTML table with calculated column widths
+            $colCount = 0;
+            foreach ($rows as $r) {
+                $colCount = max($colCount, count($r));
+            }
+
+            $maxLens = array_fill(0, $colCount, 0);
+            foreach (array_merge([$headers], $rows) as $r) {
+                for ($i = 0; $i < $colCount; $i++) {
+                    $cell = $r[$i] ?? '';
+                    $len = mb_strlen($cell, 'UTF-8');
+                    if ($len > $maxLens[$i]) $maxLens[$i] = $len;
+                }
+            }
+
+            $total = array_sum($maxLens) ?: 1;
+            $minPct = 5;
+            $widths = [];
+            foreach ($maxLens as $len) {
+                $pct = max($minPct, round(($len / $total) * 100));
+                $widths[] = $pct;
+            }
+            $sum = array_sum($widths);
+            if ($sum !== 100) {
+                $diff = 100 - $sum;
+                $maxIdx = array_search(max($widths), $widths);
+                $widths[$maxIdx] += $diff;
+            }
+
+            $colgroupHtml = '<colgroup>';
+            for ($i = 0; $i < $colCount; $i++) {
+                $colgroupHtml .= '<col style="width: ' . $widths[$i] . '%">';
+            }
+            $colgroupHtml .= '</colgroup>';
+
+            // Build table HTML
+            $tableHtml = '<table class="table table-bordered table-sm">' . $colgroupHtml . '<thead><tr>';
             foreach ($headers as $cell) {
                 $tableHtml .= '<th>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</th>';
             }
             $tableHtml .= '</tr></thead><tbody>';
             foreach ($rows as $cells) {
                 $tableHtml .= '<tr>';
-                foreach ($cells as $cell) {
+                for ($i = 0; $i < $colCount; $i++) {
+                    $cell = $cells[$i] ?? '';
                     $tableHtml .= '<td>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</td>';
                 }
                 $tableHtml .= '</tr>';

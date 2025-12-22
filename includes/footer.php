@@ -118,5 +118,137 @@
         }
     });
     </script>
+
+    <!-- Auto-adjust table column widths based on rendered content -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const tables = Array.from(document.querySelectorAll('table.md-table, table.table'));
+            if (!tables.length) return;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            tables.forEach(table => {
+                // prefer header/body cells; ignore tables used for layout if they have role or aria-hidden
+                const rows = [];
+                const thead = table.querySelectorAll('thead tr');
+                const tbody = table.querySelectorAll('tbody tr');
+                thead.forEach(r => rows.push(r));
+                tbody.forEach(r => rows.push(r));
+                if (!rows.length) return;
+
+                // Determine column count (max cells in any row)
+                let colCount = 0;
+                rows.forEach(r => { colCount = Math.max(colCount, r.children.length); });
+                if (colCount === 0) return;
+
+                // Use table font metrics (fallback to body)
+                const style = window.getComputedStyle(table);
+                const font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+                ctx.font = font;
+
+                // Compute max width per column (pixels)
+                const maxWidths = new Array(colCount).fill(0);
+                rows.forEach(r => {
+                    Array.from(r.children).forEach((cell, idx) => {
+                        const text = (cell.innerText || cell.textContent || '').trim();
+                        // small guard for empty cells
+                        const measure = text ? ctx.measureText(text).width : 10;
+                        // include cell horizontal padding
+                        const cs = window.getComputedStyle(cell);
+                        const padding = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+                        const total = measure + padding;
+                        if (total > maxWidths[idx]) maxWidths[idx] = total;
+                    });
+                });
+
+                const contentTotalPx = maxWidths.reduce((s, v) => s + v, 0) || 1;
+                const parent = table.parentElement || table.closest('.container') || document.body;
+                const parentWidth = parent ? parent.clientWidth : window.innerWidth;
+
+                // If the content total is less than the parent width, constrain the table
+                const shouldUsePixelWidths = contentTotalPx < parentWidth;
+
+                if (shouldUsePixelWidths) {
+                    // Apply fixed pixel widths and set table width to content width
+                    let colgroup = table.querySelector('colgroup');
+                    if (!colgroup) {
+                        colgroup = document.createElement('colgroup');
+                        table.insertBefore(colgroup, table.firstChild);
+                    } else {
+                        while (colgroup.firstChild) colgroup.removeChild(colgroup.firstChild);
+                    }
+                    // Limit any single column to a maximum fraction of the parent width
+                    const maxColFraction = 0.7; // no column larger than 70% of parent
+                    const maxColPx = Math.max(100, Math.round(parentWidth * maxColFraction));
+
+                    // Build capped widths array
+                    let capped = [];
+                    let cappedTotal = 0;
+                    for (let i = 0; i < colCount; i++) {
+                        const raw = Math.max(20, Math.round(maxWidths[i]));
+                        const w = Math.min(raw, maxColPx);
+                        capped.push(w);
+                        cappedTotal += w;
+                    }
+
+                    // If capped total exceeds parentWidth, scale down proportionally
+                    let finalWidths = capped;
+                    if (cappedTotal > parentWidth) {
+                        const scale = parentWidth / cappedTotal;
+                        finalWidths = capped.map(w => Math.max(20, Math.round(w * scale)));
+                        cappedTotal = finalWidths.reduce((s, v) => s + v, 0);
+                    }
+
+                    for (let i = 0; i < colCount; i++) {
+                        const col = document.createElement('col');
+                        col.style.width = finalWidths[i] + 'px';
+                        colgroup.appendChild(col);
+                    }
+
+                    // Set explicit table width to final measured width (bounded by parent)
+                    const tableWidthPx = Math.min(Math.round(cappedTotal), parentWidth);
+                    table.style.width = tableWidthPx + 'px';
+                    table.style.maxWidth = '100%';
+                    table.style.marginLeft = 'auto';
+                    table.style.marginRight = 'auto';
+                } else {
+                    // Use percentage widths as before
+                    const total = contentTotalPx || 1;
+                    const minPct = 5;
+                    let widths = maxWidths.map(w => Math.max(minPct, Math.round((w / total) * 100)));
+                    const sum = widths.reduce((s, v) => s + v, 0);
+                    if (sum !== 100) {
+                        const diff = 100 - sum;
+                        let maxIdx = 0; let maxVal = widths[0];
+                        for (let i = 1; i < widths.length; i++) if (widths[i] > maxVal) { maxVal = widths[i]; maxIdx = i; }
+                        widths[maxIdx] += diff;
+                    }
+
+                    let colgroup = table.querySelector('colgroup');
+                    if (!colgroup) {
+                        colgroup = document.createElement('colgroup');
+                        table.insertBefore(colgroup, table.firstChild);
+                    } else {
+                        while (colgroup.firstChild) colgroup.removeChild(colgroup.firstChild);
+                    }
+
+                    for (let i = 0; i < colCount; i++) {
+                        const col = document.createElement('col');
+                        col.style.width = widths[i] + '%';
+                        colgroup.appendChild(col);
+                    }
+
+                    // Ensure table can expand to full width when necessary
+                    table.style.width = '';
+                    table.style.maxWidth = '100%';
+                }
+            });
+        } catch (e) {
+            console.warn('Table width adjustment failed', e);
+        }
+    });
+    </script>
 </body>
 </html>

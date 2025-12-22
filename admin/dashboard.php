@@ -96,6 +96,10 @@ try {
                             <i class="fas fa-book"></i>
                             <span>Glossary (<?php echo number_format($totalGlossary ?? 0); ?>)</span>
                         </a>
+                        <a href="../admin-eternal-patrol.php" class="btn btn-dark btn-lg quick-action-btn">
+                            <i class="fas fa-anchor"></i>
+                            <span>Eternal Patrol</span>
+                        </a>
                     </div>
                 </div>
             </div>

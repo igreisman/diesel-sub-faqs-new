@@ -3,6 +3,9 @@ session_start();
 require_once 'config/database.php';
 require_once 'includes/header.php';
 
+// Suppress htmlspecialchars deprecation warnings for null values
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 $boat_id = $_GET['id'] ?? 0;
 
 try {
@@ -13,6 +16,13 @@ try {
     if (!$boat) {
         header('Location: eternal-patrol.php');
         exit;
+    }
+    
+    // Convert all null values to empty strings to avoid deprecation warnings
+    foreach ($boat as $key => $value) {
+        if ($value === null) {
+            $boat[$key] = '';
+        }
     }
 } catch (Exception $e) {
     die("Error loading boat: " . htmlspecialchars($e->getMessage()));
@@ -34,9 +44,7 @@ try {
             <div class="card mb-4">
                 <div class="card-body">
                     <h1 class="display-5 mb-3">
-                        <?php if ($boat['boat_number']): ?><?php echo $boat['boat_number']; ?>. <?php endif; ?>
-                        <?php echo htmlspecialchars($boat['name']); ?>
-                        <?php if ($boat['designation']): ?>(<?php echo htmlspecialchars($boat['designation']); ?>)<?php endif; ?>
+                        <?php echo htmlspecialchars($boat['designation'] ?: $boat['name']); ?>
                     </h1>
                     
                     <?php if ($boat['photo_url']): ?>
@@ -62,7 +70,7 @@ try {
                         <?php if ($boat['date_lost']): ?>
                         <div class="col-md-6">
                             <strong>Date Lost:</strong><br>
-                            <?php echo htmlspecialchars($boat['date_lost']); ?>
+                            <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
                         </div>
                         <?php endif; ?>
                         
@@ -156,5 +164,29 @@ try {
         </div>
     </div>
 </div>
+
+<script>
+// Format dates according to user's locale
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElements = document.querySelectorAll('.locale-date');
+    dateElements.forEach(el => {
+        const dateStr = el.getAttribute('data-date');
+        if (dateStr) {
+            try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    el.textContent = date.toLocaleDateString(undefined, { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                }
+            } catch (e) {
+                // Keep original if parsing fails
+            }
+        }
+    });
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

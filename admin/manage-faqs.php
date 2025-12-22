@@ -117,7 +117,7 @@ $faqs = $stmt->fetchAll();
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-list"></i> Manage FAQs</h1>
         <div>
-            <a href="../edit-faq-wysiwyg.php" class="btn btn-success me-2">
+            <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int)$category; ?>" class="btn btn-success me-2">
                 <i class="fas fa-plus"></i> New FAQ
             </a>
             <a href="dashboard.php" class="btn btn-outline-secondary">
@@ -187,7 +187,7 @@ $faqs = $stmt->fetchAll();
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No FAQs found</h5>
                     <p class="text-muted">Try adjusting your search criteria or create a new FAQ.</p>
-                    <a href="../edit-faq-wysiwyg.php" class="btn btn-primary">
+                    <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int)$category; ?>" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create First FAQ
                     </a>
                 </div>

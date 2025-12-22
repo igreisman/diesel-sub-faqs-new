@@ -153,7 +153,9 @@ body {
 }
 .md-table {
   border-collapse: collapse;
-  width: 100%;
+  /* allow explicit widths (pixel or percent) set by scripts or inline styles */
+  width: auto;
+  max-width: 100%;
   margin: 1rem 0;
 }
 
@@ -161,7 +163,9 @@ body {
 .faq-content table,
 .answer-content table {
   border-collapse: collapse;
-  width: 100%;
+  /* allow table to be sized by inline styles or JS; remain responsive */
+  width: auto;
+  max-width: 100%;
   margin: 1rem 0;
 }
 .faq-content,
