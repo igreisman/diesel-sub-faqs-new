@@ -156,10 +156,12 @@ try {
                     </h5>
                     <p class="text-muted small">
                         <i class="fas fa-calendar"></i> <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
-                        <?php if ($boat['fatalities']): ?>
-                        | <i class="fas fa-users"></i> <?php echo htmlspecialchars($boat['fatalities']); ?> lost
-                        <?php endif; ?>
                     </p>
+                    <?php if ($boat['fatalities']): ?>
+                    <p class="small mb-2">
+                        <strong><i class="fas fa-users"></i> Fatalities:</strong> <?php echo htmlspecialchars($boat['fatalities']); ?>
+                    </p>
+                    <?php endif; ?>
                     <?php if ($boat['location']): ?>
                     <p class="small"><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></p>
                     <?php endif; ?>
