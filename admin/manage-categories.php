@@ -65,7 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && empty($_
             $slug = get_category_slug($name);
             $stmt = $pdo->prepare("INSERT INTO categories (name, slug, description, icon, sort_order) VALUES (?, ?, ?, '', ?)");
             $stmt->execute([$name, $slug, $description, $nextOrder]);
-            $success = "Category added.";
+            // Redirect to the category page
+            header('Location: ../category.php?cat=' . urlencode($name));
+            exit;
         }
     }
 

@@ -191,14 +191,14 @@ function category_icon_fallback($name, $icon) {
                                         </button>
                                     </div>
                                     <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
-                                        <div class="faq-actions mt-2">
-                                            <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-sm btn-primary">
+                                        <div class="faq-actions mt-2 d-flex gap-2">
+                                            <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-sm btn-primary" style="line-height: 1.5;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <form method="POST" action="admin/manage-faqs.php" class="d-inline" onsubmit="return confirm('Delete this FAQ? This cannot be undone.');">
+                                            <form method="POST" action="admin/manage-faqs.php" class="m-0" onsubmit="return confirm('Delete this FAQ? This cannot be undone.');">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="faq_id" value="<?php echo $faq['id']; ?>">
-                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                <button type="submit" class="btn btn-sm btn-danger" style="line-height: 2.5; border-radius: 0.375rem;">
                                                     <i class="fas fa-trash-alt"></i> Delete
                                                 </button>
                                             </form>
