@@ -30,6 +30,14 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Skip rewrite for static files and directories
+RewriteCond %{REQUEST_URI} ^/(images|assets|css|js)/
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
 # Pretty URLs for categories
 RewriteRule ^category/([^/]+)/?$ category.php?cat=$1 [L,QSA]
 
