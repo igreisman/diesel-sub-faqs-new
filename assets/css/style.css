@@ -71,7 +71,7 @@ body {
 }
 
 .category-card .card-title i {
-  margin-right: 0.75rem;
+  margin-right: 0.1875rem;
   color: var(--ocean-blue);
   width: 1.5rem;
 }
