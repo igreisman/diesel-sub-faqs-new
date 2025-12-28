@@ -33,3 +33,7 @@ jobs:
             **/vendor/**
             **/*.sql
             **/videos/**
+            backup*.sh
+            backup*.sql
+            backup*.php
+            restore*.sh
