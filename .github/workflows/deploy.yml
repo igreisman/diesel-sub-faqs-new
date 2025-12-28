@@ -32,3 +32,4 @@ jobs:
             **/backups/**
             **/vendor/**
             **/*.sql
+            **/videos/**
