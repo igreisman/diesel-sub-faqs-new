@@ -22,7 +22,7 @@ if (!empty($search)) {
     $params[] = "%$search%";
 }
 
-$sql .= " ORDER BY year_lost ASC, boat_number ASC";
+$sql .= " ORDER BY display_order ASC, boat_number ASC";
 
 try {
     $stmt = $pdo->prepare($sql);
