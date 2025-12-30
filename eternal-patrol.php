@@ -19,8 +19,13 @@ $sql = "SELECT *,
 $params = [];
 
 if ($era_filter !== 'all') {
-    $sql .= " HAVING calculated_era = ?";
-    $params[] = $era_filter;
+    if ($era_filter === 'pre-ww2') {
+        $sql .= " AND date_lost < '1939-09-01'";
+    } elseif ($era_filter === 'ww2') {
+        $sql .= " AND date_lost >= '1939-09-01' AND date_lost <= '1945-09-02'";
+    } elseif ($era_filter === 'post-ww2') {
+        $sql .= " AND date_lost > '1945-09-02'";
+    }
 }
 
 if (!empty($search)) {
