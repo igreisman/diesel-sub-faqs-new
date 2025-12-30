@@ -109,7 +109,7 @@ try {
             <form method="GET" class="row g-3">
                 <div class="col-md-4">
                     <label for="era" class="form-label">Filter by Era</label>
-                    <select name="era" id="era" class="form-select">
+                    <select name="era" id="era" class="form-select" onchange="this.form.submit()">
                         <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
                         <option value="pre-ww2" <?php echo $era_filter === 'pre-ww2' ? 'selected' : ''; ?>>Pre WW2</option>
                         <option value="ww2" <?php echo $era_filter === 'ww2' ? 'selected' : ''; ?>>WW2</option>
@@ -118,10 +118,7 @@ try {
                 </div>
                 <div class="col-md-6">
                     <label for="search" class="form-label">Search by Name or Designation</label>
-                    <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>" oninput="this.form.submit()">
                 </div>
                 <input type="hidden" name="view" value="<?php echo htmlspecialchars($view); ?>">
             </form>
