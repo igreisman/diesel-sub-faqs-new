@@ -89,7 +89,7 @@ try {
     <!-- Statistics -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card text-center">
+            <form id="filterForm" class="row g-3" autocomplete="off">
                 <div class="card-body">
                     <h3 class="display-6"><?php echo $totals['total']; ?></h3>
                     <p class="text-muted">Total Submarines Lost</p>
@@ -101,7 +101,7 @@ try {
                 <div class="card-body">
                     <h3 class="display-6"><?php echo number_format($totals['total_fatalities']); ?></h3>
                     <p class="text-muted">Lives Lost</p>
-                </div>
+                    <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
             </div>
         </div>
     </div>
@@ -226,7 +226,7 @@ try {
 
 <script>
 // Format dates according to user's locale
-document.addEventListener('DOMContentLoaded', function() {
+function formatLocaleDates() {
     const dateElements = document.querySelectorAll('.locale-date');
     dateElements.forEach(el => {
         const dateStr = el.getAttribute('data-date');
@@ -245,6 +245,69 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    formatLocaleDates();
+
+    // AJAX filtering
+    const filterForm = document.getElementById('filterForm');
+    const eraSelect = document.getElementById('era');
+    const searchInput = document.getElementById('search');
+    const viewForm = document.getElementById('viewForm');
+    const resultsSection = document.getElementById('resultsSection');
+    const boatCount = document.getElementById('boatCount');
+
+    function getView() {
+        const radios = viewForm.querySelectorAll('input[name="view"]');
+        for (const r of radios) {
+            if (r.checked) return r.value;
+        }
+        return 'list';
+    }
+
+    function updateResults() {
+        const params = new URLSearchParams({
+            era: eraSelect.value,
+            search: searchInput.value,
+            view: getView()
+        });
+        fetch(window.location.pathname + '?' + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.text())
+        .then(html => {
+            // Extract just the #resultsSection and boat count
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const newResults = temp.querySelector('#resultsSection');
+            const newBoatCount = temp.querySelector('#boatCount');
+            if (newResults && resultsSection) {
+                resultsSection.innerHTML = newResults.innerHTML;
+            }
+            if (newBoatCount && boatCount) {
+                boatCount.innerHTML = newBoatCount.innerHTML;
+            }
+            formatLocaleDates();
+        });
+    }
+
+    eraSelect.addEventListener('change', function(e) {
+        e.preventDefault();
+        updateResults();
+    });
+    searchInput.addEventListener('input', function(e) {
+        e.preventDefault();
+        updateResults();
+    });
+    viewForm.addEventListener('change', function(e) {
+        if (e.target.name === 'view') {
+            e.preventDefault();
+            updateResults();
+        }
+    });
+    // Prevent form submits
+    filterForm.addEventListener('submit', e => e.preventDefault());
+    viewForm.addEventListener('submit', e => e.preventDefault());
 });
 </script>
 
