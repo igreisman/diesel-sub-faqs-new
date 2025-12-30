@@ -204,6 +204,7 @@ try {
     <?php endif; ?>
 
     <!-- Boat List -->
+    <div id="resultsSection">
     <?php if ($view === 'list'): ?>
     <!-- List View -->
     <div class="card">
@@ -265,6 +266,7 @@ try {
         <?php endif; ?>
     </div>
     <?php endif; ?>
+    </div>
 </div>
 
 <script>
