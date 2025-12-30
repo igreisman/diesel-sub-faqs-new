@@ -60,7 +60,7 @@ try {
 
     <!-- Statistics -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="display-6"><?php echo $totals['total']; ?></h3>
@@ -68,34 +68,11 @@ try {
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="display-6"><?php echo number_format($totals['total_fatalities']); ?></h3>
                     <p class="text-muted">Lives Lost</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h6>Losses by Era</h6>
-                    <ul class="list-unstyled mb-0">
-                        <?php
-                        $era_labels = [
-                            'pre-wwi' => 'Pre-WWI',
-                            'wwi' => 'World War I',
-                            'interwar' => 'Interwar Period',
-                            'wwii' => 'World War II',
-                            'post-wwii' => 'Post-WWII'
-                        ];
-                        foreach ($era_labels as $key => $label):
-                            $count = $stats[$key] ?? 0;
-                            if ($count > 0):
-                        ?>
-                        <li><strong><?php echo $label; ?>:</strong> <?php echo $count; ?> boats</li>
-                        <?php endif; endforeach; ?>
-                    </ul>
                 </div>
             </div>
         </div>
