@@ -135,7 +135,7 @@ try {
     <?php endif; ?>
     </div>
     <span class="ms-3 text-muted small" id="boatCount">(<?php echo count($boats); ?> boats)</span>
-    <?php exit; endif; ?>
+    <?php exit; ?>
 
 <div class="container mt-4">
     <div class="mb-3">
