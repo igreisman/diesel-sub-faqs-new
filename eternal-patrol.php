@@ -82,7 +82,7 @@ try {
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label for="era" class="form-label">Filter by Era</label>
                     <select name="era" id="era" class="form-select">
                         <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
@@ -93,22 +93,29 @@ try {
                         <option value="post-wwii" <?php echo $era_filter === 'post-wwii' ? 'selected' : ''; ?>>Post-WWII</option>
                     </select>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label for="search" class="form-label">Search by Name or Designation</label>
                     <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <div class="col-md-2">
-                    <label for="view" class="form-label">View</label>
-                    <select name="view" id="view" class="form-select">
-                        <option value="cards" <?php echo $view === 'cards' ? 'selected' : ''; ?>>Cards</option>
-                        <option value="list" <?php echo $view === 'list' ? 'selected' : ''; ?>>List</option>
-                    </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">Filter</button>
                 </div>
+                <input type="hidden" name="view" value="<?php echo htmlspecialchars($view); ?>">
             </form>
         </div>
+    </div>
+
+    <!-- View Selector -->
+    <div class="mb-3 d-flex justify-content-end">
+        <form method="GET" class="d-flex align-items-center gap-2">
+            <label for="view" class="form-label mb-0">View:</label>
+            <select name="view" id="view" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="list" <?php echo $view === 'list' ? 'selected' : ''; ?>>List</option>
+                <option value="cards" <?php echo $view === 'cards' ? 'selected' : ''; ?>>Cards</option>
+            </select>
+            <input type="hidden" name="era" value="<?php echo htmlspecialchars($era_filter); ?>">
+            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+        </form>
     </div>
 
     <?php if (isset($error)): ?>
