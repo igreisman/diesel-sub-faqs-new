@@ -301,10 +301,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateResults() {
+        // Always get the current view value from the radio buttons
+        const viewRadios = document.querySelectorAll('input[name="view"]');
+        let viewValue = 'list';
+        viewRadios.forEach(r => { if (r.checked) viewValue = r.value; });
         const params = new URLSearchParams({
             era: eraSelect.value,
             search: searchInput.value,
-            view: getView()
+            view: viewValue
         });
         fetch(window.location.pathname + '?' + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
