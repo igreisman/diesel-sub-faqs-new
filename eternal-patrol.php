@@ -106,7 +106,7 @@ try {
     </div>
 
     <!-- View Selector -->
-    <div class="mb-3 d-flex justify-content-end">
+    <div class="mb-3 d-flex justify-content-start">
         <form method="GET" class="d-flex align-items-center gap-2">
             <label for="view" class="form-label mb-0">View:</label>
             <select name="view" id="view" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
