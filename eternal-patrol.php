@@ -21,7 +21,8 @@ $sql = "SELECT *,
              (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02') THEN 'ww2'
         ELSE 'post-ww2'
     END as calculated_era
-    FROM lost_submarines WHERE 1=1";
+    FROM lost_submarines 
+    WHERE (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL OR STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL)";
 $params = [];
 
 if ($era_filter !== 'all') {
@@ -44,6 +45,14 @@ if (!empty($search)) {
 $sql .= " ORDER BY display_order ASC, boat_number ASC";
 
 try {
+    // DEBUG: Output filter and SQL for troubleshooting
+    if (isset($_GET['debug'])) {
+        echo '<pre style="background:#fff;color:#000;z-index:99999;position:relative;">';
+        echo 'era_filter: ' . htmlspecialchars($era_filter) . "\n";
+        echo 'SQL: ' . htmlspecialchars($sql) . "\n";
+        echo 'Params: ' . htmlspecialchars(json_encode($params)) . "\n";
+        echo '</pre>';
+    }
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $boats = $stmt->fetchAll();
