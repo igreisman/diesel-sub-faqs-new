@@ -8,12 +8,18 @@ $era_filter = $_GET['era'] ?? 'all';
 $search = $_GET['search'] ?? '';
 $view = $_GET['view'] ?? 'list'; // 'cards' or 'list'
 
-// Build query
-$sql = "SELECT * FROM lost_submarines WHERE 1=1";
+// Build query with calculated era based on date_lost
+$sql = "SELECT *, 
+    CASE 
+        WHEN date_lost < '1939-09-01' THEN 'pre-ww2'
+        WHEN date_lost >= '1939-09-01' AND date_lost <= '1945-09-02' THEN 'ww2'
+        ELSE 'post-ww2'
+    END as calculated_era
+    FROM lost_submarines WHERE 1=1";
 $params = [];
 
 if ($era_filter !== 'all') {
-    $sql .= " AND era = ?";
+    $sql .= " HAVING calculated_era = ?";
     $params[] = $era_filter;
 }
 
@@ -34,12 +40,23 @@ try {
     $error = $e->getMessage();
 }
 
-// Get statistics
+// Get statistics with calculated era
 try {
     $stats = [];
-    $stmt = $pdo->query("SELECT era, COUNT(*) as count FROM lost_submarines GROUP BY era ORDER BY FIELD(era, 'pre-wwi', 'wwi', 'interwar', 'wwii', 'post-wwii')");
+    $stmt = $pdo->query("
+        SELECT 
+            CASE 
+                WHEN date_lost < '1939-09-01' THEN 'pre-ww2'
+                WHEN date_lost >= '1939-09-01' AND date_lost <= '1945-09-02' THEN 'ww2'
+                ELSE 'post-ww2'
+            END as calculated_era,
+            COUNT(*) as count 
+        FROM lost_submarines 
+        GROUP BY calculated_era
+        ORDER BY FIELD(calculated_era, 'pre-ww2', 'ww2', 'post-ww2')
+    ");
     while ($row = $stmt->fetch()) {
-        $stats[$row['era']] = $row['count'];
+        $stats[$row['calculated_era']] = $row['count'];
     }
     
     $total_stmt = $pdo->query("SELECT COUNT(*) as total, SUM(CAST(SUBSTRING_INDEX(fatalities, ' ', 1) AS UNSIGNED)) as total_fatalities FROM lost_submarines");
@@ -86,11 +103,9 @@ try {
                     <label for="era" class="form-label">Filter by Era</label>
                     <select name="era" id="era" class="form-select">
                         <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
-                        <option value="pre-wwi" <?php echo $era_filter === 'pre-wwi' ? 'selected' : ''; ?>>Pre-WWI</option>
-                        <option value="wwi" <?php echo $era_filter === 'wwi' ? 'selected' : ''; ?>>World War I</option>
-                        <option value="interwar" <?php echo $era_filter === 'interwar' ? 'selected' : ''; ?>>Interwar Period</option>
-                        <option value="wwii" <?php echo $era_filter === 'wwii' ? 'selected' : ''; ?>>World War II</option>
-                        <option value="post-wwii" <?php echo $era_filter === 'post-wwii' ? 'selected' : ''; ?>>Post-WWII</option>
+                        <option value="pre-ww2" <?php echo $era_filter === 'pre-ww2' ? 'selected' : ''; ?>>Pre WW2</option>
+                        <option value="ww2" <?php echo $era_filter === 'ww2' ? 'selected' : ''; ?>>WW2</option>
+                        <option value="post-ww2" <?php echo $era_filter === 'post-ww2' ? 'selected' : ''; ?>>Post WW2</option>
                     </select>
                 </div>
                 <div class="col-md-6">
