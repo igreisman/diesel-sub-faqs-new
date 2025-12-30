@@ -6,6 +6,7 @@ require_once 'includes/header.php';
 // Get filter parameters
 $era_filter = $_GET['era'] ?? 'all';
 $search = $_GET['search'] ?? '';
+$view = $_GET['view'] ?? 'cards'; // 'cards' or 'list'
 
 // Build query
 $sql = "SELECT * FROM lost_submarines WHERE 1=1";
@@ -104,7 +105,7 @@ try {
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="era" class="form-label">Filter by Era</label>
                     <select name="era" id="era" class="form-select">
                         <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
@@ -115,9 +116,16 @@ try {
                         <option value="post-wwii" <?php echo $era_filter === 'post-wwii' ? 'selected' : ''; ?>>Post-WWII</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <label for="search" class="form-label">Search by Name or Designation</label>
                     <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
+                </div>
+                <div class="col-md-2">
+                    <label for="view" class="form-label">View</label>
+                    <select name="view" id="view" class="form-select">
+                        <option value="cards" <?php echo $view === 'cards' ? 'selected' : ''; ?>>Cards</option>
+                        <option value="list" <?php echo $view === 'list' ? 'selected' : ''; ?>>List</option>
+                    </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">Filter</button>
@@ -139,6 +147,28 @@ try {
     <?php endif; ?>
 
     <!-- Boat List -->
+    <?php if ($view === 'list'): ?>
+    <!-- List View -->
+    <div class="card">
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                <?php if (empty($boats)): ?>
+                <li class="alert alert-info">No submarines found matching your criteria.</li>
+                <?php else: ?>
+                <?php foreach ($boats as $boat): ?>
+                <li class="mb-2">
+                    <a href="boat.php?id=<?php echo $boat['id']; ?>" class="text-decoration-none">
+                        <i class="fas fa-ship"></i> <?php echo htmlspecialchars($boat['designation'] ?: $boat['name']); ?>
+                    </a>
+                    <span class="text-muted small">- <?php echo htmlspecialchars($boat['date_lost']); ?></span>
+                </li>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </ul>
+        </div>
+    </div>
+    <?php else: ?>
+    <!-- Card View -->
     <div class="row">
         <?php if (empty($boats)): ?>
         <div class="col-12">
@@ -177,6 +207,7 @@ try {
         <?php endforeach; ?>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
 </div>
 
 <script>
