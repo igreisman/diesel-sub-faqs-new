@@ -80,62 +80,35 @@ try {
 }
 ?>
 
-<?php if ($isAjax): ?>
-    <div id="resultsSection">
-    <?php if ($view === 'list'): ?>
-    <div class="card mb-4">
-        <div class="card-body">
-            <ul class="list-group list-group-flush">
-                <?php foreach ($boats as $boat): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="boat.php?id=<?php echo $boat['id']; ?>">
-                        <?php echo htmlspecialchars($boat['name']); ?> (<?php echo htmlspecialchars($boat['designation']); ?>)
-                    </a>
-                    <span class="text-muted small locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>">
-                        <?php echo htmlspecialchars($boat['date_lost']); ?>
-                    </span>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    </div>
-    <?php else: ?>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <?php foreach ($boats as $boat): ?>
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title mb-1">
-                        <?php echo htmlspecialchars($boat['name']); ?>
-                        <span class="text-muted small">(<?php echo htmlspecialchars($boat['designation']); ?>)</span>
-                    </h5>
-                    <p class="text-muted small">
-                        <i class="fas fa-calendar"></i> <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
-                    </p>
-                    <?php if ($boat['fatalities']): ?>
-                    <p class="small mb-2">
-                        <strong><i class="fas fa-users"></i> Fatalities:</strong> <?php echo htmlspecialchars($boat['fatalities']); ?>
-                    </p>
-                    <?php endif; ?>
-                    <?php if ($boat['location']): ?>
-                    <p class="small"><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></p>
-                    <?php endif; ?>
-                    <?php if ($boat['cause']): ?>
-                    <p class="small"><strong>Cause:</strong> <?php echo htmlspecialchars(substr($boat['cause'], 0, 150)); ?>...</p>
-                    <?php endif; ?>
-                    <a href="boat.php?id=<?php echo $boat['id']; ?>" class="btn btn-outline-primary btn-sm">
-                        View Full Details <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-    <?php endif; ?>
-    </div>
-    <?php exit; ?>
-
+<?php if ($isAjax) {
+    echo '<div id="resultsSection">';
+    if ($view === 'list') {
+        echo '<div class="card mb-4"><div class="card-body"><ul class="list-group list-group-flush">';
+        foreach ($boats as $boat) {
+            echo '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            echo '<a href="boat.php?id=' . $boat['id'] . '">' . htmlspecialchars($boat['name']) . ' (' . htmlspecialchars($boat['designation']) . ')</a>';
+            echo '<span class="text-muted small locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span>';
+            echo '</li>';
+        }
+        echo '</ul></div></div>';
+    } else {
+        echo '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
+        foreach ($boats as $boat) {
+            echo '<div class="col"><div class="card h-100"><div class="card-body">';
+            echo '<h5 class="card-title mb-1">' . htmlspecialchars($boat['name']) . ' <span class="text-muted small">(' . htmlspecialchars($boat['designation']) . ')</span></h5>';
+            echo '<p class="text-muted small"><i class="fas fa-calendar"></i> <span class="locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span></p>';
+            if ($boat['fatalities']) echo '<p class="small mb-2"><strong><i class="fas fa-users"></i> Fatalities:</strong> ' . htmlspecialchars($boat['fatalities']) . '</p>';
+            if ($boat['location']) echo '<p class="small"><strong>Location:</strong> ' . htmlspecialchars($boat['location']) . '</p>';
+            if ($boat['cause']) echo '<p class="small"><strong>Cause:</strong> ' . htmlspecialchars(substr($boat['cause'], 0, 150)) . '...</p>';
+            echo '<a href="boat.php?id=' . $boat['id'] . '" class="btn btn-outline-primary btn-sm">View Full Details <i class="fas fa-arrow-right"></i></a>';
+            echo '</div></div></div>';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+    exit;
+}
+?>
 <div class="container mt-4">
     <div class="mb-3">
         <a href="memorial.html" class="btn btn-secondary">&larr; Back to Memorial</a>
@@ -150,7 +123,7 @@ try {
     <!-- Statistics -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <form id="filterForm" class="row g-3" autocomplete="off">
+            <div class="card text-center">
                 <div class="card-body">
                     <h3 class="display-6"><?php echo $totals['total']; ?></h3>
                     <p class="text-muted">Total Submarines Lost</p>
@@ -162,51 +135,52 @@ try {
                 <div class="card-body">
                     <h3 class="display-6"><?php echo number_format($totals['total_fatalities']); ?></h3>
                     <p class="text-muted">Lives Lost</p>
-                    <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <label for="era" class="form-label">Filter by Era</label>
-                    <select name="era" id="era" class="form-select" onchange="this.form.submit()">
-                        <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
-                        <option value="pre-ww2" <?php echo $era_filter === 'pre-ww2' ? 'selected' : ''; ?>>Pre WW2</option>
-                        <option value="ww2" <?php echo $era_filter === 'ww2' ? 'selected' : ''; ?>>WW2</option>
-                        <option value="post-ww2" <?php echo $era_filter === 'post-ww2' ? 'selected' : ''; ?>>Post WW2</option>
-                    </select>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="filterForm" class="row g-3 align-items-end" autocomplete="off">
+                        <div class="col-md-4">
+                            <label for="era" class="form-label">Filter by Era</label>
+                            <select name="era" id="era" class="form-select">
+                                <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
+                                <option value="pre-ww2" <?php echo $era_filter === 'pre-ww2' ? 'selected' : ''; ?>>Pre WW2</option>
+                                <option value="ww2" <?php echo $era_filter === 'ww2' ? 'selected' : ''; ?>>WW2</option>
+                                <option value="post-ww2" <?php echo $era_filter === 'post-ww2' ? 'selected' : ''; ?>>Post WW2</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="search" class="form-label">Search by Name or Designation</label>
+                            <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>">
+                        </div>
+                    </form>
                 </div>
-                <div class="col-md-6">
-                    <label for="search" class="form-label">Search by Name or Designation</label>
-                    <input type="text" name="search" id="search" class="form-control" placeholder="e.g., USS Shark or SS-174" value="<?php echo htmlspecialchars($search); ?>" oninput="this.form.submit()">
-                </div>
-                <input type="hidden" name="view" value="<?php echo htmlspecialchars($view); ?>">
-            </form>
+            </div>
         </div>
     </div>
 
     <!-- View Selector -->
-    <div class="mb-3 d-flex justify-content-start">
-        <form method="GET" class="d-flex align-items-center gap-3">
-            <span class="form-label mb-0">View:</span>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="view" id="viewList" value="list" 
-                       <?php echo $view === 'list' ? 'checked' : ''; ?> onchange="this.form.submit()">
-                <label class="form-check-label" for="viewList">List</label>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-3">
+                <span class="form-label mb-0">View:</span>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="view" id="viewList" value="list" <?php echo $view === 'list' ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="viewList">List</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="view" id="viewCards" value="cards" <?php echo $view === 'cards' ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="viewCards">Cards</label>
+                </div>
+                <span class="ms-3 text-muted small" id="boatCount">(<?php echo count($boats); ?> boats)</span>
             </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="view" id="viewCards" value="cards" 
-                       <?php echo $view === 'cards' ? 'checked' : ''; ?> onchange="this.form.submit()">
-                <label class="form-check-label" for="viewCards">Cards</label>
-            </div>
-            <span class="ms-3 text-muted small">(<?php echo count($boats); ?> boats)</span>
-            <input type="hidden" name="era" value="<?php echo htmlspecialchars($era_filter); ?>">
-            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
-        </form>
+        </div>
     </div>
 
     <?php if (isset($error)): ?>
