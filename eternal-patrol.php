@@ -11,8 +11,9 @@ $view = $_GET['view'] ?? 'list'; // 'cards' or 'list'
 // Build query with calculated era based on date_lost
 $sql = "SELECT *, 
     CASE 
-        WHEN date_lost < '1939-09-01' THEN 'pre-ww2'
-        WHEN date_lost >= '1939-09-01' AND date_lost <= '1945-09-02' THEN 'ww2'
+        WHEN STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01' THEN 'pre-ww2'
+        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
+             (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02') THEN 'ww2'
         ELSE 'post-ww2'
     END as calculated_era
     FROM lost_submarines WHERE 1=1";
@@ -20,11 +21,12 @@ $params = [];
 
 if ($era_filter !== 'all') {
     if ($era_filter === 'pre-ww2') {
-        $sql .= " AND date_lost < '1939-09-01'";
+        $sql .= " AND (STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01')";
     } elseif ($era_filter === 'ww2') {
-        $sql .= " AND date_lost >= '1939-09-01' AND date_lost <= '1945-09-02'";
+        $sql .= " AND ((STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
+                      (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02'))";
     } elseif ($era_filter === 'post-ww2') {
-        $sql .= " AND date_lost > '1945-09-02'";
+        $sql .= " AND (STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02' OR STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02')";
     }
 }
 
@@ -51,8 +53,9 @@ try {
     $stmt = $pdo->query("
         SELECT 
             CASE 
-                WHEN date_lost < '1939-09-01' THEN 'pre-ww2'
-                WHEN date_lost >= '1939-09-01' AND date_lost <= '1945-09-02' THEN 'ww2'
+                WHEN STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01' THEN 'pre-ww2'
+                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
+                     (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02') THEN 'ww2'
                 ELSE 'post-ww2'
             END as calculated_era,
             COUNT(*) as count 
