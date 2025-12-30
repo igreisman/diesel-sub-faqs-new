@@ -107,12 +107,18 @@ try {
 
     <!-- View Selector -->
     <div class="mb-3 d-flex justify-content-start">
-        <form method="GET" class="d-flex align-items-center gap-2">
-            <label for="view" class="form-label mb-0">View:</label>
-            <select name="view" id="view" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
-                <option value="list" <?php echo $view === 'list' ? 'selected' : ''; ?>>List</option>
-                <option value="cards" <?php echo $view === 'cards' ? 'selected' : ''; ?>>Cards</option>
-            </select>
+        <form method="GET" class="d-flex align-items-center gap-3">
+            <span class="form-label mb-0">View:</span>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="view" id="viewList" value="list" 
+                       <?php echo $view === 'list' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                <label class="form-check-label" for="viewList">List</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="view" id="viewCards" value="cards" 
+                       <?php echo $view === 'cards' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                <label class="form-check-label" for="viewCards">Cards</label>
+            </div>
             <input type="hidden" name="era" value="<?php echo htmlspecialchars($era_filter); ?>">
             <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
         </form>
