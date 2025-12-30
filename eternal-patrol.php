@@ -139,6 +139,7 @@ try {
                        <?php echo $view === 'cards' ? 'checked' : ''; ?> onchange="this.form.submit()">
                 <label class="form-check-label" for="viewCards">Cards</label>
             </div>
+            <span class="ms-3 text-muted small">(<?php echo count($boats); ?> boats)</span>
             <input type="hidden" name="era" value="<?php echo htmlspecialchars($era_filter); ?>">
             <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
         </form>
