@@ -76,6 +76,9 @@ try {
 ?>
 
 <div class="container mt-4">
+    <div class="mb-3">
+        <a href="memorial.html" class="btn btn-secondary">&larr; Back to Memorial</a>
+    </div>
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="display-4">⚓ Submarines on Eternal Patrol</h1>
