@@ -1,7 +1,12 @@
 <?php
 session_start();
 require_once 'config/database.php';
-require_once 'includes/header.php';
+
+// Detect AJAX request
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+if (!$isAjax) {
+    require_once 'includes/header.php';
+}
 
 // Get filter parameters
 $era_filter = $_GET['era'] ?? 'all';
@@ -74,6 +79,63 @@ try {
     $totals = ['total' => 0, 'total_fatalities' => 0];
 }
 ?>
+
+<?php if ($isAjax): ?>
+    <div id="resultsSection">
+    <?php if ($view === 'list'): ?>
+    <div class="card mb-4">
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <?php foreach ($boats as $boat): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="boat.php?id=<?php echo $boat['id']; ?>">
+                        <?php echo htmlspecialchars($boat['name']); ?> (<?php echo htmlspecialchars($boat['designation']); ?>)
+                    </a>
+                    <span class="text-muted small locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>">
+                        <?php echo htmlspecialchars($boat['date_lost']); ?>
+                    </span>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php foreach ($boats as $boat): ?>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">
+                        <?php echo htmlspecialchars($boat['name']); ?>
+                        <span class="text-muted small">(<?php echo htmlspecialchars($boat['designation']); ?>)</span>
+                    </h5>
+                    <p class="text-muted small">
+                        <i class="fas fa-calendar"></i> <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
+                    </p>
+                    <?php if ($boat['fatalities']): ?>
+                    <p class="small mb-2">
+                        <strong><i class="fas fa-users"></i> Fatalities:</strong> <?php echo htmlspecialchars($boat['fatalities']); ?>
+                    </p>
+                    <?php endif; ?>
+                    <?php if ($boat['location']): ?>
+                    <p class="small"><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></p>
+                    <?php endif; ?>
+                    <?php if ($boat['cause']): ?>
+                    <p class="small"><strong>Cause:</strong> <?php echo htmlspecialchars(substr($boat['cause'], 0, 150)); ?>...</p>
+                    <?php endif; ?>
+                    <a href="boat.php?id=<?php echo $boat['id']; ?>" class="btn btn-outline-primary btn-sm">
+                        View Full Details <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+    </div>
+    <span class="ms-3 text-muted small" id="boatCount">(<?php echo count($boats); ?> boats)</span>
+    <?php exit; endif; ?>
 
 <div class="container mt-4">
     <div class="mb-3">
