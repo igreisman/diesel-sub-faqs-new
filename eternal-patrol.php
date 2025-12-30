@@ -16,10 +16,13 @@ $view = $_GET['view'] ?? 'list'; // 'cards' or 'list'
 // Build query with calculated era based on date_lost
 $sql = "SELECT *, 
     CASE 
-        WHEN STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01' THEN 'pre-ww2'
-        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
-             (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02') THEN 'ww2'
-        ELSE 'post-ww2'
+        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') < '1941-12-07')
+          OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') < '1941-12-07')
+            THEN 'pre-ww2'
+        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02')
+          OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02')
+            THEN 'post-ww2'
+        ELSE 'ww2'
     END as calculated_era
     FROM lost_submarines 
     WHERE 1=1
@@ -27,14 +30,8 @@ $sql = "SELECT *,
 $params = [];
 
 if ($era_filter !== 'all') {
-    if ($era_filter === 'pre-ww2') {
-        $sql .= " AND (STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01')";
-    } elseif ($era_filter === 'ww2') {
-        $sql .= " AND ((STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
-                      (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02'))";
-    } elseif ($era_filter === 'post-ww2') {
-        $sql .= " AND (STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02' OR STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02')";
-    }
+    $sql .= " HAVING calculated_era = ?";
+    $params[] = $era_filter;
 }
 
 if (!empty($search)) {
@@ -68,10 +65,11 @@ try {
     $stmt = $pdo->query("
         SELECT 
             CASE 
-                WHEN STR_TO_DATE(date_lost, '%Y-%m-%d') < '1939-09-01' OR STR_TO_DATE(date_lost, '%d %M %Y') < '1939-09-01' THEN 'pre-ww2'
-                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%Y-%m-%d') <= '1945-09-02') OR 
-                     (STR_TO_DATE(date_lost, '%d %M %Y') >= '1939-09-01' AND STR_TO_DATE(date_lost, '%d %M %Y') <= '1945-09-02') THEN 'ww2'
-                ELSE 'post-ww2'
+                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') < '1941-12-07')
+                  OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') < '1941-12-07') THEN 'pre-ww2'
+                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02')
+                  OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02') THEN 'post-ww2'
+                ELSE 'ww2'
             END as calculated_era,
             COUNT(*) as count 
         FROM lost_submarines 
@@ -178,7 +176,7 @@ try {
     <!-- View Selector -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex align-items-center gap-3">
+            <form id="viewForm" class="d-flex align-items-center gap-3 mb-0">
                 <span class="form-label mb-0">View:</span>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="view" id="viewList" value="list" <?php echo $view === 'list' ? 'checked' : ''; ?>>
@@ -189,7 +187,7 @@ try {
                     <label class="form-check-label" for="viewCards">Cards</label>
                 </div>
                 <span class="ms-3 text-muted small" id="boatCount">(<?php echo count($boats); ?> boats)</span>
-            </div>
+            </form>
         </div>
     </div>
 
