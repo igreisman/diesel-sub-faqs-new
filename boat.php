@@ -132,12 +132,12 @@ include 'includes/header.php';
                     <h3 class="h6 mb-0">Quick Facts</h3>
                 </div>
                 <div class="card-body">
-                    <?php if ($boat['era']): ?>
+                    <?php if (!empty($boat['era'])): ?>
                     <p class="small mb-2"><strong>Era:</strong> 
                         <span class="badge bg-secondary"><?php echo strtoupper(htmlspecialchars($boat['era'])); ?></span>
                     </p>
                     <?php endif; ?>
-                    <?php if ($boat['year_lost']): ?>
+                    <?php if (!empty($boat['year_lost'])): ?>
                     <p class="small mb-0"><strong>Year Lost:</strong> <?php echo htmlspecialchars($boat['year_lost']); ?></p>
                     <?php endif; ?>
                 </div>
