@@ -22,7 +22,8 @@ $sql = "SELECT *,
         ELSE 'post-ww2'
     END as calculated_era
     FROM lost_submarines 
-    WHERE (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL OR STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL)";
+    WHERE 1=1
+    AND (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL OR STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL)";
 $params = [];
 
 if ($era_filter !== 'all') {
