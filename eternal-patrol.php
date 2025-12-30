@@ -6,7 +6,7 @@ require_once 'includes/header.php';
 // Get filter parameters
 $era_filter = $_GET['era'] ?? 'all';
 $search = $_GET['search'] ?? '';
-$view = $_GET['view'] ?? 'cards'; // 'cards' or 'list'
+$view = $_GET['view'] ?? 'list'; // 'cards' or 'list'
 
 // Build query
 $sql = "SELECT * FROM lost_submarines WHERE 1=1";
