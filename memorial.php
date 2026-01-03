@@ -5,11 +5,9 @@ require_once 'config/database.php';
 $stats = $pdo->query("
     SELECT 
         COUNT(*) as total_boats,
-        SUM(CASE WHEN era = 'pre-wwi' THEN 1 ELSE 0 END) as pre_wwi,
-        SUM(CASE WHEN era = 'wwi' THEN 1 ELSE 0 END) as wwi,
-        SUM(CASE WHEN era = 'interwar' THEN 1 ELSE 0 END) as interwar,
-        SUM(CASE WHEN era = 'wwii' THEN 1 ELSE 0 END) as wwii,
-        SUM(CASE WHEN era = 'post-wwii' THEN 1 ELSE 0 END) as post_wwii
+        SUM(CASE WHEN date_lost_sort IS NOT NULL AND date_lost_sort < '1941-12-07' THEN 1 ELSE 0 END) as pre_ww2,
+        SUM(CASE WHEN date_lost_sort >= '1941-12-07' AND date_lost_sort <= '1945-09-02' THEN 1 ELSE 0 END) as wwii,
+        SUM(CASE WHEN date_lost_sort IS NOT NULL AND date_lost_sort > '1945-09-02' THEN 1 ELSE 0 END) as post_wwii
     FROM lost_submarines
 ")->fetch();
 ?>
@@ -228,7 +226,7 @@ $stats = $pdo->query("
                         <div class="stat-label">World War II</div>
                     </div>
                     <div class="col-md-4 stat-item">
-                        <span class="stat-number"><?php echo $stats['pre_wwi'] + $stats['wwi'] + $stats['interwar'] + $stats['post_wwii']; ?></span>
+                        <span class="stat-number"><?php echo $stats['pre_ww2'] + $stats['post_wwii']; ?></span>
                         <div class="stat-label">Other Eras</div>
                     </div>
                 </div>
