@@ -2,6 +2,51 @@
 session_start();
 require_once 'config/database.php';
 
+// Default about text
+$defaultAboutText = '<p>Each Memorial Day, United States Submarine Veterans read the list of the boats lost in World War 2. It is called with the "Tolling of the Boats." The reading of the names of the lost boats typically includes the number of sailors lost with each one. Since the ceremony was created by WW2 sub vets, the focus was on their era. Recently, as more of the sub vets are from post WW2 service, the list has included the four submarines that we have lost since the war. Although they were not lost in active combat, we acknowledge that these sailors also gave their lives in the service of their country.</p>
+                    
+<p>However, this reading has not usually included the submarines we lost prior to WW2. We had an average of one submarine incident (sinking or grounding) every 27 months from the time of the USS Holland purchase in 1900 until the outbreak of WW2 in 1941. However, a number of those boats sank without loss of life and were salvaged and recommissioned. Therefore, we made an arbitrary decision about which boats to include in our list of those lost prior to WW2. We only included the eleven US Navy submarines lost prior to WW2 with loss of life or where the boat was not salvaged. The boats we did not include are listed in an appendix.</p>
+                    
+<p><strong>So how did this particular project come about?</strong><br>
+This project came about for the USS Pampanito (SS-383), at the maritime museum in San Francisco. The Mare Island base of the USSVI sub vets normally holds their "Tolling of the Boats" at the Pampanito. This document is an effort to make the list more inclusive and to give it more texture, more depth and, hopefully, make it more interesting. Although this document is too lengthy to be read in full at the ceremony, we hope it might provide more information for anyone who might be interested.</p>
+                    
+<p>Some of the stories of the lost submarines are interesting or particularly tragic. Most of them had interesting histories prior to their last patrols. That is the sort of thing we wanted to convey. For example, one boat rescued gold bars and silver coins from banks in the Philippines, only to have one gold bar go "missing" on the way home. One submarine sank a Japanese carrier but wasn\'t immediately aware of it. The submarine was long gone before the carrier went down. The stories of the sister ships USS Squalus/Sailfish and the USS Sculpin are particularly ironic and sad. There was also the frequent tension between what captains thought they sank and what they got credit for in the postwar audit.</p>
+                    
+<p><strong>How is the document organized?</strong><br>
+The prewar losses that met our criteria are listed in section 1. Section 2 details the WW2 losses and postwar losses are in section 3. The listings are generally in order of the dates the boats were lost. That isn\'t an exact sort since we still don\'t always know the exact dates of the losses.</p>
+                    
+<p>For each listing, we start with basic information about the boat such as the class and building shipyard. Next, we describe the last patrol and what we know about the submarine\'s loss. Then we go back and summarize its prior history.</p>
+                    
+<p>The officers\' photographs, unless otherwise noted, are those of the last commanding officers. Although the majority of the captains, and their crews, were lost when the boat went down, not all perished. In two cases, the captains are listed with two different boats. In four cases the boats went aground and the entire crews were rescued. In a few more cases, captains were on the bridge when the boat was sunk and they, along with a few other crew members were able to make it to safety.</p>
+                    
+<p>The pictures of the submarines, again unless otherwise noted, are those of the lost boats. Obviously, there may not be much difference between boats of the same classes, but there are huge differences between our first class of submarines, such as the A-7, and the nuclear-powered boats. Manitowoc boats were launched sideways and that process looks very different. Therefore, we included the photos of many of the boats.</p>
+                    
+<p>Like so many other professions, sailors - particularly on submarines - speak a very odd language. Hopefully, Appendix B translates most of that jargon into a reasonable version of English.</p>
+                    
+<p><strong>Thanks.</strong><br>
+My thanks go to Diane Cooper for the idea which we then expanded. Her guidance and suggestions throughout were most helpful. Suggestions and reminders from others are also appreciated.</p>
+                    
+<p>The greatest thanks go to my wife, Sue, for putting up with my strange obsession. A benefit of this project may have been to get me out of her hair a couple days per week. However, I do realize that I still try her patience at times.</p>
+                    
+<p><strong>Dedication.</strong><br>
+This is dedicated to all submariners, particularly those who gave their lives for their countries, in times of war and in keeping the peace.</p>';
+
+// Get about text from database
+$aboutText = '';
+try {
+    $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'eternal_patrol_about'");
+    $stmt->execute();
+    $result = $stmt->fetch();
+    if ($result) {
+        $aboutText = $result['setting_value'];
+    } else {
+        $aboutText = $defaultAboutText;
+    }
+} catch (PDOException $e) {
+    // If table doesn't exist or query fails, use default text
+    $aboutText = $defaultAboutText;
+}
+
 // Detect AJAX request
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 if (!$isAjax) {
@@ -14,19 +59,16 @@ $search = $_GET['search'] ?? '';
 $view = $_GET['view'] ?? 'list'; // 'cards' or 'list'
 
 // Build query with calculated era based on date_lost
+
 $sql = "SELECT *, 
     CASE 
-        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') < '1941-12-07')
-          OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') < '1941-12-07')
-            THEN 'pre-ww2'
-        WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02')
-          OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02')
-            THEN 'post-ww2'
+        WHEN date_lost_sort IS NOT NULL AND date_lost_sort < '1941-12-07' THEN 'pre-ww2'
+        WHEN date_lost_sort IS NOT NULL AND date_lost_sort > '1945-09-02' THEN 'post-ww2'
         ELSE 'ww2'
     END as calculated_era
     FROM lost_submarines 
     WHERE 1=1
-    AND (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL OR STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL)";
+    AND date_lost_sort IS NOT NULL";
 $params = [];
 
 if ($era_filter !== 'all') {
@@ -40,7 +82,7 @@ if (!empty($search)) {
     $params[] = "%$search%";
 }
 
-$sql .= " ORDER BY display_order ASC, boat_number ASC";
+$sql .= " ORDER BY date_lost_sort IS NULL ASC, date_lost_sort ASC, boat_number ASC";
 
 try {
     // DEBUG: Output filter and SQL for troubleshooting
@@ -65,22 +107,20 @@ try {
     $stmt = $pdo->query("
         SELECT 
             CASE 
-                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') < '1941-12-07')
-                  OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') < '1941-12-07') THEN 'pre-ww2'
-                WHEN (STR_TO_DATE(date_lost, '%Y-%m-%d') IS NOT NULL AND STR_TO_DATE(date_lost, '%Y-%m-%d') > '1945-09-02')
-                  OR (STR_TO_DATE(date_lost, '%d %M %Y') IS NOT NULL AND STR_TO_DATE(date_lost, '%d %M %Y') > '1945-09-02') THEN 'post-ww2'
+                WHEN date_lost_sort IS NOT NULL AND date_lost_sort < '1941-12-07' THEN 'pre-ww2'
+                WHEN date_lost_sort IS NOT NULL AND date_lost_sort > '1945-09-02' THEN 'post-ww2'
                 ELSE 'ww2'
             END as calculated_era,
             COUNT(*) as count 
         FROM lost_submarines 
+        WHERE date_lost_sort IS NOT NULL
         GROUP BY calculated_era
         ORDER BY FIELD(calculated_era, 'pre-ww2', 'ww2', 'post-ww2')
     ");
     while ($row = $stmt->fetch()) {
         $stats[$row['calculated_era']] = $row['count'];
     }
-    
-    $total_stmt = $pdo->query("SELECT COUNT(*) as total, SUM(CAST(SUBSTRING_INDEX(fatalities, ' ', 1) AS UNSIGNED)) as total_fatalities FROM lost_submarines");
+    $total_stmt = $pdo->query("SELECT COUNT(*) as total, SUM(fatalities_num) as total_fatalities FROM lost_submarines");
     $totals = $total_stmt->fetch();
 } catch (Exception $e) {
     $stats = [];
@@ -92,18 +132,36 @@ try {
     echo '<div id="resultsSection">';
     if ($view === 'list') {
         echo '<div class="card mb-4"><div class="card-body"><ul class="list-group list-group-flush">';
+        $currentEra = null;
         foreach ($boats as $boat) {
-            echo '<li class="list-group-item d-flex justify-content-between align-items-center">';
-            echo '<a href="boat.php?id=' . $boat['id'] . '">' . htmlspecialchars($boat['name']) . ' (' . htmlspecialchars($boat['designation']) . ')</a>';
+            // Add era header when era changes
+            if ($currentEra !== $boat['calculated_era']) {
+                $currentEra = $boat['calculated_era'];
+                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                if ($currentEra !== null) {
+                    echo '<li class="list-group-item bg-light fw-bold">Submarines lost ' . htmlspecialchars($eraLabel) . '</li>';
+                }
+            }
+            echo '<li class="list-group-item d-flex justify-content-between align-items-center ps-4">';
+            echo '<a href="boat.php?id=' . $boat['id'] . '">' . htmlspecialchars($boat['designation'] ?: $boat['name']) . '</a>';
             echo '<span class="text-muted small locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span>';
             echo '</li>';
         }
         echo '</ul></div></div>';
     } else {
         echo '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
+        $currentEra = null;
         foreach ($boats as $boat) {
-            echo '<div class="col"><div class="card h-100"><div class="card-body">';
-            echo '<h5 class="card-title mb-1">' . htmlspecialchars($boat['name']) . ' <span class="text-muted small">(' . htmlspecialchars($boat['designation']) . ')</span></h5>';
+            // Add era header when era changes
+            if ($currentEra !== $boat['calculated_era']) {
+                $currentEra = $boat['calculated_era'];
+                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                if ($currentEra !== null) {
+                    echo '<div class="col-12"><h4 class="border-bottom pb-2 mb-3">Submarines lost ' . htmlspecialchars($eraLabel) . '</h4></div>';
+                }
+            }
+            echo '<div class="col ms-3"><div class="card h-100"><div class="card-body">';
+            echo '<h5 class="card-title mb-1">' . htmlspecialchars($boat['designation'] ?: $boat['name']) . '</h5>';
             echo '<p class="text-muted small"><i class="fas fa-calendar"></i> <span class="locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span></p>';
             if ($boat['fatalities']) echo '<p class="small mb-2"><strong><i class="fas fa-users"></i> Fatalities:</strong> ' . htmlspecialchars($boat['fatalities']) . '</p>';
             if ($boat['location']) echo '<p class="small"><strong>Location:</strong> ' . htmlspecialchars($boat['location']) . '</p>';
@@ -124,7 +182,28 @@ try {
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="display-4">⚓ Submarines on Eternal Patrol</h1>
-            <p class="lead">Honoring the brave men and vessels lost in service to our nation</p>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary border-3 shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">About the Tolling of the Boats</h5>
+                    <div>
+                        <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+                            <a href="admin-eternal-patrol-about.php" class="btn btn-sm btn-light me-2">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                        <?php endif; ?>
+                        <small><i class="fas fa-arrow-down"></i> Scroll for more</small>
+                    </div>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto; position: relative;">
+                    <?php echo $aboutText; ?>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -213,8 +292,17 @@ try {
                 <?php if (empty($boats)): ?>
                 <li class="alert alert-info">No submarines found matching your criteria.</li>
                 <?php else: ?>
-                <?php foreach ($boats as $boat): ?>
-                <li class="mb-2">
+                <?php 
+                $currentEra = null;
+                foreach ($boats as $boat): 
+                    // Add era header when era changes
+                    if ($currentEra !== $boat['calculated_era']):
+                        $currentEra = $boat['calculated_era'];
+                        $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                ?>
+                <li class="fw-bold text-primary mt-3 mb-2" style="list-style: none;">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></li>
+                <?php endif; ?>
+                <li class="mb-2 ps-4">
                     <a href="boat.php?id=<?php echo $boat['id']; ?>" class="text-decoration-none">
                         <i class="fas fa-ship"></i> <?php echo htmlspecialchars($boat['designation'] ?: $boat['name']); ?>
                     </a>
@@ -235,8 +323,19 @@ try {
             </div>
         </div>
         <?php else: ?>
-        <?php foreach ($boats as $boat): ?>
-        <div class="col-md-6 mb-4">
+        <?php 
+        $currentEra = null;
+        foreach ($boats as $boat): 
+            // Add era header when era changes
+            if ($currentEra !== $boat['calculated_era']):
+                $currentEra = $boat['calculated_era'];
+                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+        ?>
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3 mt-3">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></h4>
+        </div>
+        <?php endif; ?>
+        <div class="col-md-6 mb-4 ms-3">
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">

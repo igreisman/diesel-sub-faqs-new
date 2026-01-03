@@ -35,6 +35,12 @@ require_once 'includes/header.php';
                             <label for="password" class="form-label">Admin Password</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
+                        <script>
+                        window.addEventListener('DOMContentLoaded', function() {
+                            var pw = document.getElementById('password');
+                            if (pw) pw.focus();
+                        });
+                        </script>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-sign-in-alt"></i> Login

@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $page_title = 'Edit Submarine';
 $page_description = 'Admin: Edit submarine details';
 require_once 'config/database.php';
@@ -13,6 +16,20 @@ $message = '';
 $error = '';
 $submarine = null;
 $isEdit = isset($_GET['id']);
+
+// Get previous and next submarine IDs for navigation
+$prior_id = null;
+$next_id = null;
+if ($isEdit) {
+    $boat_id = (int)$_GET['id'];
+    $order_sql = "SELECT id FROM lost_submarines ORDER BY display_order ASC, boat_number ASC";
+    $order_stmt = $pdo->query($order_sql);
+    $boat_ids = $order_stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    $current_index = array_search($boat_id, $boat_ids);
+    $prior_id = $current_index !== false && $current_index > 0 ? $boat_ids[$current_index - 1] : null;
+    $next_id = $current_index !== false && $current_index < count($boat_ids) - 1 ? $boat_ids[$current_index + 1] : null;
+}
 
 // Handle image uploads
 function handleImageUpload($file, $prefix) {
@@ -116,12 +133,52 @@ function handleImageUpload($file, $prefix) {
     return 'images/' . $filename;
 }
 
+// Function to find first empty image field
+function getFirstEmptyImageField($submarine) {
+    if (empty($submarine)) {
+        return 'image1';
+    }
+    for ($i = 1; $i <= 10; $i++) {
+        $field = 'image' . $i;
+        if (empty($submarine[$field])) {
+            return $field;
+        }
+    }
+    return 'image10'; // Default to last if all are full
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
     $boat_number = trim($_POST['boat_number'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $designation = trim($_POST['designation'] ?? '');
     $date_lost = trim($_POST['date_lost'] ?? '');
+    $date_lost_sort = trim($_POST['date_lost_sort'] ?? '');
+    
+    // If date_lost_sort is empty, try to parse date_lost
+    if (empty($date_lost_sort) && !empty($date_lost)) {
+        $ts = strtotime($date_lost);
+        if ($ts !== false) {
+            $date_lost_sort = date('Y-m-d', $ts);
+        }
+    }
+    
+    // Validate date_lost_sort is a valid date
+    if (!empty($date_lost_sort)) {
+        $parts = explode('-', $date_lost_sort);
+        if (count($parts) === 3) {
+            if (!checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0])) {
+                // Invalid date, set to NULL
+                $date_lost_sort = null;
+            }
+        } else {
+            // Invalid format
+            $date_lost_sort = null;
+        }
+    } else {
+        $date_lost_sort = null;
+    }
+    
     $location = trim($_POST['location'] ?? '');
     $last_captain = trim($_POST['last_captain'] ?? '');
     $loss_narrative = trim($_POST['loss_narrative'] ?? '');
@@ -132,26 +189,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
             ?? trim($_POST['photo_boat'] ?? '');
         $photo_captain = handleImageUpload($_FILES['photo_captain_file'] ?? null, 'captain') 
             ?? trim($_POST['photo_captain'] ?? '');
-        $photo_url_extra = handleImageUpload($_FILES['photo_extra_file'] ?? null, 'extra') 
+        
+        // Get the target image field for extra photo
+        $extraImageField = $_POST['extra_image_field'] ?? 'image1';
+        $extraImageValue = handleImageUpload($_FILES['photo_extra_file'] ?? null, 'extra') 
             ?? trim($_POST['photo_url_extra'] ?? '');
+        $extraImageSubtitle = trim($_POST['extra_image_subtitle'] ?? '');
     } catch (Exception $e) {
         $error = 'Image upload error: ' . $e->getMessage();
-    }
-    
-    // Calculate era based on date_lost
-    $era = 'ww2'; // Default to During WW2
-    if (!empty($date_lost)) {
-        $date_timestamp = strtotime($date_lost);
-        if ($date_timestamp !== false) {
-            $pearl_harbor = strtotime('1941-12-07');
-            $japan_surrender = strtotime('1945-08-15');
-            
-            if ($date_timestamp < $pearl_harbor) {
-                $era = 'pre-ww2';
-            } elseif ($date_timestamp > $japan_surrender) {
-                $era = 'post-ww2';
-            }
-        }
     }
     
     // Validation
@@ -162,31 +207,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
             if ($isEdit) {
                 // Update existing submarine
                 $id = (int)$_GET['id'];
+                
+                // Build the update query dynamically to include extra image if provided
+                $updateFields = "boat_number = ?, name = ?, designation = ?, date_lost = ?, date_lost_sort = ?,
+                                 location = ?, last_captain = ?, loss_narrative = ?,
+                                 photo_boat = ?, photo_captain = ?";
+                $params = [
+                    $boat_number, $name, $designation, $date_lost, $date_lost_sort,
+                    $location, $last_captain, $loss_narrative,
+                    $photo_boat, $photo_captain
+                ];
+                
+                // Add extra image field if provided
+                if (!empty($extraImageValue) && !empty($extraImageField)) {
+                    $updateFields .= ", {$extraImageField} = ?";
+                    $params[] = $extraImageValue;
+                    
+                    // Add subtitle if provided
+                    $subtitleField = $extraImageField . '_subtitle';
+                    $updateFields .= ", {$subtitleField} = ?";
+                    $params[] = $extraImageSubtitle;
+                }
+                
+                $params[] = $id; // Add ID for WHERE clause
+                
                 $stmt = $pdo->prepare("
                     UPDATE lost_submarines 
-                    SET boat_number = ?, name = ?, designation = ?, date_lost = ?, 
-                        location = ?, era = ?, last_captain = ?, loss_narrative = ?,
-                        photo_boat = ?, photo_captain = ?, photo_url_extra = ?
+                    SET {$updateFields}
                     WHERE id = ?
                 ");
-                $stmt->execute([
-                    $boat_number, $name, $designation, $date_lost,
-                    $location, $era, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain, $photo_url_extra, $id
-                ]);
+                $stmt->execute($params);
                 $message = 'Submarine updated successfully!';
             } else {
                 // Insert new submarine
+                $insertFields = "boat_number, name, designation, date_lost, date_lost_sort, location, last_captain, loss_narrative, photo_boat, photo_captain, display_order";
+                $insertPlaceholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0";
+                $params = [
+                    $boat_number, $name, $designation, $date_lost, $date_lost_sort,
+                    $location, $last_captain, $loss_narrative,
+                    $photo_boat, $photo_captain
+                ];
+                
+                // Add extra image field if provided
+                if (!empty($extraImageValue) && !empty($extraImageField)) {
+                    $insertFields .= ", {$extraImageField}";
+                    $insertPlaceholders .= ", ?";
+                    $params[] = $extraImageValue;
+                    
+                    // Add subtitle if provided
+                    $subtitleField = $extraImageField . '_subtitle';
+                    $insertFields .= ", {$subtitleField}";
+                    $insertPlaceholders .= ", ?";
+                    $params[] = $extraImageSubtitle;
+                }
+                
                 $stmt = $pdo->prepare("
                     INSERT INTO lost_submarines 
-                    (boat_number, name, designation, date_lost, location, era, last_captain, loss_narrative, photo_boat, photo_captain, photo_url_extra, display_order)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    ({$insertFields})
+                    VALUES ({$insertPlaceholders})
                 ");
-                $stmt->execute([
-                    $boat_number, $name, $designation, $date_lost,
-                    $location, $era, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain, $photo_url_extra
-                ]);
+                $stmt->execute($params);
                 $message = 'Submarine added successfully!';
                 header('Location: admin-eternal-patrol.php');
                 exit;
@@ -209,7 +289,7 @@ if (isset($_POST['prefilled']) && $_POST['prefilled'] == '1') {
         'loss_narrative' => $_POST['description'] ?? '',
         'photo_boat' => '',
         'photo_captain' => '',
-        'photo_url_extra' => ''
+        // 'photo_url_extra' => ''
     ];
 }
 // Load submarine data for editing
@@ -222,10 +302,17 @@ elseif ($isEdit) {
         
         if (!$submarine) {
             $error = 'Submarine not found.';
+        } else {
+            // Determine which image field to use for "Extra Photo"
+            $extraImageField = getFirstEmptyImageField($submarine);
+            $extraImageFieldNum = (int)str_replace('image', '', $extraImageField);
         }
     } catch (PDOException $e) {
         $error = 'Error loading submarine: ' . $e->getMessage();
     }
+} else {
+    $extraImageField = 'image1';
+    $extraImageFieldNum = 1;
 }
 ?>
 <!DOCTYPE html>
@@ -274,6 +361,39 @@ elseif ($isEdit) {
         .alert {
             border-radius: 8px;
         }
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+        .save-notification.hiding {
+            animation: slideOut 0.3s ease-in;
+        }
     </style>
 </head>
 <body>
@@ -281,27 +401,40 @@ elseif ($isEdit) {
         <div class="admin-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="mb-2">⚓ <?= $isEdit ? 'Edit Lost Boat' : 'Add Lost Boat' ?></h1>
+                    <h1 class="mb-2">⚓ <?= $isEdit ? 'Edit' : 'Add Lost Boat' ?></h1>
                     <p class="mb-0 text-muted"><?= $isEdit ? 'Update submarine details' : 'Add a new lost submarine' ?></p>
                 </div>
-                <div>
-                    <a href="admin-eternal-patrol.php" class="btn btn-secondary">← Back to List</a>
+                <div class="d-flex gap-2">
+                    <?php if ($isEdit): ?>
+                        <?php if ($prior_id): ?>
+                            <a href="admin-eternal-patrol-edit.php?id=<?php echo $prior_id; ?>" class="btn btn-outline-light" title="Previous submarine">
+                                ←
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($next_id): ?>
+                            <a href="admin-eternal-patrol-edit.php?id=<?php echo $next_id; ?>" class="btn btn-outline-light" title="Next submarine">
+                                →
+                            </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    <a href="admin-eternal-patrol.php" class="btn btn-secondary">List</a>
                 </div>
             </div>
         </div>
 
         <?php if ($message): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div id="saveNotification" class="alert alert-success alert-dismissible fade show save-notification" role="alert">
+                <strong>✓ Success!</strong><br>
                 <?= htmlspecialchars($message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="hideNotification()"></button>
             </div>
         <?php endif; ?>
-
+        
         <?php if ($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div id="errorNotification" class="alert alert-danger alert-dismissible fade show save-notification" role="alert">
+                <strong>✗ Error!</strong><br>
                 <?= htmlspecialchars($error) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="hideNotification()"></button>
         <?php endif; ?>
 
         <?php if (!$isEdit || $submarine): ?>
@@ -338,6 +471,13 @@ elseif ($isEdit) {
                         </div>
 
                         <div class="mb-3">
+                            <label for="date_lost_sort" class="form-label">Date Lost Sort (YYYY-MM-DD)</label>
+                            <input type="text" class="form-control" id="date_lost_sort" name="date_lost_sort" 
+                                   value="<?= htmlspecialchars($submarine['date_lost_sort'] ?? '') ?>" 
+                                   placeholder="1941-12-10" pattern="\d{4}-\d{2}-\d{2}">
+                        </div>
+
+                        <div class="mb-3">
                             <label for="location" class="form-label">Location</label>
                             <input type="text" class="form-control" id="location" name="location" 
                                    value="<?= htmlspecialchars($submarine['location'] ?? '') ?>" 
@@ -357,6 +497,49 @@ elseif ($isEdit) {
                                       rows="8" placeholder="Describe the circumstances of the submarine's loss..."><?= htmlspecialchars($submarine['loss_narrative'] ?? '') ?></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Additional Images & Subtitles</label>
+                            <div id="dynamic-images-section"></div>
+                            <button type="button" class="btn btn-outline-primary mt-2" id="add-image-btn">Add Image + Subtitle</button>
+                            <small class="text-muted d-block mt-1">You may add up to 10 images with subtitles. Supported: JPEG/PNG/GIF/WebP</small>
+                        </div>
+                        <script>
+                        let imageCount = 0;
+                        function addImageField(img = '', subtitle = '') {
+                            if (imageCount >= 10) return;
+                            imageCount++;
+                            const section = document.getElementById('dynamic-images-section');
+                            const div = document.createElement('div');
+                            div.className = 'row mb-2 align-items-end';
+                            div.innerHTML = `
+                                <div class="col-md-5">
+                                    <input type="file" class="form-control" name="image${imageCount}_file" accept="image/*">
+                                    <input type="hidden" name="image${imageCount}" value="${img}">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" name="image${imageCount}_subtitle" placeholder="Subtitle" value="${subtitle}">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger remove-image-btn">Remove</button>
+                                </div>
+                            `;
+                            section.appendChild(div);
+                            div.querySelector('.remove-image-btn').onclick = function() {
+                                section.removeChild(div);
+                                imageCount--;
+                            };
+                        }
+                        document.getElementById('add-image-btn').onclick = function() {
+                            addImageField();
+                        };
+                        // Optionally, prepopulate with existing images/subtitles from PHP
+                        <?php for ($i = 1; $i <= 10; $i++):
+                            $img = htmlspecialchars($submarine['image'.$i] ?? '');
+                            $sub = htmlspecialchars($submarine['image'.$i.'_subtitle'] ?? '');
+                            if ($img || $sub): ?>
+                            addImageField("<?= $img ?>", "<?= $sub ?>");
+                        <?php endif; endfor; ?>
+                        </script>
                         <div class="mb-3">
                             <label for="photo_boat" class="form-label">Boat Photo</label>
                             <div class="photo-upload-zone" id="photo_boat_zone" data-field="photo_boat">
@@ -393,8 +576,57 @@ elseif ($isEdit) {
                             <div class="form-text">Optional: Photo of the captain</div>
                         </div>
 
+                        <?php 
+                        // Display existing additional images
+                        if (isset($submarine)) {
+                            $hasImages = false;
+                            for ($i = 1; $i <= 10; $i++) {
+                                $imageField = 'image' . $i;
+                                if (!empty($submarine[$imageField])) {
+                                    $hasImages = true;
+                                    break;
+                                }
+                            }
+                            
+                            if ($hasImages) {
+                                echo '<div class="mb-4"><h5>Existing Additional Images</h5>';
+                                for ($i = 1; $i <= 10; $i++) {
+                                    $imageField = 'image' . $i;
+                                    $subtitleField = $imageField . '_subtitle';
+                                    
+                                    if (!empty($submarine[$imageField])) {
+                                        ?>
+                                        <div class="card mb-3">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <strong>Image <?php echo $i; ?></strong>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <img src="<?php echo htmlspecialchars($submarine[$imageField]); ?>" 
+                                                             alt="Image <?php echo $i; ?>" 
+                                                             class="img-fluid rounded">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <p class="mb-1"><strong>Subtitle:</strong></p>
+                                                        <p class="text-muted"><?php echo htmlspecialchars($submarine[$subtitleField] ?? 'No subtitle'); ?></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php
+                                    }
+                                }
+                                echo '</div>';
+                            }
+                        }
+                        ?>
+
                         <div class="mb-3">
-                            <label for="photo_url_extra" class="form-label">Extra Photo</label>
+                            <label for="photo_url_extra" class="form-label">
+                                <?php echo isset($extraImageFieldNum) ? "Image {$extraImageFieldNum}" : 'Extra Photo'; ?>
+                            </label>
+                            <input type="hidden" name="extra_image_field" value="<?php echo htmlspecialchars($extraImageField ?? 'image1'); ?>">
                             <div class="photo-upload-zone" id="photo_extra_zone" data-field="photo_url_extra">
                                 <div class="upload-content">
                                     <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
@@ -406,9 +638,28 @@ elseif ($isEdit) {
                                     <button type="button" class="btn btn-sm btn-danger remove-image">Remove</button>
                                 </div>
                             </div>
-                            <input type="file" id="photo_extra_file" name="photo_extra_file" accept="image/*" style="display: none;">
-                            <input type="hidden" id="photo_url_extra" name="photo_url_extra" value="<?= htmlspecialchars($submarine['photo_url_extra'] ?? '') ?>">
+                            <input type="file" id="photo_url_extra_file" name="photo_extra_file" accept="image/*" style="display: none;">
+                            <input type="hidden" id="photo_url_extra" name="photo_url_extra" value="<?php 
+                                if (isset($submarine) && isset($extraImageField)) {
+                                    echo htmlspecialchars($submarine[$extraImageField] ?? '');
+                                }
+                            ?>">
                             <div class="form-text">Optional: Additional photo</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="extra_image_subtitle" class="form-label">
+                                <?php echo isset($extraImageFieldNum) ? "Image {$extraImageFieldNum} Subtitle" : 'Extra Photo Subtitle'; ?>
+                            </label>
+                            <input type="text" class="form-control" id="extra_image_subtitle" name="extra_image_subtitle" 
+                                value="<?php 
+                                    if (isset($submarine) && isset($extraImageField)) {
+                                        $subtitleField = $extraImageField . '_subtitle';
+                                        echo htmlspecialchars($submarine[$subtitleField] ?? '');
+                                    }
+                                ?>" 
+                                placeholder="Enter a caption or description for this image">
+                            <div class="form-text">Optional: Caption or description for the extra photo</div>
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -443,20 +694,38 @@ elseif ($isEdit) {
         
         .photo-upload-zone:hover {
             border-color: #0d6efd;
-            background: transparent;
+            background: rgba(13, 110, 253, 0.05);
         }
         
         .photo-upload-zone.drag-over {
-            border-color: #0d6efd;
-            background: #cfe2ff;
-            border-style: solid;
+            border-color: #28a745 !important;
+            background: rgba(40, 167, 69, 0.3) !important;
+            border-style: dashed !important;
+            border-width: 4px !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.5) !important;
         }
         
         .upload-content {
-            pointer-events: none;
             padding: 28px;
-            background: #f8f9fa;
+            background: rgba(248, 249, 250, 0.05);
             border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-content * {
+            pointer-events: none;
+        }
+        
+        .photo-upload-zone.drag-over .upload-content {
+            background: rgba(40, 167, 69, 0.25);
+            color: #28a745;
+        }
+        
+        .photo-upload-zone.drag-over .upload-content p,
+        .photo-upload-zone.drag-over .upload-content small {
+            color: #fff !important;
+            font-weight: bold;
         }
         
         .preview-container {
@@ -479,18 +748,64 @@ elseif ($isEdit) {
     </style>
     
     <script>
+    // Auto-hide notification after 5 seconds
+    function hideNotification() {
+        const notification = document.getElementById('saveNotification') || document.getElementById('errorNotification');
+        if (notification) {
+            notification.classList.add('hiding');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing drag and drop');
+        
+        // Prevent default drag/drop behavior on the entire page
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            console.log('Document dragover');
+        }, false);
+        
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            console.log('Document drop');
+        }, false);
+        
+        // Auto-dismiss notifications after 5 seconds
+        const notification = document.getElementById('saveNotification') || document.getElementById('errorNotification');
+        if (notification) {
+            setTimeout(hideNotification, 5000);
+        }
         // Initialize all photo upload zones
         const zones = document.querySelectorAll('.photo-upload-zone');
+        console.log('Found ' + zones.length + ' upload zones');
         
         zones.forEach(zone => {
             const fieldName = zone.dataset.field;
+            console.log('Initializing zone for:', fieldName);
             const fileInput = document.getElementById(fieldName + '_file');
             const hiddenInput = document.getElementById(fieldName);
             const uploadContent = zone.querySelector('.upload-content');
             const previewContainer = zone.querySelector('.preview-container');
             const previewImage = zone.querySelector('.preview-image');
             const removeBtn = zone.querySelector('.remove-image');
+            
+            // Check if all required elements exist
+            if (!fileInput || !hiddenInput || !uploadContent || !previewContainer || !previewImage || !removeBtn) {
+                console.error('Missing elements for zone:', fieldName, {
+                    fileInput: !!fileInput,
+                    hiddenInput: !!hiddenInput,
+                    uploadContent: !!uploadContent,
+                    previewContainer: !!previewContainer,
+                    previewImage: !!previewImage,
+                    removeBtn: !!removeBtn
+                });
+                return; // Skip this zone
+            }
+            
+            console.log('All elements found for:', fieldName);
             
             // Load existing image if present
             if (hiddenInput.value) {
@@ -512,17 +827,31 @@ elseif ($isEdit) {
             });
             
             // Drag and drop events
-            zone.addEventListener('dragover', (e) => {
+            zone.addEventListener('dragenter', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                console.log('Drag enter:', fieldName);
                 zone.classList.add('drag-over');
             });
             
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over');
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+                zone.classList.add('drag-over');
+            });
+            
+            zone.addEventListener('dragleave', (e) => {
+                // Only remove highlight when leaving the zone completely
+                if (!zone.contains(e.relatedTarget)) {
+                    console.log('Drag leave:', fieldName);
+                    zone.classList.remove('drag-over');
+                }
             });
             
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 zone.classList.remove('drag-over');
                 
                 if (e.dataTransfer.files.length > 0) {

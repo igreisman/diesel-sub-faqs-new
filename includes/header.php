@@ -55,6 +55,9 @@ if (empty($navCategories)) {
                     <li class="nav-item">
                         <a class="nav-link" href="/about.php">About</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/memorial.php">Memorial</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="feedbackDropdown" role="button" data-bs-toggle="dropdown">
                             Community

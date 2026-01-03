@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $page_title = 'Parse Submarine Text';
 $page_description = 'Admin: Parse submarine text and import';
 require_once 'config/database.php';
@@ -12,28 +15,49 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 $parsedData = null;
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submarine_text'])) {
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['submarine_text'])
+) {
     $text = $_POST['submarine_text'];
-    
     try {
         // Parse the text
-        $data = [
+        $data = array(
             'boat_number' => '',
             'name' => '',
             'designation' => '',
             'captain_name' => '',
             'date_lost' => '',
             'location' => '',
-            'description' => ''
-        ];
-        
+            'description' => '',
+            'prior_history' => ''
+        );
         $lines = explode("\n", $text);
-        $descriptionLines = [];
+        $descriptionLines = array();
+        $priorHistoryLines = array();
         $skipNextEmpty = false;
-        
+        $inPriorHistory = false;
         foreach ($lines as $line) {
             $line = trim($line);
-            
+            // Detect start of Prior History section
+            if (preg_match('/^Prior history:?/i', $line)) {
+                $inPriorHistory = true;
+                // If the line has content after the colon, add it
+                $afterColon = trim(preg_replace('/^Prior history:?/i', '', $line));
+                if (!empty($afterColon)) {
+                    $priorHistoryLines[] = $afterColon;
+                }
+                continue;
+            }
+            // If we're in prior history, keep collecting until a blank line or a new section
+            if ($inPriorHistory) {
+                if ($line === '' || preg_match('/^(Last captain:|Date lost:|Location:|Fatalities:|Cause:)/i', $line)) {
+                    $inPriorHistory = false;
+                } else {
+                    $priorHistoryLines[] = $line;
+                    continue;
+                }
+            }
             // Extract boat number and name from first line (e.g., "USS E-2 (SS-25)")
             if (empty($data['name']) && preg_match('/USS\s+([^\s\(]+)\s*\(([^\)]+)\)/', $line, $matches)) {
                 $data['name'] = $matches[1];
@@ -42,14 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submarine_text'])) {
                 $data['designation'] = 'USS ' . $matches[1] . ' (' . $matches[2] . ')';
                 continue;
             }
-            
             // Extract captain
             if (preg_match('/Last captain:\s*(.+?)\.?\s*$/i', $line, $matches)) {
                 $data['captain_name'] = trim($matches[1]);
                 $skipNextEmpty = true;
                 continue;
             }
-            
             // Extract date lost
             if (preg_match('/Date lost:\s*(.+?)\.?\s*$/i', $line, $matches)) {
                 $dateStr = trim($matches[1]);
@@ -73,27 +95,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submarine_text'])) {
                 $skipNextEmpty = true;
                 continue;
             }
-            
             // Extract location
             if (preg_match('/Location:\s*(.+)/i', $line, $matches)) {
                 $data['location'] = trim($matches[1]);
                 $skipNextEmpty = true;
                 continue;
             }
-            
             // Skip metadata lines
             if (preg_match('/^(Fatalities|Cause):/i', $line)) {
                 $descriptionLines[] = $line;
                 $skipNextEmpty = true;
                 continue;
             }
-            
             // Skip empty lines after metadata
             if (empty($line) && $skipNextEmpty) {
                 $skipNextEmpty = false;
                 continue;
             }
-            
             // Add everything else to description
             if (!empty($line)) {
                 $descriptionLines[] = $line;
@@ -102,18 +120,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submarine_text'])) {
                 $descriptionLines[] = '';
             }
         }
-        
         // Build description
         $data['description'] = implode("\n\n", array_filter(array_map(function($para) {
             return trim($para);
         }, explode("\n\n", implode("\n", $descriptionLines)))));
-        
+        // Build prior history
+        $data['prior_history'] = trim(implode("\n", $priorHistoryLines));
+        // Also parse date_lost into YYYY-MM-DD for calculations
+        $dateForCalc = '';
+        if (!empty($data['date_lost'])) {
+            // Try to parse as YYYY-MM-DD
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date_lost'])) {
+                $dateForCalc = $data['date_lost'];
+            } else {
+                $ts = strtotime($data['date_lost']);
+                if ($ts !== false) {
+                    $dateForCalc = date('Y-m-d', $ts);
+                }
+            }
+            // Validate the date is actually valid
+            if (!empty($dateForCalc)) {
+                $parts = explode('-', $dateForCalc);
+                if (count($parts) === 3 && !checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0])) {
+                    // Invalid date, don't use it
+                    $dateForCalc = '';
+                }
+            }
+        }
+        $data['date_lost_sort'] = $dateForCalc;
+        // Set calculated_era from date_lost_sort
+        $calculated_era = '';
+        if (!empty($dateForCalc)) {
+            if ($dateForCalc < '1941-12-07') {
+                $calculated_era = 'pre-ww2';
+            } elseif ($dateForCalc > '1945-09-02') {
+                $calculated_era = 'post-ww2';
+            } else {
+                $calculated_era = 'ww2';
+            }
+        }
+        $data['calculated_era'] = $calculated_era;
         $parsedData = $data;
-        
     } catch (Exception $e) {
         $error = 'Error parsing text: ' . $e->getMessage();
     }
 }
+// End PHP logic block cleanly before HTML
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -276,50 +328,25 @@ Location: New York Navy Yard.
                                     <div class="preview-label">Description</div>
                                     <div class="preview-value"><?= htmlspecialchars($parsedData['description']) ?></div>
                                 </div>
-                            </div>
-                            
-                            <div class="alert alert-success mt-3">
-                                <h6 class="alert-heading"><i class="bi bi-image"></i> Find Public Domain Images</h6>
-                                <p class="mb-2 small text-muted">Click these links to find images, then drag-drop them in the form:</p>
-                                
-                                <div class="mb-3">
-                                    <strong class="d-block mb-2" style="font-size: 0.9rem;">For the submarine (<?= htmlspecialchars($parsedData['designation']) ?>):</strong>
-                                    <div class="btn-group-vertical d-grid gap-1">
-                                        <a href="https://commons.wikimedia.org/w/index.php?search=<?= urlencode($parsedData['designation']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-wikipedia"></i> Wikimedia Commons
-                                        </a>
-                                        <a href="https://www.history.navy.mil/our-collections/photography.html" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-archive"></i> Naval History & Heritage
-                                        </a>
-                                        <a href="https://www.google.com/search?q=<?= urlencode($parsedData['designation'] . ' submarine') ?>&tbm=isch&tbs=il:cl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-search"></i> Google (CC License)
-                                        </a>
-                                    </div>
-                                </div>
-                                
-                                <?php if (!empty($parsedData['captain_name']) && $parsedData['captain_name'] !== '(not found)'): ?>
-                                <div class="mb-2">
-                                    <strong class="d-block mb-2" style="font-size: 0.9rem;">For the captain (<?= htmlspecialchars($parsedData['captain_name']) ?>):</strong>
-                                    <div class="btn-group-vertical d-grid gap-1">
-                                        <a href="https://commons.wikimedia.org/w/index.php?search=<?= urlencode($parsedData['captain_name']) ?>" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-wikipedia"></i> Wikimedia Commons
-                                        </a>
-                                        <a href="https://www.google.com/search?q=<?= urlencode($parsedData['captain_name'] . ' navy officer') ?>&tbm=isch&tbs=il:cl" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-search"></i> Google (CC License)
-                                        </a>
-                                    </div>
+                                <?php if (!empty($parsedData['prior_history'])): ?>
+                                <div class="preview-field">
+                                    <div class="preview-label">Prior History</div>
+                                    <div class="preview-value"><?= nl2br(htmlspecialchars($parsedData['prior_history'])) ?></div>
                                 </div>
                                 <?php endif; ?>
                             </div>
                             
+                            
                             <form method="POST" action="admin-eternal-patrol-edit.php" class="mt-3">
-                                <input type="hidden" name="boat_number" value="<?= htmlspecialchars($parsedData['boat_number']) ?>">
-                                <input type="hidden" name="name" value="<?= htmlspecialchars($parsedData['name']) ?>">
-                                <input type="hidden" name="designation" value="<?= htmlspecialchars($parsedData['designation']) ?>">
-                                <input type="hidden" name="captain_name" value="<?= htmlspecialchars($parsedData['captain_name']) ?>">
-                                <input type="hidden" name="date_lost" value="<?= htmlspecialchars($parsedData['date_lost']) ?>">
-                                <input type="hidden" name="location" value="<?= htmlspecialchars($parsedData['location']) ?>">
-                                <input type="hidden" name="description" value="<?= htmlspecialchars($parsedData['description']) ?>">
+                                <input type="hidden" name="boat_number" value="<?= htmlspecialchars($parsedData['boat_number'] ?? '') ?>">
+                                <input type="hidden" name="name" value="<?= htmlspecialchars($parsedData['name'] ?? '') ?>">
+                                <input type="hidden" name="designation" value="<?= htmlspecialchars($parsedData['designation'] ?? '') ?>">
+                                <input type="hidden" name="captain_name" value="<?= htmlspecialchars($parsedData['captain_name'] ?? '') ?>">
+                                <input type="hidden" name="date_lost" value="<?= htmlspecialchars($parsedData['date_lost'] ?? '') ?>">
+                                <input type="hidden" name="date_lost_sort" value="<?= htmlspecialchars($parsedData['date_lost_sort'] ?? '') ?>">
+                                <input type="hidden" name="location" value="<?= htmlspecialchars($parsedData['location'] ?? '') ?>">
+                                <input type="hidden" name="description" value="<?= htmlspecialchars($parsedData['description'] ?? '') ?>">
+                                <input type="hidden" name="prior_history" value="<?= htmlspecialchars($parsedData['prior_history'] ?? '') ?>">
                                 <input type="hidden" name="prefilled" value="1">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="bi bi-arrow-right-circle"></i> Continue to Add Lost Boat Form
@@ -338,6 +365,9 @@ Location: New York Navy Yard.
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
+<!-- End of file: all PHP blocks and braces are closed. -->

@@ -2,14 +2,14 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once '../config/database.php';
-require_once '../includes/header.php';
 
+require_once '../config/database.php';
 // Simple authentication check
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: login.php');
     exit;
 }
+require_once '../includes/header.php';
 
 // Get statistics
 $totalFaqs = 0;
@@ -99,6 +99,10 @@ try {
                         <a href="../admin-eternal-patrol.php" class="btn btn-dark btn-lg quick-action-btn">
                             <i class="fas fa-anchor"></i>
                             <span>Eternal Patrol</span>
+                        </a>
+                        <a href="../admin-incidents.php" class="btn btn-warning btn-lg quick-action-btn">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Submarine Incidents</span>
                         </a>
                     </div>
                 </div>

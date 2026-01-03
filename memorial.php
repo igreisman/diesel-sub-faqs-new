@@ -234,7 +234,10 @@ $stats = $pdo->query("
                 </div>
             </div>
             
-            <a href="eternal-patrol.php" class="continue-btn">View Memorial List</a>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                <a href="eternal-patrol.php" class="continue-btn">View Memorial List</a>
+                <a href="incidents.php" class="continue-btn">Other Incidents</a>
+            </div>
             
             <div class="footer-note">
                 Each submarine represents not just a vessel, but the courage, sacrifice, and dedication<br>

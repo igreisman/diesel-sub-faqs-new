@@ -16,7 +16,11 @@ try {
     foreach ($rows as $r) {
         // Prepare values, escape single quotes
         $vals = [];
-        $cols = ['boat_number','name','designation','class_info','last_captain','date_lost','location','fatalities','cause','loss_narrative','prior_history','era','year_lost','photo_url'];
+        $cols = [
+            'boat_number','name','designation','class_info','last_captain','date_lost','location','fatalities','cause','loss_narrative','prior_history','year_lost','photo_url',
+            'image1','image1_subtitle','image2','image2_subtitle','image3','image3_subtitle','image4','image4_subtitle','image5','image5_subtitle',
+            'image6','image6_subtitle','image7','image7_subtitle','image8','image8_subtitle','image9','image9_subtitle','image10','image10_subtitle'
+        ];
         foreach ($cols as $c) {
             $v = $r[$c] ?? null;
             if ($v === null) {

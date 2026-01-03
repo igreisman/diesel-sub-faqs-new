@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $page_title = 'Manage Eternal Patrol';
 $page_description = 'Admin: Manage lost submarines';
 require_once 'config/database.php';
@@ -89,10 +92,10 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM lost_submarines WHERE display_order = 0");
     $result = $stmt->fetch();
     if ($result['cnt'] > 0) {
-        // Set initial display order based on date_lost
+        // Set initial display order based on date_lost_sort
         $stmt = $pdo->query("
             SELECT id FROM lost_submarines 
-            ORDER BY date_lost ASC
+            ORDER BY date_lost_sort ASC
         ");
         $subs = $stmt->fetchAll();
         $order = 1;
@@ -107,9 +110,9 @@ try {
 // Get all submarines
 try {
     $stmt = $pdo->query("
-        SELECT id, boat_number, name, designation, date_lost, location, era, display_order 
+        SELECT id, boat_number, name, designation, date_lost, location, display_order, date_lost_sort
         FROM lost_submarines 
-        ORDER BY display_order ASC
+        ORDER BY date_lost_sort IS NULL ASC, date_lost_sort ASC, boat_number ASC
     ");
     $submarines = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -119,9 +122,13 @@ try {
 
 // Get stats
 try {
-    $stats = $pdo->query("SELECT COUNT(*) as total, era FROM lost_submarines GROUP BY era")->fetchAll();
+    $stats = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM lost_submarines
+    ")->fetch();
+    $totalBoats = $stats['total'] ?? 0;
 } catch (PDOException $e) {
-    $stats = [];
+    $totalBoats = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -205,6 +212,9 @@ try {
                     <p class="mb-0 text-muted">Admin: Add, edit, or delete lost submarines</p>
                 </div>
                 <div>
+                    <a href="admin-eternal-patrol-about.php" class="btn btn-info me-2">
+                        <i class="bi bi-file-text"></i> Edit About Section
+                    </a>
                     <a href="index.php" class="btn btn-secondary me-2">← Back to Site</a>
                     <a href="admin-logout.php" class="btn btn-danger">Logout</a>
                 </div>
@@ -229,18 +239,10 @@ try {
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= count($submarines) ?></div>
+                    <div class="stats-number"><?= $totalBoats ?></div>
                     <div class="text-muted">Total Boats</div>
                 </div>
             </div>
-            <?php foreach ($stats as $stat): ?>
-            <div class="col-md-2">
-                <div class="stats-card">
-                    <div class="stats-number"><?= $stat['total'] ?></div>
-                    <div class="text-muted"><?= strtoupper(str_replace('-', ' ', $stat['era'])) ?></div>
-                </div>
-            </div>
-            <?php endforeach; ?>
         </div>
 
         <!-- Add Button -->

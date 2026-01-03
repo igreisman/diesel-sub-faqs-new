@@ -6,7 +6,7 @@ try {
     $cnt = $stmt->fetch()['cnt'] ?? '0';
     echo "lost_submarines COUNT: " . $cnt . "\n";
 
-    $q = $pdo->prepare("SELECT id, boat_number, name, designation, date_lost, era FROM lost_submarines WHERE designation = ? OR boat_number = ? LIMIT 1");
+    $q = $pdo->prepare("SELECT id, boat_number, name, designation, date_lost FROM lost_submarines WHERE designation = ? OR boat_number = ? LIMIT 1");
     $q->execute(['USS F-4 (SS-23)', 'SS-23']);
     $row = $q->fetch();
     if ($row) {

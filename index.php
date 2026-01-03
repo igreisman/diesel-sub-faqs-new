@@ -93,6 +93,17 @@ if (empty($categoryCards)) {
                     </div>
                 </div>
                 <?php endforeach; ?>
+                <!-- Lost Submarines Card -->
+                <div class="category-card">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-anchor"></i> Lost Submarines
+                            </h5>
+                            <a href="eternal-patrol.php" class="btn btn-dark">Explore</a>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Community Feedback Section -->
