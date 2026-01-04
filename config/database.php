@@ -2,22 +2,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database configuration
-define('DB_HOST', '127.0.0.1'); // force TCP to avoid local socket permission issues
-define('DB_PORT', '3307');
-define('DB_USERNAME', 'dieselsu_dbuser');
-define('DB_PASSWORD', 'codjuw-xojWo6-datqem');
-define('DB_NAME', 'dieselsu_faqs'); // force the correct DB locally
-
-// Database configuration
-// define('DB_HOST', $_ENV['MYSQLHOST'] ?? 'localhost');
-// define('DB_PORT', $_ENV['MYSQLPORT'] ?? '3306');
-// define('DB_USERNAME', $_ENV['MYSQLUSER'] ?? 'dieselsu_dbuser');
-// define('DB_PASSWORD', $_ENV['MYSQLPASSWORD'] ?? 'codjuw-xojWo6-datqem');
-// define('DB_NAME', $_ENV['MYSQLDATABASE'] ?? 'dieselsu_faqs');
+// Database configuration - use environment variables if available (Docker), otherwise local defaults
+define('DB_HOST', getenv('MYSQLHOST') ?: '127.0.0.1');
+define('DB_PORT', getenv('MYSQLPORT') ?: '3307');
+define('DB_USERNAME', getenv('MYSQLUSER') ?: 'dieselsu_dbuser');
+define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: 'codjuw-xojWo6-datqem');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'dieselsu_faqs');
 define('DB_CHARSET', 'utf8mb4');
-// define('DB_USERNAME', $_ENV['MYSQLUSER'] ?? 'dieselsu_user_faqs');
-// define('DB_PASSWORD', $_ENV['MYSQLPASSWORD'] ?? 'qipCu9-ramwos-bubfoq');
 
 // Site configuration
 define('SITE_NAME', 'Diesel-Electric Submarine FAQs');
