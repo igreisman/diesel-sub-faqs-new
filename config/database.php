@@ -2,9 +2,9 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database configuration - use environment variables if available (Docker), otherwise local defaults
-define('DB_HOST', getenv('MYSQLHOST') ?: '127.0.0.1');
-define('DB_PORT', getenv('MYSQLPORT') ?: '3307');
+// Database configuration - use environment variables if available (Docker), otherwise production defaults
+define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
 define('DB_USERNAME', getenv('MYSQLUSER') ?: 'dieselsu_dbuser');
 define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: 'codjuw-xojWo6-datqem');
 define('DB_NAME', getenv('MYSQLDATABASE') ?: 'dieselsu_faqs');
