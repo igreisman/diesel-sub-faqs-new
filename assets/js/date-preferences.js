@@ -15,7 +15,7 @@ const DatePreferences = {
 
     // Get current preference from localStorage
     getPreference() {
-        return localStorage.getItem('dateFormat') || 'full';
+        return localStorage.getItem('dateFormat') || 'numeric-us';
     },
 
     // Set preference in localStorage
