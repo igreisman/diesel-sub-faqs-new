@@ -100,9 +100,17 @@ try {
                             <i class="fas fa-anchor"></i>
                             <span>Eternal Patrol</span>
                         </a>
+                        <a href="../admin-operations.php" class="btn btn-primary btn-lg quick-action-btn">
+                            <i class="fas fa-cogs"></i>
+                            <span>Operations & Tactics</span>
+                        </a>
                         <a href="../admin-incidents.php" class="btn btn-warning btn-lg quick-action-btn">
                             <i class="fas fa-exclamation-triangle"></i>
                             <span>Submarine Incidents</span>
+                        </a>
+                        <a href="../admin-reference.php" class="btn btn-info btn-lg quick-action-btn">
+                            <i class="fas fa-book-open"></i>
+                            <span>Reference Articles</span>
                         </a>
                     </div>
                 </div>

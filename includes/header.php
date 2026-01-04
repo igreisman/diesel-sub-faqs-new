@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Date Preferences Script -->
+    <script src="/assets/js/date-preferences.js" defer></script>
 </head>
 <body>
 <?php
@@ -55,9 +57,6 @@ if (empty($navCategories)) {
                     <li class="nav-item">
                         <a class="nav-link" href="/about.php">About</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/memorial.php">Memorial</a>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="feedbackDropdown" role="button" data-bs-toggle="dropdown">
                             Community
@@ -76,21 +75,22 @@ if (empty($navCategories)) {
                         </ul>
                     </li>
                 </ul>
-                <?php if ($isAdmin): ?>
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" id="date-preferences-container">
+                        <!-- Date preferences widget will be inserted here by JavaScript -->
+                    </li>
+                <?php if ($isAdmin): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                             Admin
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="/release-checklist.php"><i class="fas fa-clipboard-check"></i> Release Checklist</a></li>
                             <li><a class="dropdown-item" href="/admin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>
                     </li>
-                </ul>
                 <?php endif; ?>
+                </ul>
             </div>
         </div>
     </nav>
