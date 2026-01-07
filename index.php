@@ -104,6 +104,28 @@ if (empty($categoryCards)) {
                         </div>
                     </div>
                 </div>
+                <!-- Incidents Card -->
+                <div class="category-card">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-exclamation-triangle"></i> Incidents Database
+                            </h5>
+                            <a href="incidents.php" class="btn btn-light">Explore</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Operations Card -->
+                <div class="category-card">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-anchor"></i> Operations Guide
+                            </h5>
+                            <a href="operations.php" class="btn btn-light">Explore</a>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Community Feedback Section -->

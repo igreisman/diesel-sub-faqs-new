@@ -58,6 +58,25 @@ if (empty($navCategories)) {
                         <a class="nav-link" href="/about.php">About</a>
                     </li>
                     <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="recordsDropdown" role="button" data-bs-toggle="dropdown">
+                            Historical Records
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="eternal-patrol.php">
+                                <i class="fas fa-flag-usa"></i> Eternal Patrol
+                            </a></li>
+                            <li><a class="dropdown-item" href="incidents.php">
+                                <i class="fas fa-exclamation-triangle"></i> Incidents Database
+                            </a></li>
+                            <li><a class="dropdown-item" href="operations.php">
+                                <i class="fas fa-anchor"></i> Operations Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="memorial.php">
+                                <i class="fas fa-monument"></i> Memorial Page
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="feedbackDropdown" role="button" data-bs-toggle="dropdown">
                             Community
                         </a>
