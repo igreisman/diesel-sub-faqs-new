@@ -1,12 +1,14 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once '../config/database.php';
 
 // Check authentication
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -14,16 +16,16 @@ $success = null;
 $error = null;
 
 // Handle AJAX drag-save
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' === strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Category reordering
     if (isset($data['order']) && is_array($data['order'])) {
         try {
             $pdo->beginTransaction();
-            $stmt = $pdo->prepare("UPDATE categories SET sort_order = ? WHERE id = ?");
+            $stmt = $pdo->prepare('UPDATE categories SET sort_order = ? WHERE id = ?');
             foreach ($data['order'] as $index => $id) {
-                $stmt->execute([($index + 1) * 10, (int)$id]);
+                $stmt->execute([($index + 1) * 10, (int) $id]);
             }
             $pdo->commit();
             header('Content-Type: application/json');
@@ -34,62 +36,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+
         exit;
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sort_order'])) {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['sort_order'])) {
     try {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("UPDATE categories SET sort_order = ? WHERE id = ?");
+        $stmt = $pdo->prepare('UPDATE categories SET sort_order = ? WHERE id = ?');
         foreach ($_POST['sort_order'] as $id => $order) {
-            $stmt->execute([(int)$order, (int)$id]);
+            $stmt->execute([(int) $order, (int) $id]);
         }
         $pdo->commit();
-        $success = "Category order updated.";
+        $success = 'Category order updated.';
     } catch (Exception $e) {
         $pdo->rollBack();
-        $error = "Failed to update order: " . $e->getMessage();
+        $error = 'Failed to update order: '.$e->getMessage();
     }
 }
 
 // Handle edit/delete (non-AJAX)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-    if ($_POST['action'] === 'add_category') {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['action']) && empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+    if ('add_category' === $_POST['action']) {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        if ($name === '') {
-            $error = "Name is required.";
+        if ('' === $name) {
+            $error = 'Name is required.';
         } else {
-            $nextOrder = (int)$pdo->query("SELECT COALESCE(MAX(sort_order), 0) + 10 AS next_order FROM categories")->fetchColumn();
+            $nextOrder = (int) $pdo->query('SELECT COALESCE(MAX(sort_order), 0) + 10 AS next_order FROM categories')->fetchColumn();
             $slug = get_category_slug($name);
             $stmt = $pdo->prepare("INSERT INTO categories (name, slug, description, icon, sort_order) VALUES (?, ?, ?, '', ?)");
             $stmt->execute([$name, $slug, $description, $nextOrder]);
             // Redirect to the category page
-            header('Location: ../category.php?cat=' . urlencode($name));
+            header('Location: ../category.php?cat='.urlencode($name));
+
             exit;
         }
     }
 
-    if ($_POST['action'] === 'update_category' && isset($_POST['category_id'])) {
+    if ('update_category' === $_POST['action'] && isset($_POST['category_id'])) {
         $stmt = $pdo->prepare("UPDATE categories SET name = ?, description = ?, icon = '' WHERE id = ?");
         $stmt->execute([
             trim($_POST['name'] ?? ''),
             trim($_POST['description'] ?? ''),
-            (int)$_POST['category_id']
+            (int) $_POST['category_id'],
         ]);
-        $success = "Category updated.";
+        $success = 'Category updated.';
     }
 
-    if ($_POST['action'] === 'delete_category' && isset($_POST['category_id'])) {
-        $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
-        $stmt->execute([(int)$_POST['category_id']]);
-        $success = "Category deleted.";
+    if ('delete_category' === $_POST['action'] && isset($_POST['category_id'])) {
+        $stmt = $pdo->prepare('DELETE FROM categories WHERE id = ?');
+        $stmt->execute([(int) $_POST['category_id']]);
+        $success = 'Category deleted.';
     }
 }
 
 // Load categories
-$categoriesStmt = $pdo->query("SELECT id, name, description, icon, sort_order FROM categories ORDER BY sort_order ASC, name ASC");
+$categoriesStmt = $pdo->query('SELECT id, name, description, icon, sort_order FROM categories ORDER BY sort_order ASC, name ASC');
 $categories = $categoriesStmt->fetchAll();
 
 ?>
@@ -104,19 +108,19 @@ $categories = $categoriesStmt->fetchAll();
         </a>
     </div>
 
-    <?php if ($success): ?>
+    <?php if ($success) { ?>
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check"></i> <?php echo htmlspecialchars($success); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 
-    <?php if ($error): ?>
+    <?php if ($error) { ?>
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <div class="card">
         <div class="card-body border-bottom">
@@ -149,7 +153,7 @@ $categories = $categoriesStmt->fetchAll();
                             </tr>
                         </thead>
                         <tbody id="category-rows">
-                            <?php foreach ($categories as $cat): ?>
+                            <?php foreach ($categories as $cat) { ?>
                                 <tr data-id="<?php echo $cat['id']; ?>">
                                     <td class="text-start">
                                         <div class="btn-group btn-group-sm" role="group">
@@ -196,7 +200,7 @@ $categories = $categoriesStmt->fetchAll();
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>

@@ -2,8 +2,9 @@
 session_start();
 
 // Check if user is logged in
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -13,7 +14,7 @@ require_once '../config/database.php';
 $message = '';
 $messageType = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     if (isset($_POST['action'])) {
         try {
             switch ($_POST['action']) {
@@ -22,42 +23,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!empty($query)) {
                         $stmt = $pdo->prepare($query);
                         $stmt->execute();
-                        
-                        if (stripos($query, 'SELECT') === 0) {
+
+                        if (0 === stripos($query, 'SELECT')) {
                             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            $message = "Query executed successfully. " . count($results) . " rows returned.";
+                            $message = 'Query executed successfully. '.count($results).' rows returned.';
                         } else {
                             $rowCount = $stmt->rowCount();
-                            $message = "Query executed successfully. $rowCount rows affected.";
+                            $message = "Query executed successfully. {$rowCount} rows affected.";
                         }
                         $messageType = 'success';
                     }
+
                     break;
-                    
+
                 case 'clear_table':
                     $table = $_POST['table'];
                     $validTables = ['faqs', 'categories', 'feedback', 'related_faqs'];
                     if (in_array($table, $validTables)) {
-                        $stmt = $pdo->prepare("DELETE FROM $table");
+                        $stmt = $pdo->prepare("DELETE FROM {$table}");
                         $stmt->execute();
-                        $message = "Table '$table' cleared successfully.";
+                        $message = "Table '{$table}' cleared successfully.";
                         $messageType = 'success';
                     }
+
                     break;
-                    
+
                 case 'drop_table':
                     $table = $_POST['table'];
                     $validTables = ['faqs', 'categories', 'feedback', 'related_faqs'];
                     if (in_array($table, $validTables)) {
-                        $stmt = $pdo->prepare("DROP TABLE IF EXISTS $table");
+                        $stmt = $pdo->prepare("DROP TABLE IF EXISTS {$table}");
                         $stmt->execute();
-                        $message = "Table '$table' dropped successfully.";
+                        $message = "Table '{$table}' dropped successfully.";
                         $messageType = 'success';
                     }
+
                     break;
             }
         } catch (Exception $e) {
-            $message = "Error: " . $e->getMessage();
+            $message = 'Error: '.$e->getMessage();
             $messageType = 'danger';
         }
     }
@@ -65,26 +69,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get table information
 $tables = [];
+
 try {
-    $stmt = $pdo->query("SHOW TABLES");
+    $stmt = $pdo->query('SHOW TABLES');
     while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
         $tableName = $row[0];
-        
+
         // Get row count
-        $countStmt = $pdo->query("SELECT COUNT(*) FROM `$tableName`");
+        $countStmt = $pdo->query("SELECT COUNT(*) FROM `{$tableName}`");
         $rowCount = $countStmt->fetchColumn();
-        
+
         // Get table structure
-        $structStmt = $pdo->query("DESCRIBE `$tableName`");
+        $structStmt = $pdo->query("DESCRIBE `{$tableName}`");
         $columns = $structStmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $tables[$tableName] = [
             'row_count' => $rowCount,
-            'columns' => $columns
+            'columns' => $columns,
         ];
     }
 } catch (Exception $e) {
-    $message = "Error fetching table information: " . $e->getMessage();
+    $message = 'Error fetching table information: '.$e->getMessage();
     $messageType = 'danger';
 }
 
@@ -92,7 +97,7 @@ try {
 $sampleData = [];
 foreach (array_keys($tables) as $tableName) {
     try {
-        $stmt = $pdo->query("SELECT * FROM `$tableName` LIMIT 5");
+        $stmt = $pdo->query("SELECT * FROM `{$tableName}` LIMIT 5");
         $sampleData[$tableName] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         $sampleData[$tableName] = [];
@@ -153,17 +158,17 @@ foreach (array_keys($tables) as $tableName) {
                 <h1><i class="bi bi-database"></i> Simple Database Administration</h1>
                 <p class="text-muted">Manage your database tables and execute SQL queries</p>
 
-                <?php if ($message): ?>
+                <?php if ($message) { ?>
                     <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
                         <?php echo htmlspecialchars($message); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
 
         <!-- Tables Section -->
-        <?php foreach ($tables as $tableName => $info): ?>
+        <?php foreach ($tables as $tableName => $info) { ?>
             <div class="row mb-4">
                 <div class="col-12">
                     <!-- Table Overview Card -->
@@ -203,57 +208,57 @@ foreach (array_keys($tables) as $tableName) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($info['columns'] as $column): ?>
+                                        <?php foreach ($info['columns'] as $column) { ?>
                                             <tr>
                                                 <td><code><?php echo htmlspecialchars($column['Field']); ?></code></td>
                                                 <td><span class="badge bg-secondary"><?php echo htmlspecialchars($column['Type']); ?></span></td>
-                                                <td><?php echo $column['Null'] === 'YES' ? '<span class="text-success">YES</span>' : '<span class="text-danger">NO</span>'; ?></td>
-                                                    <td><?php echo !empty($column['Key']) ? '<span class="badge bg-warning text-dark">' . htmlspecialchars($column['Key']) . '</span>' : '-'; ?></td>
-                                                    <td><?php echo $column['Default'] !== null && $column['Default'] !== '' ? htmlspecialchars($column['Default']) : '<em class="text-muted">NULL</em>'; ?></td>
+                                                <td><?php echo 'YES' === $column['Null'] ? '<span class="text-success">YES</span>' : '<span class="text-danger">NO</span>'; ?></td>
+                                                    <td><?php echo !empty($column['Key']) ? '<span class="badge bg-warning text-dark">'.htmlspecialchars($column['Key']).'</span>' : '-'; ?></td>
+                                                    <td><?php echo null !== $column['Default'] && '' !== $column['Default'] ? htmlspecialchars($column['Default']) : '<em class="text-muted">NULL</em>'; ?></td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php } ?>
                                     </tbody>
                                 </table>
                             </div>
 
                             <!-- Sample Data -->
-                            <?php if (!empty($sampleData[$tableName])): ?>
+                            <?php if (!empty($sampleData[$tableName])) { ?>
                                 <h6><i class="bi bi-clipboard-data"></i> Sample Data (First 5 rows):</h6>
                                 <div class="table-container">
                                     <table class="table table-sm table-striped table-bordered">
                                         <thead class="table-light">
                                             <tr>
-                                                <?php foreach (array_keys($sampleData[$tableName][0]) as $column): ?>
+                                                <?php foreach (array_keys($sampleData[$tableName][0]) as $column) { ?>
                                                     <th><?php echo htmlspecialchars($column); ?></th>
-                                                <?php endforeach; ?>
+                                                <?php } ?>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($sampleData[$tableName] as $row): ?>
+                                            <?php foreach ($sampleData[$tableName] as $row) { ?>
                                                 <tr>
-                                                    <?php foreach ($row as $value): ?>
+                                                    <?php foreach ($row as $value) { ?>
                                                         <td title="<?php echo htmlspecialchars($value ?? ''); ?>">
-                                                            <?php 
+                                                            <?php
                                                             $displayValue = $value ?? '';
-                                                            echo htmlspecialchars(strlen($displayValue) > 50 ? substr($displayValue, 0, 50) . '...' : $displayValue); 
-                                                            ?>
+                                                        echo htmlspecialchars(strlen($displayValue) > 50 ? substr($displayValue, 0, 50).'...' : $displayValue);
+                                                        ?>
                                                         </td>
-                                                    <?php endforeach; ?>
+                                                    <?php } ?>
                                                 </tr>
-                                            <?php endforeach; ?>
+                                            <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
-                            <?php else: ?>
+                            <?php } else { ?>
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle"></i> No data in this table.
                                 </div>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
             </div>
-        <?php endforeach; ?>
+        <?php } ?>
 
         <!-- SQL Query Executor -->
         <div class="row">
@@ -281,30 +286,30 @@ DESCRIBE faqs;"><?php echo isset($_POST['query']) ? htmlspecialchars($_POST['que
                         </form>
 
                         <!-- Query Results -->
-                        <?php if (isset($results) && !empty($results)): ?>
+                        <?php if (isset($results) && !empty($results)) { ?>
                             <hr>
                             <h6>Query Results:</h6>
                             <div class="table-container">
                                 <table class="table table-sm table-striped">
                                     <thead>
                                         <tr>
-                                            <?php foreach (array_keys($results[0]) as $column): ?>
+                                            <?php foreach (array_keys($results[0]) as $column) { ?>
                                                 <th><?php echo htmlspecialchars($column); ?></th>
-                                            <?php endforeach; ?>
+                                            <?php } ?>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($results as $row): ?>
+                                        <?php foreach ($results as $row) { ?>
                                             <tr>
-                                                <?php foreach ($row as $value): ?>
+                                                <?php foreach ($row as $value) { ?>
                                                     <td><?php echo htmlspecialchars($value); ?></td>
-                                                <?php endforeach; ?>
+                                                <?php } ?>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php } ?>
                                     </tbody>
                                 </table>
                             </div>
-                        <?php endif; ?>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -325,9 +330,9 @@ DESCRIBE faqs;"><?php echo isset($_POST['query']) ? htmlspecialchars($_POST['que
                                 <div class="input-group mb-2">
                                     <select name="table" class="form-select" required>
                                         <option value="">Select table...</option>
-                                        <?php foreach (array_keys($tables) as $tableName): ?>
+                                        <?php foreach (array_keys($tables) as $tableName) { ?>
                                             <option value="<?php echo htmlspecialchars($tableName); ?>"><?php echo htmlspecialchars($tableName); ?></option>
-                                        <?php endforeach; ?>
+                                        <?php } ?>
                                     </select>
                                     <button type="submit" class="btn btn-outline-danger">Clear Data</button>
                                 </div>
@@ -341,9 +346,9 @@ DESCRIBE faqs;"><?php echo isset($_POST['query']) ? htmlspecialchars($_POST['que
                                 <div class="input-group mb-2">
                                     <select name="table" class="form-select" required>
                                         <option value="">Select table...</option>
-                                        <?php foreach (array_keys($tables) as $tableName): ?>
+                                        <?php foreach (array_keys($tables) as $tableName) { ?>
                                             <option value="<?php echo htmlspecialchars($tableName); ?>"><?php echo htmlspecialchars($tableName); ?></option>
-                                        <?php endforeach; ?>
+                                        <?php } ?>
                                     </select>
                                     <button type="submit" class="btn btn-danger">Drop Table</button>
                                 </div>

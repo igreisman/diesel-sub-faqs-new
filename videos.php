@@ -1,5 +1,6 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 ?>
 
@@ -9,26 +10,26 @@ require_once 'includes/header.php';
 
     <div class="row">
         <?php
-        $videosDir = __DIR__ . '/videos/';
-        $videos = [];
-        
-        if (is_dir($videosDir)) {
-            $files = scandir($videosDir);
-            foreach ($files as $file) {
-                if ($file !== '.' && $file !== '..' && preg_match('/\.(mp4|webm|ogg)$/i', $file)) {
-                    $videos[] = $file;
-                }
-            }
-        }
+        $videosDir = __DIR__.'/videos/';
+$videos = [];
 
-        if (empty($videos)) {
-            echo '<div class="col-12"><p class="text-muted">No videos available at this time.</p></div>';
-        } else {
-            foreach ($videos as $video) {
-                $videoPath = 'videos/' . rawurlencode($video);
-                $videoTitle = pathinfo($video, PATHINFO_FILENAME);
-                $videoTitle = str_replace(['_', '-'], ' ', $videoTitle);
-                ?>
+if (is_dir($videosDir)) {
+    $files = scandir($videosDir);
+    foreach ($files as $file) {
+        if ('.' !== $file && '..' !== $file && preg_match('/\.(mp4|webm|ogg)$/i', $file)) {
+            $videos[] = $file;
+        }
+    }
+}
+
+if (empty($videos)) {
+    echo '<div class="col-12"><p class="text-muted">No videos available at this time.</p></div>';
+} else {
+    foreach ($videos as $video) {
+        $videoPath = 'videos/'.rawurlencode($video);
+        $videoTitle = pathinfo($video, PATHINFO_FILENAME);
+        $videoTitle = str_replace(['_', '-'], ' ', $videoTitle);
+        ?>
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card h-100">
                         <div class="card-body">
@@ -41,9 +42,9 @@ require_once 'includes/header.php';
                     </div>
                 </div>
                 <?php
-            }
-        }
-        ?>
+    }
+}
+?>
     </div>
 </div>
 

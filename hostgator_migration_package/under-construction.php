@@ -3,33 +3,33 @@
 // This is useful if you need server-side logic or database integration
 
 // Configuration
-$site_name = "Diesel-Electric Submarine FAQs";
-$launch_date = "December 2025";
+$site_name = 'Diesel-Electric Submarine FAQs';
+$launch_date = 'December 2025';
 $progress_percentage = 85;
-$contact_email = "admin@submarinefaqs.com";
+$contact_email = 'admin@submarinefaqs.com';
 
 // Handle newsletter signup (basic example)
-$signup_message = "";
+$signup_message = '';
 if ($_POST['email'] ?? false) {
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     if ($email) {
         // Here you could save to database or send to mailing service
         // For now, just show success message
-        $signup_message = "success";
+        $signup_message = 'success';
     } else {
-        $signup_message = "error";
+        $signup_message = 'error';
     }
 }
 
 // Submarine facts for rotation
 $submarine_facts = [
-    "The USS Tang (SS-306) was one of the most successful submarines of WWII!",
-    "Diesel-electric submarines could stay submerged for up to 24 hours!",
-    "The Gato-class submarines were the workhorses of the Pacific War!",
-    "Submarines used periscopes that could extend up to 60 feet!",
-    "The USS Wahoo (SS-238) was famous for its aggressive tactics!",
-    "A typical WWII submarine crew consisted of about 80 officers and enlisted men!",
-    "The USS Silversides (SS-236) sank 23 enemy ships during the war!"
+    'The USS Tang (SS-306) was one of the most successful submarines of WWII!',
+    'Diesel-electric submarines could stay submerged for up to 24 hours!',
+    'The Gato-class submarines were the workhorses of the Pacific War!',
+    'Submarines used periscopes that could extend up to 60 feet!',
+    'The USS Wahoo (SS-238) was famous for its aggressive tactics!',
+    'A typical WWII submarine crew consisted of about 80 officers and enlisted men!',
+    'The USS Silversides (SS-236) sank 23 enemy ships during the war!',
 ];
 
 $random_fact = $submarine_facts[array_rand($submarine_facts)];
@@ -170,17 +170,17 @@ $random_fact = $submarine_facts[array_rand($submarine_facts)];
                             <i class="fas fa-bell"></i> Get Launch Notification
                         </h4>
                         
-                        <?php if ($signup_message === "success"): ?>
+                        <?php if ('success' === $signup_message) { ?>
                             <div class="alert alert-success-custom mb-3">
                                 <i class="fas fa-check-circle"></i> 
                                 <strong>Success!</strong> You'll be notified when we launch. Thank you for your interest!
                             </div>
-                        <?php elseif ($signup_message === "error"): ?>
+                        <?php } elseif ('error' === $signup_message) { ?>
                             <div class="alert alert-danger-custom mb-3">
                                 <i class="fas fa-exclamation-triangle"></i> 
                                 <strong>Error!</strong> Please enter a valid email address.
                             </div>
-                        <?php endif; ?>
+                        <?php } ?>
                         
                         <form method="POST" class="row justify-content-center">
                             <div class="col-md-6">
@@ -216,7 +216,7 @@ $random_fact = $submarine_facts[array_rand($submarine_facts)];
                 </div>
                 
                 <!-- Admin Access -->
-                <?php if (isset($_GET['admin'])): ?>
+                <?php if (isset($_GET['admin'])) { ?>
                     <div class="text-center mt-3">
                         <small>
                             <a href="admin/" class="text-warning">
@@ -224,7 +224,7 @@ $random_fact = $submarine_facts[array_rand($submarine_facts)];
                             </a>
                         </small>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
     </div>

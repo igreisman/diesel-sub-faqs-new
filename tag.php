@@ -1,18 +1,22 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/markdown-helper.php';
+
 require_once 'includes/header.php';
 
 $tag = isset($_GET['tag']) ? trim($_GET['tag']) : '';
 
-if ($tag === '') {
+if ('' === $tag) {
     header('Location: index.php');
+
     exit;
 }
 
 $faqs = [];
+
 try {
-    $like = '%' . strtolower($tag) . '%';
+    $like = '%'.strtolower($tag).'%';
     $stmt = $pdo->prepare("
         SELECT f.id, f.title, f.question, f.answer, f.updated_at, c.name AS category_name
         FROM faqs f
@@ -43,13 +47,13 @@ try {
         </a>
     </div>
 
-    <?php if (empty($faqs)): ?>
+    <?php if (empty($faqs)) { ?>
         <div class="alert alert-info">
             <i class="fas fa-info-circle"></i> No FAQs found with this tag yet.
         </div>
-    <?php else: ?>
+    <?php } else { ?>
         <div class="list-group">
-            <?php foreach ($faqs as $faq): ?>
+            <?php foreach ($faqs as $faq) { ?>
                 <a href="faq.php?id=<?php echo $faq['id']; ?>" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1"><?php echo htmlspecialchars($faq['title'] ?: $faq['question']); ?></h5>
@@ -60,9 +64,9 @@ try {
                     <p class="mb-1 text-muted"><?php echo htmlspecialchars(strip_tags($faq['question'])); ?></p>
                     <small class="text-muted"><i class="fas fa-folder"></i> <?php echo htmlspecialchars($faq['category_name']); ?></small>
                 </a>
-            <?php endforeach; ?>
+            <?php } ?>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 </div>
 
 <?php require_once 'includes/footer.php'; ?>

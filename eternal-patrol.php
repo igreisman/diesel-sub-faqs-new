@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 require_once 'config/database.php';
 
 // Default about text
@@ -33,6 +34,7 @@ This is dedicated to all submariners, particularly those who gave their lives fo
 
 // Get about text from database
 $aboutText = '';
+
 try {
     $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'eternal_patrol_about'");
     $stmt->execute();
@@ -48,7 +50,7 @@ try {
 }
 
 // Detect AJAX request
-$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' === strtolower($_SERVER['HTTP_X_REQUESTED_WITH']);
 if (!$isAjax) {
     require_once 'includes/header.php';
 }
@@ -71,26 +73,26 @@ $sql = "SELECT *,
     AND date_lost_sort IS NOT NULL";
 $params = [];
 
-if ($era_filter !== 'all') {
-    $sql .= " HAVING calculated_era = ?";
+if ('all' !== $era_filter) {
+    $sql .= ' HAVING calculated_era = ?';
     $params[] = $era_filter;
 }
 
 if (!empty($search)) {
-    $sql .= " AND (name LIKE ? OR designation LIKE ?)";
-    $params[] = "%$search%";
-    $params[] = "%$search%";
+    $sql .= ' AND (name LIKE ? OR designation LIKE ?)';
+    $params[] = "%{$search}%";
+    $params[] = "%{$search}%";
 }
 
-$sql .= " ORDER BY date_lost_sort IS NULL ASC, date_lost_sort ASC, boat_number ASC";
+$sql .= ' ORDER BY date_lost_sort IS NULL ASC, date_lost_sort ASC, boat_number ASC';
 
 try {
     // DEBUG: Output filter and SQL for troubleshooting
     if (isset($_GET['debug'])) {
         echo '<pre style="background:#fff;color:#000;z-index:99999;position:relative;">';
-        echo 'era_filter: ' . htmlspecialchars($era_filter) . "\n";
-        echo 'SQL: ' . htmlspecialchars($sql) . "\n";
-        echo 'Params: ' . htmlspecialchars(json_encode($params)) . "\n";
+        echo 'era_filter: '.htmlspecialchars($era_filter)."\n";
+        echo 'SQL: '.htmlspecialchars($sql)."\n";
+        echo 'Params: '.htmlspecialchars(json_encode($params))."\n";
         echo '</pre>';
     }
     $stmt = $pdo->prepare($sql);
@@ -120,7 +122,7 @@ try {
     while ($row = $stmt->fetch()) {
         $stats[$row['calculated_era']] = $row['count'];
     }
-    $total_stmt = $pdo->query("SELECT COUNT(*) as total, SUM(fatalities_num) as total_fatalities FROM lost_submarines");
+    $total_stmt = $pdo->query('SELECT COUNT(*) as total, SUM(fatalities_num) as total_fatalities FROM lost_submarines');
     $totals = $total_stmt->fetch();
 } catch (Exception $e) {
     $stats = [];
@@ -130,7 +132,7 @@ try {
 
 <?php if ($isAjax) {
     echo '<div id="resultsSection">';
-    if ($view === 'list') {
+    if ('list' === $view) {
         echo '<div class="card mb-4"><div class="card-body"><ul class="list-group list-group-flush">';
         $currentEra = null;
         foreach ($boats as $boat) {
@@ -138,13 +140,13 @@ try {
             if ($currentEra !== $boat['calculated_era']) {
                 $currentEra = $boat['calculated_era'];
                 $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                if ($currentEra !== null) {
-                    echo '<li class="list-group-item bg-light fw-bold">Submarines lost ' . htmlspecialchars($eraLabel) . '</li>';
+                if (null !== $currentEra) {
+                    echo '<li class="list-group-item bg-light fw-bold">Submarines lost '.htmlspecialchars($eraLabel).'</li>';
                 }
             }
             echo '<li class="list-group-item d-flex justify-content-between align-items-center ps-4">';
-            echo '<a href="boat.php?id=' . $boat['id'] . '">' . htmlspecialchars($boat['designation'] ?: $boat['name']) . '</a>';
-            echo '<span class="text-muted small locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span>';
+            echo '<a href="boat.php?id='.$boat['id'].'">'.htmlspecialchars($boat['designation'] ?: $boat['name']).'</a>';
+            echo '<span class="text-muted small locale-date" data-date="'.htmlspecialchars($boat['date_lost']).'">'.htmlspecialchars($boat['date_lost']).'</span>';
             echo '</li>';
         }
         echo '</ul></div></div>';
@@ -156,22 +158,29 @@ try {
             if ($currentEra !== $boat['calculated_era']) {
                 $currentEra = $boat['calculated_era'];
                 $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                if ($currentEra !== null) {
-                    echo '<div class="col-12"><h4 class="border-bottom pb-2 mb-3">Submarines lost ' . htmlspecialchars($eraLabel) . '</h4></div>';
+                if (null !== $currentEra) {
+                    echo '<div class="col-12"><h4 class="border-bottom pb-2 mb-3">Submarines lost '.htmlspecialchars($eraLabel).'</h4></div>';
                 }
             }
             echo '<div class="col ms-3"><div class="card h-100"><div class="card-body">';
-            echo '<h5 class="card-title mb-1">' . htmlspecialchars($boat['designation'] ?: $boat['name']) . '</h5>';
-            echo '<p class="text-muted small"><i class="fas fa-calendar"></i> <span class="locale-date" data-date="' . htmlspecialchars($boat['date_lost']) . '">' . htmlspecialchars($boat['date_lost']) . '</span></p>';
-            if ($boat['fatalities']) echo '<p class="small mb-2"><strong><i class="fas fa-users"></i> Fatalities:</strong> ' . htmlspecialchars($boat['fatalities']) . '</p>';
-            if ($boat['location']) echo '<p class="small"><strong>Location:</strong> ' . htmlspecialchars($boat['location']) . '</p>';
-            if ($boat['cause']) echo '<p class="small"><strong>Cause:</strong> ' . htmlspecialchars(substr($boat['cause'], 0, 150)) . '...</p>';
-            echo '<a href="boat.php?id=' . $boat['id'] . '" class="btn btn-outline-primary btn-sm">View Full Details <i class="fas fa-arrow-right"></i></a>';
+            echo '<h5 class="card-title mb-1">'.htmlspecialchars($boat['designation'] ?: $boat['name']).'</h5>';
+            echo '<p class="text-muted small"><i class="fas fa-calendar"></i> <span class="locale-date" data-date="'.htmlspecialchars($boat['date_lost']).'">'.htmlspecialchars($boat['date_lost']).'</span></p>';
+            if ($boat['fatalities']) {
+                echo '<p class="small mb-2"><strong><i class="fas fa-users"></i> Fatalities:</strong> '.htmlspecialchars($boat['fatalities']).'</p>';
+            }
+            if ($boat['location']) {
+                echo '<p class="small"><strong>Location:</strong> '.htmlspecialchars($boat['location']).'</p>';
+            }
+            if ($boat['cause']) {
+                echo '<p class="small"><strong>Cause:</strong> '.htmlspecialchars(substr($boat['cause'], 0, 150)).'...</p>';
+            }
+            echo '<a href="boat.php?id='.$boat['id'].'" class="btn btn-outline-primary btn-sm">View Full Details <i class="fas fa-arrow-right"></i></a>';
             echo '</div></div></div>';
         }
         echo '</div>';
     }
     echo '</div>';
+
     exit;
 }
 ?>
@@ -192,11 +201,11 @@ try {
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">About the Tolling of the Boats</h5>
                     <div>
-                        <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+                        <?php if (isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in']) { ?>
                             <a href="admin-eternal-patrol-about.php" class="btn btn-sm btn-light me-2">
                                 <i class="bi bi-pencil"></i> Edit
                             </a>
-                        <?php endif; ?>
+                        <?php } ?>
                         <small><i class="fas fa-arrow-down"></i> Scroll for more</small>
                     </div>
                 </div>
@@ -236,10 +245,10 @@ try {
                         <div class="col-md-4">
                             <label for="era" class="form-label">Filter by Era</label>
                             <select name="era" id="era" class="form-select">
-                                <option value="all" <?php echo $era_filter === 'all' ? 'selected' : ''; ?>>All Eras</option>
-                                <option value="pre-ww2" <?php echo $era_filter === 'pre-ww2' ? 'selected' : ''; ?>>Pre WW2</option>
-                                <option value="ww2" <?php echo $era_filter === 'ww2' ? 'selected' : ''; ?>>WW2</option>
-                                <option value="post-ww2" <?php echo $era_filter === 'post-ww2' ? 'selected' : ''; ?>>Post WW2</option>
+                                <option value="all" <?php echo 'all' === $era_filter ? 'selected' : ''; ?>>All Eras</option>
+                                <option value="pre-ww2" <?php echo 'pre-ww2' === $era_filter ? 'selected' : ''; ?>>Pre WW2</option>
+                                <option value="ww2" <?php echo 'ww2' === $era_filter ? 'selected' : ''; ?>>WW2</option>
+                                <option value="post-ww2" <?php echo 'post-ww2' === $era_filter ? 'selected' : ''; ?>>Post WW2</option>
                             </select>
                         </div>
                         <div class="col-md-8">
@@ -258,11 +267,11 @@ try {
             <form id="viewForm" class="d-flex align-items-center gap-3 mb-0">
                 <span class="form-label mb-0">View:</span>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="view" id="viewList" value="list" <?php echo $view === 'list' ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="radio" name="view" id="viewList" value="list" <?php echo 'list' === $view ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="viewList">List</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="view" id="viewCards" value="cards" <?php echo $view === 'cards' ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="radio" name="view" id="viewCards" value="cards" <?php echo 'cards' === $view ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="viewCards">Cards</label>
                 </div>
                 <span class="ms-3 text-muted small" id="boatCount">(<?php echo count($boats); ?> boats)</span>
@@ -270,71 +279,71 @@ try {
         </div>
     </div>
 
-    <?php if (isset($error)): ?>
+    <?php if (isset($error)) { ?>
     <div class="alert alert-danger">Error loading submarines: <?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
-    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
+    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']) { ?>
     <div class="mb-3">
         <a href="admin-eternal-patrol.php" class="btn btn-primary">
             ⚙️ Manage Submarines
         </a>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <!-- Boat List -->
     <div id="resultsSection">
-    <?php if ($view === 'list'): ?>
+    <?php if ('list' === $view) { ?>
     <!-- List View -->
     <div class="card">
         <div class="card-body">
             <ul class="list-unstyled mb-0">
-                <?php if (empty($boats)): ?>
+                <?php if (empty($boats)) { ?>
                 <li class="alert alert-info">No submarines found matching your criteria.</li>
-                <?php else: ?>
-                <?php 
+                <?php } else { ?>
+                <?php
                 $currentEra = null;
-                foreach ($boats as $boat): 
-                    // Add era header when era changes
-                    if ($currentEra !== $boat['calculated_era']):
-                        $currentEra = $boat['calculated_era'];
-                        $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                ?>
+                    foreach ($boats as $boat) {
+                        // Add era header when era changes
+                        if ($currentEra !== $boat['calculated_era']) {
+                            $currentEra = $boat['calculated_era'];
+                            $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                            ?>
                 <li class="fw-bold text-primary mt-3 mb-2" style="list-style: none;">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></li>
-                <?php endif; ?>
+                <?php } ?>
                 <li class="mb-2 ps-4">
                     <a href="boat.php?id=<?php echo $boat['id']; ?>" class="text-decoration-none">
                         <i class="fas fa-ship"></i> <?php echo htmlspecialchars($boat['designation'] ?: $boat['name']); ?>
                     </a>
                     <span class="text-muted small">- <?php echo htmlspecialchars($boat['date_lost']); ?></span>
                 </li>
-                <?php endforeach; ?>
-                <?php endif; ?>
+                <?php } ?>
+                <?php } ?>
             </ul>
         </div>
     </div>
-    <?php else: ?>
+    <?php } else { ?>
     <!-- Card View -->
     <div class="row">
-        <?php if (empty($boats)): ?>
+        <?php if (empty($boats)) { ?>
         <div class="col-12">
             <div class="alert alert-info">
                 <p class="mb-0">No submarines found matching your criteria.</p>
             </div>
         </div>
-        <?php else: ?>
-        <?php 
+        <?php } else { ?>
+        <?php
         $currentEra = null;
-        foreach ($boats as $boat): 
-            // Add era header when era changes
-            if ($currentEra !== $boat['calculated_era']):
-                $currentEra = $boat['calculated_era'];
-                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-        ?>
+            foreach ($boats as $boat) {
+                // Add era header when era changes
+                if ($currentEra !== $boat['calculated_era']) {
+                    $currentEra = $boat['calculated_era'];
+                    $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                    ?>
         <div class="col-12">
             <h4 class="border-bottom pb-2 mb-3 mt-3">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></h4>
         </div>
-        <?php endif; ?>
+        <?php } ?>
         <div class="col-md-6 mb-4 ms-3">
             <div class="card h-100">
                 <div class="card-body">
@@ -344,27 +353,27 @@ try {
                     <p class="text-muted small">
                         <i class="fas fa-calendar"></i> <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
                     </p>
-                    <?php if ($boat['fatalities']): ?>
+                    <?php if ($boat['fatalities']) { ?>
                     <p class="small mb-2">
                         <strong><i class="fas fa-users"></i> Fatalities:</strong> <?php echo htmlspecialchars($boat['fatalities']); ?>
                     </p>
-                    <?php endif; ?>
-                    <?php if ($boat['location']): ?>
+                    <?php } ?>
+                    <?php if ($boat['location']) { ?>
                     <p class="small"><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></p>
-                    <?php endif; ?>
-                    <?php if ($boat['cause']): ?>
+                    <?php } ?>
+                    <?php if ($boat['cause']) { ?>
                     <p class="small"><strong>Cause:</strong> <?php echo htmlspecialchars(substr($boat['cause'], 0, 150)); ?>...</p>
-                    <?php endif; ?>
+                    <?php } ?>
                     <a href="boat.php?id=<?php echo $boat['id']; ?>" class="btn btn-outline-primary btn-sm">
                         View Full Details <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
         </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
+        <?php } ?>
+        <?php } ?>
     </div>
-    <?php endif; ?>
+    <?php } ?>
     </div>
 </div>
 

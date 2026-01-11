@@ -1,25 +1,31 @@
 <?php
 session_start();
+
 require_once 'config/database.php';
+
 require_once 'includes/markdown-helper.php';
 
 $category_name = $_GET['cat'] ?? '';
 if (empty($category_name)) {
     header('Location: index.php');
+
     exit;
 }
 
 // Get category information
-$stmt = $pdo->prepare("SELECT * FROM categories WHERE name = ?");
+$stmt = $pdo->prepare('SELECT * FROM categories WHERE name = ?');
 $stmt->execute([$category_name]);
 $category = $stmt->fetch();
 
 if (!$category) {
     header('HTTP/1.0 404 Not Found');
     $page_title = 'Category Not Found';
+
     require_once 'includes/header.php';
     echo '<div class="container"><h1>Category Not Found</h1><p>The requested category does not exist.</p></div>';
+
     require_once 'includes/footer.php';
+
     exit;
 }
 
@@ -34,12 +40,12 @@ $faqs = $stmt->fetchAll();
 
 // Preload contributions grouped by FAQ
 $contribMap = [];
-$contribStmt = $pdo->prepare("
+$contribStmt = $pdo->prepare('
     SELECT faq_id, contributor_name, contributed_at, notes
     FROM faq_contributions
     WHERE faq_id IN (SELECT id FROM faqs WHERE category_id = ?)
     ORDER BY contributed_at DESC, id DESC
-");
+');
 $contribStmt->execute([$category['id']]);
 while ($row = $contribStmt->fetch()) {
     $contribMap[$row['faq_id']][] = $row;
@@ -47,8 +53,9 @@ while ($row = $contribStmt->fetch()) {
 
 // Load glossary terms for tooltips
 $glossaryTerms = [];
+
 try {
-    $gStmt = $pdo->query("SELECT term, definition FROM glossary");
+    $gStmt = $pdo->query('SELECT term, definition FROM glossary');
     $glossaryTerms = $gStmt->fetchAll();
 } catch (Exception $e) {
     $glossaryTerms = [];
@@ -58,11 +65,13 @@ $page_title = $category['name'];
 $page_description = '';
 // Clear description to avoid showing legacy "Questions about ..." copy
 $category['description'] = '';
+
 require_once 'includes/header.php';
 
-function category_icon_fallback($name, $icon) {
-    $icon = trim((string)$icon);
-    if (!empty($icon) && stripos($icon, 'question-circle') === false) {
+function category_icon_fallback($name, $icon)
+{
+    $icon = trim((string) $icon);
+    if (!empty($icon) && false === stripos($icon, 'question-circle')) {
         return $icon;
     }
     $map = [
@@ -75,6 +84,7 @@ function category_icon_fallback($name, $icon) {
         'attacks and battles, small and large' => 'fas fa-crosshairs',
     ];
     $key = strtolower(trim($name));
+
     return $map[$key] ?? 'fas fa-ship';
 }
 ?>
@@ -100,20 +110,20 @@ function category_icon_fallback($name, $icon) {
             <!-- Category name below breadcrumb -->
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <h1 class="mb-0"><?php echo htmlspecialchars($category['name']); ?></h1>
-                <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
-                <a href="edit-faq-wysiwyg.php?category_id=<?php echo (int)$category['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-primary">
+                <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']) { ?>
+                <a href="edit-faq-wysiwyg.php?category_id=<?php echo (int) $category['id']; ?>&return=<?php echo urlencode('category.php?cat='.$category['name']); ?>" class="btn btn-primary">
                     <i class="fas fa-plus-circle"></i> Add FAQ to this Category
                 </a>
-                <?php endif; ?>
+                <?php } ?>
             </div>
 
-            <?php if (empty($faqs)): ?>
+            <?php if (empty($faqs)) { ?>
                 <div class="alert alert-info">
                     <h4>No FAQs Available</h4>
                     <p>There are currently no FAQs available in this category. Check back later for updates!</p>
                     <a href="index.php" class="btn btn-primary">Browse Other Categories</a>
                 </div>
-            <?php else: ?>
+            <?php } else { ?>
                 <!-- Spacer after header/search -->
                 <div class="mb-4"></div>
 
@@ -129,7 +139,7 @@ function category_icon_fallback($name, $icon) {
                                 <p class="mb-2">Your feedback really helps.</p>
                             </div>
                             <div class="ms-2">
-                                <a href="feedback.php?category_id=<?php echo (int)$category['id']; ?>&category=<?php echo urlencode($category['name']); ?>" 
+                                <a href="feedback.php?category_id=<?php echo (int) $category['id']; ?>&category=<?php echo urlencode($category['name']); ?>" 
                                    class="btn btn-warning btn-sm">
                                     <i class="fas fa-star"></i> Share Feedback
                                 </a>
@@ -140,7 +150,7 @@ function category_icon_fallback($name, $icon) {
 
                 <!-- FAQs List -->
                 <ol class="faqs-list list-unstyled">
-                    <?php foreach ($faqs as $idx => $faq): ?>
+                    <?php foreach ($faqs as $idx => $faq) { ?>
                         <?php $num = $idx + 1; ?>
                         <li class="faq-row" data-faq-id="<?php echo $faq['id']; ?>">
                             <div class="faq-row-header" data-bs-toggle="collapse" data-bs-target="#faq-collapse-<?php echo $faq['id']; ?>" aria-expanded="false">
@@ -153,35 +163,36 @@ function category_icon_fallback($name, $icon) {
                                         <div class="faq-content">
                                             <?php echo render_content($faq['answer']); ?>
                                         </div>
-                                    <?php if (!empty($faq['author']) || !empty($faq['date_submitted'])): ?>
+                                    <?php if (!empty($faq['author']) || !empty($faq['date_submitted'])) { ?>
                                         <div class="text-muted mt-3">
                                             <strong>Created by:</strong>
-                                            <?php if (!empty($faq['author'])): ?>
+                                            <?php if (!empty($faq['author'])) { ?>
                                                 <span class="ms-1"><i class="fas fa-user"></i> <?php echo htmlspecialchars($faq['author']); ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($faq['date_submitted'])): ?>
+                                            <?php } ?>
+                                            <?php if (!empty($faq['date_submitted'])) { ?>
                                                 <span class="ms-3"><i class="fas fa-calendar-alt"></i> <?php echo date('M j, Y', strtotime($faq['date_submitted'])); ?></span>
-                                            <?php endif; ?>
+                                            <?php } ?>
                                         </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($contribMap[$faq['id']])): ?>
+                                    <?php } ?>
+                                    <?php if (!empty($contribMap[$faq['id']])) { ?>
                                         <?php $label = count($contribMap[$faq['id']]) > 1 ? 'Contributions by:' : 'Contribution by:'; ?>
                                         <div class="mt-2 text-muted">
-                                            <?php foreach ($contribMap[$faq['id']] as $idx => $c): ?>
+                                            <?php foreach ($contribMap[$faq['id']] as $idx => $c) { ?>
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <span class="contrib-label"><?php echo $idx === 0 ? $label : ''; ?></span>
+                                                    <span class="contrib-label"><?php echo 0 === $idx ? $label : ''; ?></span>
                                                     <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($c['contributor_name']); ?></span>
-                                                    <?php if (!empty($c['contributed_at'])): ?>
+                                                    <?php if (!empty($c['contributed_at'])) { ?>
                                                         <span><i class="fas fa-calendar-alt"></i> <?php echo date('M j, Y', strtotime($c['contributed_at'])); ?></span>
-                                                    <?php endif; ?>
+                                                    <?php } ?>
                                                 </div>
-                                            <?php endforeach; ?>
+                                            <?php } ?>
                                         </div>
-                                    <?php endif; ?>
-                                    <?php 
+                                    <?php } ?>
+                                    <?php
                                     $current_faq = $faq;
-                                    include 'includes/feedback-widget.php'; 
-                                    ?>
+
+                        include 'includes/feedback-widget.php';
+                        ?>
                                     <div class="faq-actions mt-3">
                                         <a href="faq.php?id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-link"></i> Direct Link
@@ -190,9 +201,9 @@ function category_icon_fallback($name, $icon) {
                                             <i class="fas fa-copy"></i> Copy Link
                                         </button>
                                     </div>
-                                    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+                                    <?php if (isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in']) { ?>
                                         <div class="faq-actions mt-2 d-flex gap-2">
-                                            <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>&return=<?php echo urlencode('category.php?cat=' . $category['name']); ?>" class="btn btn-sm btn-primary" style="line-height: 1.5;">
+                                            <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>&return=<?php echo urlencode('category.php?cat='.$category['name']); ?>" class="btn btn-sm btn-primary" style="line-height: 1.5;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
                                             <form method="POST" action="admin/manage-faqs.php" class="m-0" onsubmit="return confirm('Delete this FAQ? This cannot be undone.');">
@@ -203,11 +214,11 @@ function category_icon_fallback($name, $icon) {
                                                 </button>
                                             </form>
                                         </div>
-                                    <?php endif; ?>
+                                    <?php } ?>
                                 </div>
                             </div>
                         </li>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </ol>
 
                 <!-- Back to Categories -->
@@ -216,7 +227,7 @@ function category_icon_fallback($name, $icon) {
                         <i class="fas fa-arrow-left"></i> Back to All Categories
                     </a>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 </div>

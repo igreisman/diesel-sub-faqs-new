@@ -1,12 +1,12 @@
-import { sql } from '@vercel/postgres';
+import { sql } from "@vercel/postgres";
 
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
@@ -14,11 +14,11 @@ export default async function handler(req, res) {
 
   try {
     switch (action) {
-      case 'categories':
+      case "categories":
         const categories = await sql`SELECT * FROM categories ORDER BY name`;
         return res.json(categories.rows);
 
-      case 'faqs':
+      case "faqs":
         if (category_id) {
           const faqs = await sql`
             SELECT f.*, c.name as category_name 
@@ -38,13 +38,13 @@ export default async function handler(req, res) {
           return res.json(allFaqs.rows);
         }
 
-      case 'search':
+      case "search":
         if (q) {
           const searchResults = await sql`
             SELECT f.*, c.name as category_name 
             FROM faqs f 
             JOIN categories c ON f.category_id = c.id 
-            WHERE f.question ILIKE ${'%' + q + '%'} OR f.answer ILIKE ${'%' + q + '%'}
+            WHERE f.question ILIKE ${"%" + q + "%"} OR f.answer ILIKE ${"%" + q + "%"}
             ORDER BY f.question
           `;
           return res.json(searchResults.rows);
@@ -52,28 +52,28 @@ export default async function handler(req, res) {
           return res.json([]);
         }
 
-      case 'stats':
+      case "stats":
         const faqCount = await sql`SELECT COUNT(*) as count FROM faqs`;
-        const categoryCount = await sql`SELECT COUNT(*) as count FROM categories`;
+        const categoryCount =
+          await sql`SELECT COUNT(*) as count FROM categories`;
 
         return res.json({
           total_faqs: parseInt(faqCount.rows[0].count),
           total_categories: parseInt(categoryCount.rows[0].count),
-          status: 'online'
+          status: "online",
         });
 
-      case 'setup':
+      case "setup":
         // Setup database tables
         await setupDatabase();
-        return res.json({ message: 'Database setup complete' });
+        return res.json({ message: "Database setup complete" });
 
       default:
-        return res.status(400).json({ error: 'Invalid action' });
+        return res.status(400).json({ error: "Invalid action" });
     }
-
   } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ error: 'Database error: ' + error.message });
+    console.error("Database error:", error);
+    return res.status(500).json({ error: "Database error: " + error.message });
   }
 }
 

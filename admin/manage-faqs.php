@@ -1,29 +1,33 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once '../config/database.php';
+
 require_once '../includes/header.php';
 
 // Locale-aware date formatter (falls back to US-style if intl not available)
 if (!function_exists('formatLocalDate')) {
-    function formatLocalDate($datetime) {
+    function formatLocalDate($datetime)
+    {
         // Fixed US-style numeric date
         return date('m/d/Y', strtotime($datetime));
     }
 }
 
 // AJAX reorder handler
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' === strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     $data = json_decode(file_get_contents('php://input'), true);
     if (isset($data['faq_order'], $data['category_id']) && is_array($data['faq_order'])) {
-        $catId = (int)$data['category_id'];
+        $catId = (int) $data['category_id'];
+
         try {
             $pdo->beginTransaction();
-            $stmt = $pdo->prepare("UPDATE faqs SET display_order = ? WHERE id = ? AND category_id = ?");
+            $stmt = $pdo->prepare('UPDATE faqs SET display_order = ? WHERE id = ? AND category_id = ?');
             $pos = 10;
             foreach ($data['faq_order'] as $faqId) {
-                $stmt->execute([$pos, (int)$faqId, $catId]);
+                $stmt->execute([$pos, (int) $faqId, $catId]);
                 $pos += 10;
             }
             $pdo->commit();
@@ -35,28 +39,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+
         exit;
     }
 }
 
 // Check authentication
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
 // Handle actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'delete' && isset($_POST['faq_id'])) {
-        $stmt = $pdo->prepare("DELETE FROM faqs WHERE id = ?");
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['action'])) {
+    if ('delete' === $_POST['action'] && isset($_POST['faq_id'])) {
+        $stmt = $pdo->prepare('DELETE FROM faqs WHERE id = ?');
         $stmt->execute([$_POST['faq_id']]);
-        $success = "FAQ deleted successfully!";
+        $success = 'FAQ deleted successfully!';
     }
-    
-    if ($_POST['action'] === 'toggle_publish' && isset($_POST['faq_id'])) {
-        $stmt = $pdo->prepare("UPDATE faqs SET is_published = NOT is_published WHERE id = ?");
+
+    if ('toggle_publish' === $_POST['action'] && isset($_POST['faq_id'])) {
+        $stmt = $pdo->prepare('UPDATE faqs SET is_published = NOT is_published WHERE id = ?');
         $stmt->execute([$_POST['faq_id']]);
-        $success = "FAQ status updated!";
+        $success = 'FAQ status updated!';
     }
 }
 
@@ -66,12 +72,12 @@ $category = $_GET['category'] ?? '';
 $status = $_GET['status'] ?? '';
 
 // Get categories for filter (needed to set default)
-$categoriesStmt = $pdo->query("SELECT id, name FROM categories ORDER BY sort_order ASC, name ASC");
+$categoriesStmt = $pdo->query('SELECT id, name FROM categories ORDER BY sort_order ASC, name ASC');
 $categories = $categoriesStmt->fetchAll();
 
 // Default to first category if none selected
-if ($category === '' && !empty($categories)) {
-    $category = (string)$categories[0]['id'];
+if ('' === $category && !empty($categories)) {
+    $category = (string) $categories[0]['id'];
 }
 
 // Build query
@@ -79,31 +85,31 @@ $whereConditions = [];
 $params = [];
 
 if ($search) {
-    $whereConditions[] = "(title LIKE ? OR question LIKE ? OR content LIKE ?)";
-    $params[] = "%$search%";
-    $params[] = "%$search%"; 
-    $params[] = "%$search%";
+    $whereConditions[] = '(title LIKE ? OR question LIKE ? OR content LIKE ?)';
+    $params[] = "%{$search}%";
+    $params[] = "%{$search}%";
+    $params[] = "%{$search}%";
 }
 
-if ($category !== '') {
-    $whereConditions[] = "category_id = ?";
+if ('' !== $category) {
+    $whereConditions[] = 'category_id = ?';
     $params[] = $category;
 }
 
-if ($status === 'published') {
-    $whereConditions[] = "is_published = 1";
-} elseif ($status === 'draft') {
-    $whereConditions[] = "is_published = 0";
+if ('published' === $status) {
+    $whereConditions[] = 'is_published = 1';
+} elseif ('draft' === $status) {
+    $whereConditions[] = 'is_published = 0';
 }
 
-$whereClause = $whereConditions ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+$whereClause = $whereConditions ? 'WHERE '.implode(' AND ', $whereConditions) : '';
 
 // Get FAQs
 $sql = "
     SELECT f.*, c.name as category_name 
     FROM faqs f 
     LEFT JOIN categories c ON f.category_id = c.id 
-    $whereClause 
+    {$whereClause} 
     ORDER BY f.display_order ASC, f.featured DESC, f.title ASC
 ";
 
@@ -117,7 +123,7 @@ $faqs = $stmt->fetchAll();
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-list"></i> Manage FAQs</h1>
         <div>
-            <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int)$category; ?>" class="btn btn-success me-2">
+            <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int) $category; ?>" class="btn btn-success me-2">
                 <i class="fas fa-plus"></i> New FAQ
             </a>
             <a href="dashboard.php" class="btn btn-outline-secondary">
@@ -126,12 +132,12 @@ $faqs = $stmt->fetchAll();
         </div>
     </div>
 
-    <?php if (isset($success)): ?>
+    <?php if (isset($success)) { ?>
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check"></i> <?php echo htmlspecialchars($success); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <!-- Filters -->
     <div class="card mb-4">
@@ -146,12 +152,12 @@ $faqs = $stmt->fetchAll();
                 <div class="col-md-3">
                     <label for="category" class="form-label">Category</label>
                     <select class="form-select" id="category" name="category" required>
-                        <?php foreach ($categories as $cat): ?>
+                        <?php foreach ($categories as $cat) { ?>
                             <option value="<?php echo $cat['id']; ?>" 
                                     <?php echo $category == $cat['id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($cat['name']); ?>
                             </option>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </select>
                 </div>
                 
@@ -159,8 +165,8 @@ $faqs = $stmt->fetchAll();
                     <label for="status" class="form-label">Status</label>
                     <select class="form-select" id="status" name="status">
                         <option value="">All Status</option>
-                        <option value="published" <?php echo $status === 'published' ? 'selected' : ''; ?>>Published</option>
-                        <option value="draft" <?php echo $status === 'draft' ? 'selected' : ''; ?>>Draft</option>
+                        <option value="published" <?php echo 'published' === $status ? 'selected' : ''; ?>>Published</option>
+                        <option value="draft" <?php echo 'draft' === $status ? 'selected' : ''; ?>>Draft</option>
                     </select>
                 </div>
                 
@@ -182,16 +188,16 @@ $faqs = $stmt->fetchAll();
             <h5><i class="fas fa-table"></i> FAQs (<?php echo count($faqs); ?> found)</h5>
         </div>
         <div class="card-body">
-            <?php if (empty($faqs)): ?>
+            <?php if (empty($faqs)) { ?>
                 <div class="text-center py-4">
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No FAQs found</h5>
                     <p class="text-muted">Try adjusting your search criteria or create a new FAQ.</p>
-                    <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int)$category; ?>" class="btn btn-primary">
+                    <a href="../edit-faq-wysiwyg.php?category_id=<?php echo (int) $category; ?>" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create First FAQ
                     </a>
                 </div>
-            <?php else: ?>
+            <?php } else { ?>
                 <div class="table-responsive">
                     <table class="table table-striped align-middle" id="faq-table">
                         <thead>
@@ -205,7 +211,7 @@ $faqs = $stmt->fetchAll();
                             </tr>
                         </thead>
                         <tbody id="faq-table-rows">
-                            <?php foreach ($faqs as $faq): ?>
+                            <?php foreach ($faqs as $faq) { ?>
                                 <tr class="faq-row-table" draggable="true" data-id="<?php echo $faq['id']; ?>">
                                     <td class="text-center">
                                         <span class="drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>
@@ -214,11 +220,11 @@ $faqs = $stmt->fetchAll();
                                         <strong><?php echo htmlspecialchars($faq['title']); ?></strong>
                                     </td>
                                     <td>
-                                        <?php if ($faq['is_published']): ?>
+                                        <?php if ($faq['is_published']) { ?>
                                             <span class="badge bg-success">Published</span>
-                                        <?php else: ?>
+                                        <?php } else { ?>
                                             <span class="badge bg-warning">Draft</span>
-                                        <?php endif; ?>
+                                        <?php } ?>
                                     </td>
                                     <td class="text-center"><?php echo $faq['view_count']; ?></td>
                                     <td>
@@ -255,11 +261,11 @@ $faqs = $stmt->fetchAll();
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 </div>

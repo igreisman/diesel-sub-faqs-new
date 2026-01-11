@@ -1,4 +1,5 @@
 <?php
+
 require_once 'config/database.php';
 header('Content-Type: text/plain');
 
@@ -11,9 +12,9 @@ $stmt = $pdo->query("
 $boats = $stmt->fetchAll();
 
 foreach ($boats as $boat) {
-    echo "ID: " . $boat['id'] . "\n";
-    echo "Boat Number: " . $boat['boat_number'] . "\n";
-    echo "Name: " . $boat['name'] . "\n";
-    echo "Designation: " . $boat['designation'] . "\n";
+    echo 'ID: '.$boat['id']."\n";
+    echo 'Boat Number: '.$boat['boat_number']."\n";
+    echo 'Name: '.$boat['name']."\n";
+    echo 'Designation: '.$boat['designation']."\n";
     echo "---\n";
 }

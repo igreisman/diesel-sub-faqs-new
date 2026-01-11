@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME; ?></title>
-    <meta name="description" content="<?php echo isset($page_description) ? $page_description : 'Comprehensive FAQs about diesel-electric submarines, focusing on WWII US submarines'; ?>">
+    <title><?php echo isset($page_title) ? $page_title.' - '.SITE_NAME : SITE_NAME; ?></title>
+    <meta name="description" content="<?php echo $page_description ?? 'Comprehensive FAQs about diesel-electric submarines, focusing on WWII US submarines'; ?>">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -66,7 +66,7 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
-                    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
+                    <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']) { ?>
                         <li class="nav-item">
                             <a class="nav-link" href="admin/dashboard.php">Admin</a>
                         </li>
@@ -78,7 +78,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="admin/logout.php">Logout</a>
                         </li>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <li class="nav-item">
                             <a class="nav-link" href="admin/login.php">Admin Login</a>
                         </li>
@@ -87,7 +87,7 @@
                                 <i class="fas fa-database"></i> DB
                             </a>
                         </li>
-                    <?php endif; ?>
+                    <?php } ?>
                 </ul>
             </div>
         </div>

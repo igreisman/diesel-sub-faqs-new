@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -52,17 +53,16 @@ However, the crew reasoned that, if they could move water forward and blow balla
 The crew then struggled, over the next 36 hours, to cut a hole of about three inches in diameter in the hull. They were then able to get the attention of the passing steamship SS Alanthus. With help from the Alanthus and the SS General G. W. Goethais they were able to cut a larger hole, about two feet in diameter, in the hull. The entire crew was able to escape the next day. Later attempts to refloat and tow S-5 to shallow waters failed.
 
 LCDR Cooke would continue to serve in various assignments until he retired in 1948 as a vice admiral.',
-    'prior_history' => NULL,
+    'prior_history' => null,
     'era' => 'interwar',
-    'year_lost' => 1920
+    'year_lost' => 1920,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS S-5 (SS-110) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
     echo "\nNote: This is the same Charles M. Cooke who commanded USS E-2 (SS-25) in 1916.\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

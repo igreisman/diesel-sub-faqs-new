@@ -1,4 +1,5 @@
 <?php
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -18,7 +19,7 @@ define('ADMIN_EMAIL', 'irving.greisman@gmail.com');
 // Database connection
 try {
     $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET,
+        'mysql:host='.DB_HOST.';port='.DB_PORT.';dbname='.DB_NAME.';charset='.DB_CHARSET,
         DB_USERNAME,
         DB_PASSWORD,
         [
@@ -28,30 +29,35 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    error_log("Database connection failed: " . $e->getMessage());
-    die("Database connection failed. Please check your configuration.<br>" . htmlspecialchars($e->getMessage()));
+    error_log('Database connection failed: '.$e->getMessage());
+
+    exit('Database connection failed. Please check your configuration.<br>'.htmlspecialchars($e->getMessage()));
 }
 
 // Session configuration - only start if not already active
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 
 // Helper functions
-function sanitize_input($data) {
+function sanitize_input($data)
+{
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
-function get_category_slug($name) {
+function get_category_slug($name)
+{
     return str_replace([' ', '/', '&'], ['-', '-', 'and'], strtolower($name));
 }
 
-function format_date($date) {
+function format_date($date)
+{
     return date('F j, Y', strtotime($date));
 }
 
 // Related FAQs functions
-function get_related_faqs($pdo, $faq_id, $limit = 5) {
+function get_related_faqs($pdo, $faq_id, $limit = 5)
+{
     $stmt = $pdo->prepare("
         SELECT f.id, f.title, f.slug, rf.relationship_type,
                f.category_id, c.name as category_name
@@ -65,33 +71,36 @@ function get_related_faqs($pdo, $faq_id, $limit = 5) {
         LIMIT ?
     ");
     $stmt->execute([$faq_id, $faq_id, $faq_id, $limit]);
+
     return $stmt->fetchAll();
 }
 
-function add_related_faq($pdo, $faq_id, $related_faq_id, $relationship_type = 'similar') {
+function add_related_faq($pdo, $faq_id, $related_faq_id, $relationship_type = 'similar')
+{
     // Prevent self-reference
     if ($faq_id == $related_faq_id) {
         return false;
     }
-    
+
     try {
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             INSERT IGNORE INTO related_faqs (faq_id, related_faq_id, relationship_type) 
             VALUES (?, ?, ?)
-        ");
+        ');
+
         return $stmt->execute([$faq_id, $related_faq_id, $relationship_type]);
     } catch (PDOException $e) {
         return false;
     }
 }
 
-function remove_related_faq($pdo, $faq_id, $related_faq_id) {
-    $stmt = $pdo->prepare("
+function remove_related_faq($pdo, $faq_id, $related_faq_id)
+{
+    $stmt = $pdo->prepare('
         DELETE FROM related_faqs 
         WHERE (faq_id = ? AND related_faq_id = ?) 
         OR (faq_id = ? AND related_faq_id = ?)
-    ");
+    ');
+
     return $stmt->execute([$faq_id, $related_faq_id, $related_faq_id, $faq_id]);
 }
-
-?>

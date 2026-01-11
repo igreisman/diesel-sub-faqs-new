@@ -1,28 +1,29 @@
 <?php
+
 // Direct phpMyAdmin access with proper environment setup
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Set proper working directory
-chdir(__DIR__ . '/phpmyadmin');
+chdir(__DIR__.'/phpmyadmin');
 
 // Add current directory to include path
-set_include_path(get_include_path() . PATH_SEPARATOR . __DIR__ . '/phpmyadmin');
+set_include_path(get_include_path().PATH_SEPARATOR.__DIR__.'/phpmyadmin');
 
 // Don't start session here - let phpMyAdmin handle its own sessions
 
 // Check if phpMyAdmin files exist
-if (!file_exists(__DIR__ . '/phpmyadmin/index.php')) {
-    die('phpMyAdmin files not found. Please ensure phpMyAdmin is properly installed.');
+if (!file_exists(__DIR__.'/phpmyadmin/index.php')) {
+    exit('phpMyAdmin files not found. Please ensure phpMyAdmin is properly installed.');
 }
 
 // Include phpMyAdmin
 try {
-    include __DIR__ . '/phpmyadmin/index.php';
+    include __DIR__.'/phpmyadmin/index.php';
 } catch (Exception $e) {
     echo '<div style="padding: 20px; font-family: Arial, sans-serif;">';
     echo '<h2 style="color: #d32f2f;">phpMyAdmin Error</h2>';
-    echo '<p><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+    echo '<p><strong>Error:</strong> '.htmlspecialchars($e->getMessage()).'</p>';
     echo '<hr>';
     echo '<h3>Alternative Database Access:</h3>';
     echo '<ul>';
@@ -37,4 +38,3 @@ try {
     echo '</ol>';
     echo '</div>';
 }
-?>

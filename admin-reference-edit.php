@@ -1,70 +1,73 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
 require_once 'config/database.php';
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $article = null;
 
 if ($id > 0) {
-    $stmt = $pdo->prepare("SELECT * FROM reference_articles WHERE id = ?");
+    $stmt = $pdo->prepare('SELECT * FROM reference_articles WHERE id = ?');
     $stmt->execute([$id]);
     $article = $stmt->fetch();
-    
+
     if (!$article) {
         header('Location: admin-reference.php');
+
         exit;
     }
 }
 
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $category = $_POST['category'];
     $class = $_POST['class'] ?? null;
     $title = $_POST['title'];
     $slug = $_POST['slug'];
     $content = $_POST['content'];
-    $order_position = (int)$_POST['order_position'];
+    $order_position = (int) $_POST['order_position'];
     $status = $_POST['status'];
-    
+
     if ($id > 0) {
         // Get old slug before updating
-        $oldSlugStmt = $pdo->prepare("SELECT slug FROM reference_articles WHERE id = ?");
+        $oldSlugStmt = $pdo->prepare('SELECT slug FROM reference_articles WHERE id = ?');
         $oldSlugStmt->execute([$id]);
         $oldSlug = $oldSlugStmt->fetchColumn();
-        
+
         // Update existing
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             UPDATE reference_articles 
             SET category = ?, class = ?, title = ?, slug = ?, content = ?, 
                 order_position = ?, status = ?, updated_at = NOW()
             WHERE id = ?
-        ");
+        ');
         $stmt->execute([$category, $class, $title, $slug, $content, $order_position, $status, $id]);
-        
+
         // If slug changed, create redirect from old to new
         if ($oldSlug && $oldSlug !== $slug) {
-            $redirectStmt = $pdo->prepare("
+            $redirectStmt = $pdo->prepare('
                 INSERT INTO slug_redirects (old_slug, new_slug, article_id)
                 VALUES (?, ?, ?)
-            ");
+            ');
             $redirectStmt->execute([$oldSlug, $slug, $id]);
         }
     } else {
         // Insert new
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             INSERT INTO reference_articles 
             (category, class, title, slug, content, order_position, status, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-        ");
+        ');
         $stmt->execute([$category, $class, $title, $slug, $content, $order_position, $status]);
     }
-    
+
     header('Location: admin-reference.php');
+
     exit;
 }
 
@@ -78,13 +81,13 @@ $submarineClasses = [
     'Nuclear' => ['Nautilus', 'Seawolf (SSN-575)', 'Skate', 'Skipjack', 'Permit (Thresher)', 'Sturgeon'],
     'Cold War' => ['George Washington', 'Ethan Allen', 'Lafayette', 'James Madison', 'Benjamin Franklin', 'Grayback', 'Halibut', 'Los Angeles', 'Seawolf'],
     'Experimental' => ['Albacore', 'NR-1'],
-    'Modern' => ['Ohio', 'Ohio (SSGN conversion)', 'Virginia', 'Jimmy Carter (SSN-23)', 'Columbia']
+    'Modern' => ['Ohio', 'Ohio (SSGN conversion)', 'Virginia', 'Jimmy Carter (SSN-23)', 'Columbia'],
 ];
 ?>
 <?php require_once 'includes/header.php'; ?>
 
 <div class="container mt-4">
-    <h1><i class="fas fa-edit"></i> <?= $id > 0 ? 'Edit' : 'Add' ?> Reference Article</h1>
+    <h1><i class="fas fa-edit"></i> <?php echo $id > 0 ? 'Edit' : 'Add'; ?> Reference Article</h1>
     
     <div class="card mt-4">
         <div class="card-body">
@@ -94,16 +97,16 @@ $submarineClasses = [
                         <label class="form-label"><strong>Category</strong></label>
                         <select name="category" id="category" class="form-select" required>
                             <option value="">Select Category...</option>
-                            <option value="submarine-classes" <?= ($article['category'] ?? '') === 'submarine-classes' ? 'selected' : '' ?>>
+                            <option value="submarine-classes" <?php echo ($article['category'] ?? '') === 'submarine-classes' ? 'selected' : ''; ?>>
                                 Submarine Classes
                             </option>
-                            <option value="operations" <?= ($article['category'] ?? '') === 'operations' ? 'selected' : '' ?>>
+                            <option value="operations" <?php echo ($article['category'] ?? '') === 'operations' ? 'selected' : ''; ?>>
                                 Operations & Tactics
                             </option>
-                            <option value="technical" <?= ($article['category'] ?? '') === 'technical' ? 'selected' : '' ?>>
+                            <option value="technical" <?php echo ($article['category'] ?? '') === 'technical' ? 'selected' : ''; ?>>
                                 Technical Details
                             </option>
-                            <option value="research" <?= ($article['category'] ?? '') === 'research' ? 'selected' : '' ?>>
+                            <option value="research" <?php echo ($article['category'] ?? '') === 'research' ? 'selected' : ''; ?>>
                                 Research Notes
                             </option>
                         </select>
@@ -113,37 +116,37 @@ $submarineClasses = [
                         <label class="form-label"><strong>Submarine Class</strong></label>
                         <select name="class" class="form-select">
                             <option value="">Select Class...</option>
-                            <?php foreach ($submarineClasses as $era => $classes): ?>
-                                <optgroup label="<?= htmlspecialchars($era) ?>">
-                                    <?php foreach ($classes as $class): ?>
-                                        <option value="<?= htmlspecialchars($class) ?>" 
-                                                <?= ($article['class'] ?? '') === $class ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($class) ?>
+                            <?php foreach ($submarineClasses as $era => $classes) { ?>
+                                <optgroup label="<?php echo htmlspecialchars($era); ?>">
+                                    <?php foreach ($classes as $class) { ?>
+                                        <option value="<?php echo htmlspecialchars($class); ?>" 
+                                                <?php echo ($article['class'] ?? '') === $class ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($class); ?>
                                         </option>
-                                    <?php endforeach; ?>
+                                    <?php } ?>
                                 </optgroup>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </select>
                     </div>
                 </div>
                 
                 <!-- Hidden fields -->
-                <input type="hidden" name="status" value="<?= ($article['status'] ?? 'published') ?>">
+                <input type="hidden" name="status" value="<?php echo $article['status'] ?? 'published'; ?>">
                 
                 <div class="mb-3">
                     <label class="form-label"><strong>Title</strong></label>
                     <input type="text" name="title" class="form-control" 
-                           value="<?= htmlspecialchars($article['title'] ?? '') ?>" 
+                           value="<?php echo htmlspecialchars($article['title'] ?? ''); ?>" 
                            required>
                 </div>
                 
                 <!-- Hidden fields -->
-                <input type="hidden" name="slug" id="slug" value="<?= htmlspecialchars($article['slug'] ?? '') ?>">
-                <input type="hidden" name="order_position" value="<?= htmlspecialchars($article['order_position'] ?? 0) ?>">
+                <input type="hidden" name="slug" id="slug" value="<?php echo htmlspecialchars($article['slug'] ?? ''); ?>">
+                <input type="hidden" name="order_position" value="<?php echo htmlspecialchars($article['order_position'] ?? 0); ?>">
                 
                 <div class="mb-3">
                     <label class="form-label"><strong>Content</strong> <em>(You can use HTML tags: &lt;p&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;table&gt;, &lt;tr&gt;, &lt;td&gt;, etc.)</em></label>
-                    <textarea name="content" id="content" class="form-control" rows="12" style="font-family: monospace;"><?= htmlspecialchars($article['content'] ?? '') ?></textarea>
+                    <textarea name="content" id="content" class="form-control" rows="12" style="font-family: monospace;"><?php echo htmlspecialchars($article['content'] ?? ''); ?></textarea>
                 </div>
                 
                 <div class="d-flex justify-content-between">

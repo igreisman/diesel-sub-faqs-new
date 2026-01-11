@@ -1,36 +1,37 @@
 <?php
 $page_title = 'Feedback & Suggestions';
 $page_description = 'Help us improve our submarine FAQ collection by sharing your feedback, corrections, and suggestions.';
+
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 
 // Handle feedback submission
 $submitted = false;
 $error = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     try {
         $name = sanitize_input($_POST['name'] ?? '');
         $email = sanitize_input($_POST['email'] ?? '');
         $feedback_type = $_POST['feedback_type'] ?? '';
-        $faq_id = !empty($_POST['faq_id']) ? (int)$_POST['faq_id'] : null;
+        $faq_id = !empty($_POST['faq_id']) ? (int) $_POST['faq_id'] : null;
         $subject = sanitize_input($_POST['subject'] ?? '');
         $message = sanitize_input($_POST['message'] ?? '');
-        $rating = !empty($_POST['rating']) ? (int)$_POST['rating'] : null;
-        
+        $rating = !empty($_POST['rating']) ? (int) $_POST['rating'] : null;
+
         if (empty($message)) {
             throw new Exception('Message is required');
         }
-        
+
         // Insert feedback into database
         $stmt = $pdo->prepare("
             INSERT INTO feedback (name, email, feedback_type, faq_id, subject, message, rating, status, created_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
         ");
-        
+
         $stmt->execute([$name, $email, $feedback_type, $faq_id, $subject, $message, $rating]);
         $submitted = true;
-        
     } catch (Exception $e) {
         $error = $e->getMessage();
     }
@@ -41,13 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="row">
         <div class="col-lg-8 mx-auto">
             
-            <?php if ($submitted): ?>
+            <?php if ($submitted) { ?>
                 <div class="alert alert-success">
                     <h4><i class="fas fa-check-circle"></i> Thank You!</h4>
                     <p>Your feedback has been submitted successfully. We appreciate your contribution to improving our submarine FAQ collection!</p>
                     <a href="index.php" class="btn btn-primary">Return to Home</a>
                 </div>
-            <?php else: ?>
+            <?php } else { ?>
             
             <div class="card">
                 <div class="card-header bg-primary text-white">
@@ -58,11 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="card-body">
                     
-                    <?php if ($error): ?>
+                    <?php if ($error) { ?>
                         <div class="alert alert-danger">
                             <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <p class="lead">Help us improve our submarine FAQ collection! Your feedback is valuable whether you're a history buff, veteran, bubblehead, researcher, or just curious about WWII submarines.</p>
                     
@@ -103,9 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="feedback_type" class="form-label">Feedback Type *</label>
                                 <select class="form-select" id="feedback_type" name="feedback_type" required>
                                     <option value="">Select type...</option>
-                                    <option value="correction" <?php echo (isset($_GET['type']) && $_GET['type'] === 'correction') ? 'selected' : ''; ?>>Factual Correction</option>
-                                    <option value="suggestion" <?php echo (isset($_GET['type']) && $_GET['type'] === 'suggestion') ? 'selected' : ''; ?>>Content Suggestion</option>
-                                    <option value="new_faq" <?php echo (isset($_GET['type']) && $_GET['type'] === 'new_faq') ? 'selected' : ''; ?>>Request New FAQ</option>
+                                    <option value="correction" <?php echo (isset($_GET['type']) && 'correction' === $_GET['type']) ? 'selected' : ''; ?>>Factual Correction</option>
+                                    <option value="suggestion" <?php echo (isset($_GET['type']) && 'suggestion' === $_GET['type']) ? 'selected' : ''; ?>>Content Suggestion</option>
+                                    <option value="new_faq" <?php echo (isset($_GET['type']) && 'new_faq' === $_GET['type']) ? 'selected' : ''; ?>>Request New FAQ</option>
                                     <option value="technical">Technical Issue</option>
                                     <option value="general">General Feedback</option>
                                     <option value="praise">Compliment/Praise</option>
@@ -140,17 +141,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $current_category = '';
                                     while ($faq = $stmt->fetch()) {
                                         if ($faq['category_name'] !== $current_category) {
-                                            if ($current_category !== '') echo '</optgroup>';
-                                            echo '<optgroup label="' . htmlspecialchars($faq['category_name']) . '">';
+                                            if ('' !== $current_category) {
+                                                echo '</optgroup>';
+                                            }
+                                            echo '<optgroup label="'.htmlspecialchars($faq['category_name']).'">';
                                             $current_category = $faq['category_name'];
                                         }
-                                        echo '<option value="' . $faq['id'] . '">' . htmlspecialchars($faq['title']) . '</option>';
+                                        echo '<option value="'.$faq['id'].'">'.htmlspecialchars($faq['title']).'</option>';
                                     }
-                                    if ($current_category !== '') echo '</optgroup>';
+                                    if ('' !== $current_category) {
+                                        echo '</optgroup>';
+                                    }
                                 } catch (Exception $e) {
                                     echo '<option value="">Error loading FAQs</option>';
                                 }
-                                ?>
+                ?>
                             </select>
                         </div>
                         
@@ -191,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <?php endif; ?>
+            <?php } ?>
             
             <!-- Feedback Statistics -->
             <div class="card mt-4">
@@ -215,33 +220,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             WHERE status IN ('approved', 'pending')
                         ");
                         $stats = $stmt->fetch();
-                        
+
                         if ($stats && $stats['total_feedback'] > 0) {
                             echo "<div class='row text-center'>";
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-primary'>" . $stats['total_feedback'] . "</h4>";
+                            echo "<h4 class='text-primary'>".$stats['total_feedback'].'</h4>';
                             echo "<p class='mb-0 small'>Total Feedback</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-success'>" . round($stats['avg_rating'] ?? 0, 1) . "/5</h4>";
+                            echo "<h4 class='text-success'>".round($stats['avg_rating'] ?? 0, 1).'/5</h4>';
                             echo "<p class='mb-0 small'>Average Rating</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-info'>" . $stats['corrections'] . "</h4>";
+                            echo "<h4 class='text-info'>".$stats['corrections'].'</h4>';
                             echo "<p class='mb-0 small'>Corrections</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-warning'>" . $stats['suggestions'] . "</h4>";
+                            echo "<h4 class='text-warning'>".$stats['suggestions'].'</h4>';
                             echo "<p class='mb-0 small'>Suggestions</p>";
-                            echo "</div>";
-                            echo "</div>";
+                            echo '</div>';
+                            echo '</div>';
                         } else {
                             echo "<p class='text-center text-muted'>Be the first to leave feedback!</p>";
                         }
                     } catch (Exception $e) {
                         echo "<p class='text-center text-muted'>Help us build a community of submarine history enthusiasts!</p>";
                     }
-                    ?>
+?>
                 </div>
             </div>
             

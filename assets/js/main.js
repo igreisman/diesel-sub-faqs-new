@@ -1,6 +1,6 @@
 // Main JavaScript functionality for Submarine FAQ site
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
   initializeSearchFunctionality();
   initializeThemeToggle();
   initializeLazyLoading();
@@ -9,19 +9,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Search functionality
 function initializeSearchFunctionality() {
-  const searchForms = document.querySelectorAll('#search-form');
-  searchForms.forEach(form => {
-    form.addEventListener('submit', handleSearch);
+  const searchForms = document.querySelectorAll("#search-form");
+  searchForms.forEach((form) => {
+    form.addEventListener("submit", handleSearch);
   });
 
   // Live search with debouncing
-  const searchInputs = document.querySelectorAll('#search-input, #category-search');
-  searchInputs.forEach(input => {
+  const searchInputs = document.querySelectorAll(
+    "#search-input, #category-search",
+  );
+  searchInputs.forEach((input) => {
     let timeout;
-    input.addEventListener('input', function () {
+    input.addEventListener("input", function () {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        if (this.id === 'category-search') {
+        if (this.id === "category-search") {
           filterCategoryContent(this.value);
         } else {
           performLiveSearch(this.value);
@@ -34,7 +36,7 @@ function initializeSearchFunctionality() {
 function handleSearch(e) {
   e.preventDefault();
   const formData = new FormData(e.target);
-  const query = formData.get('q');
+  const query = formData.get("q");
 
   if (query && query.trim().length > 0) {
     performSearch(query.trim());
@@ -42,39 +44,42 @@ function handleSearch(e) {
 }
 
 function performSearch(query) {
-  const resultsContainer = document.getElementById('search-results');
+  const resultsContainer = document.getElementById("search-results");
   if (!resultsContainer) return;
 
   // Show loading indicator
-  resultsContainer.innerHTML = '<div class="text-center"><div class="loading"></div> Searching...</div>';
+  resultsContainer.innerHTML =
+    '<div class="text-center"><div class="loading"></div> Searching...</div>';
 
   fetch(`api/search.php?q=${encodeURIComponent(query)}`)
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       displaySearchResults(data, resultsContainer);
     })
-    .catch(error => {
-      console.error('Search error:', error);
-      resultsContainer.innerHTML = '<div class="alert alert-danger">Search temporarily unavailable. Please try again later.</div>';
+    .catch((error) => {
+      console.error("Search error:", error);
+      resultsContainer.innerHTML =
+        '<div class="alert alert-danger">Search temporarily unavailable. Please try again later.</div>';
     });
 }
 
 function performLiveSearch(query) {
   if (query.length < 2) {
-    document.getElementById('search-results').innerHTML = '';
+    document.getElementById("search-results").innerHTML = "";
     return;
   }
   performSearch(query);
 }
 
 function displaySearchResults(data, container) {
-  console.log('Search results received:', data); // Debug log
+  console.log("Search results received:", data); // Debug log
   if (data.success && data.results && data.results.length > 0) {
-    let html = '<h5>Search Results:</h5><div class="search-results"><ul class="list-group">';
-    data.results.forEach(result => {
+    let html =
+      '<h5>Search Results:</h5><div class="search-results"><ul class="list-group">';
+    data.results.forEach((result) => {
       const category = result.category_name || result.category;
-      console.log('Result:', result.title, 'Category:', category); // Debug log
-      if (category && category !== 'undefined' && category !== 'null') {
+      console.log("Result:", result.title, "Category:", category); // Debug log
+      if (category && category !== "undefined" && category !== "null") {
         html += `
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between align-items-start">
@@ -88,27 +93,29 @@ function displaySearchResults(data, container) {
             `;
       }
     });
-    html += '</ul></div>';
+    html += "</ul></div>";
     container.innerHTML = html;
   } else {
-    container.innerHTML = '<div class="alert alert-info">No results found. Try different keywords.</div>';
+    container.innerHTML =
+      '<div class="alert alert-info">No results found. Try different keywords.</div>';
   }
 }
 
 // Filter content within category pages
 function filterCategoryContent(query) {
-  const faqItems = document.querySelectorAll('.faq-item');
+  const faqItems = document.querySelectorAll(".faq-item");
   let visibleCount = 0;
 
-  faqItems.forEach(item => {
-    const title = item.querySelector('.btn-link').textContent.toLowerCase();
-    const content = item.querySelector('.faq-content');
-    const contentText = content ? content.textContent.toLowerCase() : '';
+  faqItems.forEach((item) => {
+    const title = item.querySelector(".btn-link").textContent.toLowerCase();
+    const content = item.querySelector(".faq-content");
+    const contentText = content ? content.textContent.toLowerCase() : "";
 
-    const isVisible = title.includes(query.toLowerCase()) ||
+    const isVisible =
+      title.includes(query.toLowerCase()) ||
       contentText.includes(query.toLowerCase());
 
-    item.style.display = isVisible ? 'block' : 'none';
+    item.style.display = isVisible ? "block" : "none";
     if (isVisible) visibleCount++;
   });
 
@@ -117,61 +124,64 @@ function filterCategoryContent(query) {
 }
 
 function updateFilterCount(visible, total) {
-  const countElement = document.querySelector('.text-muted');
-  if (countElement && countElement.textContent.includes('FAQ(s) found')) {
+  const countElement = document.querySelector(".text-muted");
+  if (countElement && countElement.textContent.includes("FAQ(s) found")) {
     countElement.textContent = `${visible} of ${total} FAQ(s) shown`;
   }
 }
 
 // Theme toggle functionality
 function initializeThemeToggle() {
-  const themeToggle = document.getElementById('theme-toggle');
+  const themeToggle = document.getElementById("theme-toggle");
   if (themeToggle) {
-    themeToggle.addEventListener('click', toggleTheme);
+    themeToggle.addEventListener("click", toggleTheme);
 
     // Load saved theme
-    const savedTheme = localStorage.getItem('submarine-faq-theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = localStorage.getItem("submarine-faq-theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
     updateThemeIcon(savedTheme);
   }
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  const currentTheme =
+    document.documentElement.getAttribute("data-theme") || "light";
+  const newTheme = currentTheme === "light" ? "dark" : "light";
 
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('submarine-faq-theme', newTheme);
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("submarine-faq-theme", newTheme);
   updateThemeIcon(newTheme);
 }
 
 function updateThemeIcon(theme) {
-  const icon = document.querySelector('#theme-toggle i');
+  const icon = document.querySelector("#theme-toggle i");
   if (icon) {
-    icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    icon.className = theme === "light" ? "fas fa-moon" : "fas fa-sun";
   }
 }
 
 // Lazy loading for images
 function initializeLazyLoading() {
-  const images = document.querySelectorAll('img[data-src]');
+  const images = document.querySelectorAll("img[data-src]");
   const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         const img = entry.target;
         img.src = img.dataset.src;
-        img.classList.remove('lazy');
+        img.classList.remove("lazy");
         imageObserver.unobserve(img);
       }
     });
   });
 
-  images.forEach(img => imageObserver.observe(img));
+  images.forEach((img) => imageObserver.observe(img));
 }
 
 // Initialize Bootstrap tooltips
 function initializeTooltips() {
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  const tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+  );
   tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
   });
@@ -182,28 +192,31 @@ function copyFAQLink(faqId) {
   const url = `${window.location.origin}/faq.php?id=${faqId}`;
 
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(url).then(() => {
-      showCopyFeedback(event.target);
-    }).catch(() => {
-      fallbackCopyText(url);
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        showCopyFeedback(event.target);
+      })
+      .catch(() => {
+        fallbackCopyText(url);
+      });
   } else {
     fallbackCopyText(url);
   }
 }
 
 function fallbackCopyText(text) {
-  const textArea = document.createElement('textarea');
+  const textArea = document.createElement("textarea");
   textArea.value = text;
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
 
   try {
-    document.execCommand('copy');
+    document.execCommand("copy");
     showCopyFeedback(event.target);
   } catch (err) {
-    console.error('Fallback: Could not copy text');
+    console.error("Fallback: Could not copy text");
   }
 
   document.body.removeChild(textArea);
@@ -214,8 +227,8 @@ function showCopyFeedback(button) {
   const originalClass = button.className;
 
   button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-  button.classList.add('btn-success');
-  button.classList.remove('btn-outline-secondary');
+  button.classList.add("btn-success");
+  button.classList.remove("btn-outline-secondary");
 
   setTimeout(() => {
     button.innerHTML = originalText;
@@ -225,29 +238,29 @@ function showCopyFeedback(button) {
 
 // Track FAQ views
 function trackFAQView(faqId) {
-  fetch('api/track-view.php', {
-    method: 'POST',
+  fetch("api/track-view.php", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
     },
-    body: JSON.stringify({ faq_id: faqId })
-  }).catch(error => {
-    console.log('View tracking failed:', error);
+    body: JSON.stringify({ faq_id: faqId }),
+  }).catch((error) => {
+    console.log("View tracking failed:", error);
     // Fail silently, don't disrupt user experience
   });
 }
 
 // Smooth scrolling for anchor links
 function initializeSmoothScrolling() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
+      const target = document.querySelector(this.getAttribute("href"));
       if (target) {
         target.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
+          behavior: "smooth",
+          block: "start",
         });
       }
     });
@@ -269,10 +282,11 @@ function debounce(func, wait, immediate) {
   };
 }
 
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
+function showNotification(message, type = "info") {
+  const notification = document.createElement("div");
   notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.style.cssText =
+    "top: 20px; right: 20px; z-index: 9999; min-width: 300px;";
   notification.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -50,14 +51,13 @@ LT Montgomery continued to serve in various capacities in submarines, including 
 
 From July of 1914 to November 1915, she was based in Honolulu for developmental operations. F-1 was placed in ordinary from March of 1916 until June of 1917. When she was recommissioned, F-1 was part of the Patrol Force, Pacific, based in San Pedro, CA until she was lost.',
     'era' => 'wwi',
-    'year_lost' => 1917
+    'year_lost' => 1917,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS F-1 (SS-20) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

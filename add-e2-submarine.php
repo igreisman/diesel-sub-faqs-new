@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -54,14 +55,13 @@ She sailed from New London to Norfolk where she was placed in ordinary in 1921 a
 LT Cooke was then assigned as captain of the USS S-5 (SS-110) which was lost in 1920. (Below.)',
     'prior_history' => 'After commissioning in 1912, E-2 served along the Atlantic coast and in the Gulf of Mexico. She participated in training exercises until she sailed to the New York Navy Yard for overhaul in 1916.',
     'era' => 'pre-wwi',
-    'year_lost' => 1916
+    'year_lost' => 1916,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS E-2 (SS-25) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

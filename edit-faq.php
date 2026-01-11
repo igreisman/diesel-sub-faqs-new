@@ -1,24 +1,27 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
+
 require_once 'includes/markdown-helper.php';
 
-$faq_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$preset_category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$faq_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$preset_category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : 0;
 $return_url = isset($_GET['return']) ? trim($_GET['return']) : '';
-if ($return_url === '' && isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+if ('' === $return_url && isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in']) {
     $return_url = '/admin/manage-faqs.php';
 }
 $faq = null;
 $editorQuery = '';
 
 if ($faq_id > 0) {
-    $stmt = $pdo->prepare("SELECT * FROM faqs WHERE id = ?");
+    $stmt = $pdo->prepare('SELECT * FROM faqs WHERE id = ?');
     $stmt->execute([$faq_id]);
     $faq = $stmt->fetch();
-    
+
     if (!$faq) {
-        header("Location: index.php");
+        header('Location: index.php');
+
         exit;
     }
 }
@@ -70,7 +73,7 @@ if ($faq_id > 0) {
                 <div class="d-flex justify-content-between align-items-center">
                     <h1><i class="fas fa-edit text-primary"></i> <?php echo $faq ? 'Edit FAQ' : 'Create New FAQ'; ?></h1>
                     <div class="editor-toggle d-flex align-items-center">
-                        <?php $editorQuery = $faq ? '?id=' . $faq['id'] : ($preset_category_id ? '?category_id=' . $preset_category_id : ''); ?>
+                        <?php $editorQuery = $faq ? '?id='.$faq['id'] : ($preset_category_id ? '?category_id='.$preset_category_id : ''); ?>
                         <div class="form-check form-check-inline me-3">
                             <input class="form-check-input" type="radio" name="editorToggle" id="editorWysiwyg" value="wysiwyg">
                             <label class="form-check-label" for="editorWysiwyg">WYSIWYG</label>
@@ -79,7 +82,7 @@ if ($faq_id > 0) {
                             <input class="form-check-input" type="radio" name="editorToggle" id="editorMarkdown" value="markdown" checked>
                             <label class="form-check-label" for="editorMarkdown">Markdown</label>
                         </div>
-                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id='.$faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
@@ -88,13 +91,13 @@ if ($faq_id > 0) {
         </div>
 
         <form id="faqForm" method="POST" action="save-faq.php">
-            <?php if ($faq): ?>
+            <?php if ($faq) { ?>
                 <input type="hidden" name="faq_id" value="<?php echo $faq['id']; ?>">
-            <?php endif; ?>
+            <?php } ?>
             <?php
                 $plainQuestion = $faq ? htmlspecialchars(strip_tags($faq['question'])) : '';
-                $initialTitle = $faq ? htmlspecialchars($faq['title'] ?? $plainQuestion) : '';
-            ?>
+$initialTitle = $faq ? htmlspecialchars($faq['title'] ?? $plainQuestion) : '';
+?>
             <input type="hidden" id="title-hidden" name="title" value="<?php echo $initialTitle; ?>">
             <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($return_url, ENT_QUOTES, 'UTF-8'); ?>">
             
@@ -104,19 +107,19 @@ if ($faq_id > 0) {
                         <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Select Category</option>
                             <?php
-                            $cats = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
-                            foreach ($cats as $cat):
-                                $selected = '';
-                                if ($faq && $faq['category_id'] == $cat['id']) {
-                                    $selected = 'selected';
-                                } elseif (!$faq && $preset_category_id == $cat['id']) {
-                                    $selected = 'selected';
-                                }
-                            ?>
+                $cats = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+foreach ($cats as $cat) {
+    $selected = '';
+    if ($faq && $faq['category_id'] == $cat['id']) {
+        $selected = 'selected';
+    } elseif (!$faq && $preset_category_id == $cat['id']) {
+        $selected = 'selected';
+    }
+    ?>
                                 <option value="<?php echo $cat['id']; ?>" <?php echo $selected; ?>>
                                     <?php echo htmlspecialchars($cat['name']); ?>
                                 </option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </select>
                         <label for="category_id"><i class="fas fa-folder"></i> Category</label>
                     </div>
@@ -167,7 +170,7 @@ if ($faq_id > 0) {
                 <div class="col-12">
                     <div class="d-flex justify-content-end">
                         <div>
-                            <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary me-2">
+                            <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id='.$faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary me-2">
                                 Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
@@ -186,7 +189,7 @@ if ($faq_id > 0) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        const faqId = <?php echo $faq ? (int)$faq['id'] : 'null'; ?>;
+        const faqId = <?php echo $faq ? (int) $faq['id'] : 'null'; ?>;
         const draftKey = `faq_draft_${faqId || 'new'}`;
 
         // Save draft
@@ -330,7 +333,7 @@ if ($faq_id > 0) {
                 category_id: document.getElementById('category_id')?.value || '',
                 author: document.getElementById('author')?.value || '',
                 date_submitted: document.getElementById('date_submitted')?.value || '',
-                faq_id: <?php echo $faq ? (int)$faq['id'] : 'null'; ?>
+                faq_id: <?php echo $faq ? (int) $faq['id'] : 'null'; ?>
             };
         }
 

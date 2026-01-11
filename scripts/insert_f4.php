@@ -1,8 +1,9 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+
+require_once __DIR__.'/../config/database.php';
 
 try {
-    $sql = "INSERT INTO lost_submarines (boat_number, name, designation, class_info, last_captain, date_lost, location, fatalities, cause, loss_narrative, prior_history, era, year_lost, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = 'INSERT INTO lost_submarines (boat_number, name, designation, class_info, last_captain, date_lost, location, fatalities, cause, loss_narrative, prior_history, era, year_lost, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     $stmt = $pdo->prepare($sql);
 
     $vals = [
@@ -19,15 +20,14 @@ try {
         "In August of 1915, F-4 was raised and towed using specially constructed pontoons. She was then put into dry dock for examination. In early September, she had to be removed from dry dock to accommodate three other F class boats that had been rammed by the USS Supply. F-4 was still hanging from the pontoons. She was then disconnected and left in the mud near Pearl Harbor. In 1940, due to an expansion of the base, the F-4 was moved and buried near the submarine piers.\n\nF-4 was the first commissioned U. S. submarine to be lost at sea.",
         'wwi',
         1915,
-        null
+        null,
     ];
 
     $stmt->execute($vals);
     $id = $pdo->lastInsertId();
-    echo "Inserted USS F-4 with id: $id\n";
+    echo "Inserted USS F-4 with id: {$id}\n";
 } catch (Exception $e) {
-    echo "Insert failed: " . $e->getMessage() . "\n";
+    echo 'Insert failed: '.$e->getMessage()."\n";
+
     exit(1);
 }
-
-?>

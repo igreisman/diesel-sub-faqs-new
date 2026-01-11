@@ -1,10 +1,13 @@
 <?php
+
 header('Content-Type: application/json');
+
 require_once '../config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if ('POST' !== $_SERVER['REQUEST_METHOD']) {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+
     exit;
 }
 
@@ -12,6 +15,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($input['faq_id']) || !is_numeric($input['faq_id'])) {
     echo json_encode(['success' => false, 'message' => 'Valid FAQ ID required']);
+
     exit;
 }
 
@@ -28,9 +32,7 @@ try {
     } else {
         echo json_encode(['success' => false, 'message' => 'FAQ not found']);
     }
-
 } catch (Exception $e) {
-    error_log("View tracking error: " . $e->getMessage());
+    error_log('View tracking error: '.$e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Tracking failed']);
 }
-?>

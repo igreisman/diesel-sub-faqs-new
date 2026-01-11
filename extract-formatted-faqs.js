@@ -1,102 +1,140 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Category mapping based on your files
 const categories = [
   { id: 1, name: "Hull and Compartments", file: "05-Hull-and-Compartments.md" },
-  { id: 2, name: "US WW2 Subs in General", file: "08-US-WW2-Subs-in-General.md" },
-  { id: 3, name: "Operating US Subs in WW2", file: "10-Operating-US-WW2-Subs.md" },
-  { id: 4, name: "Who Were the Crews Aboard WW2 US Subs", file: "12-Crews-Aboard-US-WW2-Subs.md" },
-  { id: 5, name: "Life Aboard WW2 US Subs", file: "15-Life-Aboard-US-WW2-Subs.md" },
-  { id: 6, name: "Attacks and Battles, Small and Large", file: "20-Attacks-and-Battles-Small-and-Large.md" }
+  {
+    id: 2,
+    name: "US WW2 Subs in General",
+    file: "08-US-WW2-Subs-in-General.md",
+  },
+  {
+    id: 3,
+    name: "Operating US Subs in WW2",
+    file: "10-Operating-US-WW2-Subs.md",
+  },
+  {
+    id: 4,
+    name: "Who Were the Crews Aboard WW2 US Subs",
+    file: "12-Crews-Aboard-US-WW2-Subs.md",
+  },
+  {
+    id: 5,
+    name: "Life Aboard WW2 US Subs",
+    file: "15-Life-Aboard-US-WW2-Subs.md",
+  },
+  {
+    id: 6,
+    name: "Attacks and Battles, Small and Large",
+    file: "20-Attacks-and-Battles-Small-and-Large.md",
+  },
 ];
 
-function parseMarkdownFAQsPreserveFormatting(content, categoryId, categoryName) {
+function parseMarkdownFAQsPreserveFormatting(
+  content,
+  categoryId,
+  categoryName,
+) {
   const faqs = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   let faqId = 1;
-  let currentQuestion = '';
+  let currentQuestion = "";
   let currentAnswer = [];
   let inAnswer = false;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
+
     // Check if this is a question (starts and ends with **)
     if (line.match(/^\*\*.*\*\*$/)) {
       // Save previous FAQ if exists
       if (currentQuestion && currentAnswer.length > 0) {
         // Join answer paragraphs, preserving markdown formatting and paragraph breaks
         const formattedAnswer = currentAnswer
-          .join('\n')
-          .replace(/\n{3,}/g, '\n\n')  // Replace multiple line breaks with double breaks
+          .join("\n")
+          .replace(/\n{3,}/g, "\n\n") // Replace multiple line breaks with double breaks
           .trim();
-          
+
         faqs.push({
           id: faqId++,
           question: currentQuestion.trim(),
           answer: formattedAnswer,
           category_id: categoryId,
-          category_name: categoryName
+          category_name: categoryName,
         });
       }
-      
+
       // Start new question - remove ** markers but preserve internal formatting
       currentQuestion = line.slice(2, -2);
       currentAnswer = [];
       inAnswer = true;
-    } else if (inAnswer && !line.startsWith('#')) {
+    } else if (inAnswer && !line.startsWith("#")) {
       // This is part of the answer - preserve all formatting and structure
       currentAnswer.push(line);
     }
   }
-  
+
   // Don't forget the last FAQ
   if (currentQuestion && currentAnswer.length > 0) {
     const formattedAnswer = currentAnswer
-      .join('\n')
-      .replace(/\n{3,}/g, '\n\n')
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
-      
+
     faqs.push({
       id: faqId++,
       question: currentQuestion.trim(),
       answer: formattedAnswer,
       category_id: categoryId,
-      category_name: categoryName
+      category_name: categoryName,
     });
   }
-  
+
   return faqs;
 }
 
 function getCategoryDescription(name) {
   const descriptions = {
-    'Hull and Compartments': 'Learn about submarine construction, hull design, and compartment layouts.',
-    'US WW2 Subs in General': 'General information about American submarines during World War II.',
-    'Operating US Subs in WW2': 'Operational procedures, tactics, and submarine warfare techniques.',
-    'Who Were the Crews Aboard WW2 US Subs': 'Information about submarine crews, their roles, and backgrounds.',
-    'Life Aboard WW2 US Subs': 'Daily life, living conditions, and crew experiences aboard submarines.',
-    'Attacks and Battles, Small and Large': 'Combat operations, battles, and military engagements.'
+    "Hull and Compartments":
+      "Learn about submarine construction, hull design, and compartment layouts.",
+    "US WW2 Subs in General":
+      "General information about American submarines during World War II.",
+    "Operating US Subs in WW2":
+      "Operational procedures, tactics, and submarine warfare techniques.",
+    "Who Were the Crews Aboard WW2 US Subs":
+      "Information about submarine crews, their roles, and backgrounds.",
+    "Life Aboard WW2 US Subs":
+      "Daily life, living conditions, and crew experiences aboard submarines.",
+    "Attacks and Battles, Small and Large":
+      "Combat operations, battles, and military engagements.",
   };
-  return descriptions[name] || 'Detailed submarine information and answers.';
+  return descriptions[name] || "Detailed submarine information and answers.";
 }
 
 // Extract all FAQs with preserved formatting
 let allFAQs = [];
-categories.forEach(category => {
+categories.forEach((category) => {
   try {
     const filePath = path.join(__dirname, category.file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const faqs = parseMarkdownFAQsPreserveFormatting(content, category.id, category.name);
+    const content = fs.readFileSync(filePath, "utf-8");
+    const faqs = parseMarkdownFAQsPreserveFormatting(
+      content,
+      category.id,
+      category.name,
+    );
     allFAQs = allFAQs.concat(faqs);
-    console.log(`${category.name}: ${faqs.length} FAQs (with formatting preserved)`);
+    console.log(
+      `${category.name}: ${faqs.length} FAQs (with formatting preserved)`,
+    );
   } catch (error) {
     console.error(`Error reading ${category.file}:`, error.message);
   }
 });
 
-console.log(`\nTotal FAQs extracted: ${allFAQs.length} with preserved markdown formatting`);
+console.log(
+  `\nTotal FAQs extracted: ${allFAQs.length} with preserved markdown formatting`,
+);
 
 // Generate the complete API file with markdown support
 const apiContent = `// Complete submarine FAQ data - ALL ${allFAQs.length} FAQs with preserved markdown formatting
@@ -112,11 +150,15 @@ module.exports = async function handler(req, res) {
 
   const { action, category_id, q } = req.query;
 
-  const categories = ${JSON.stringify(categories.map(cat => ({
-    id: cat.id,
-    name: cat.name,
-    description: getCategoryDescription(cat.name)
-  })), null, 2)};
+  const categories = ${JSON.stringify(
+    categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      description: getCategoryDescription(cat.name),
+    })),
+    null,
+    2,
+  )};
 
   const faqs = ${JSON.stringify(allFAQs, null, 2)};
 
@@ -164,5 +206,7 @@ module.exports = async function handler(req, res) {
 }`;
 
 // Write the improved API file
-fs.writeFileSync(path.join(__dirname, 'api/formatted-faqs.js'), apiContent);
-console.log(`\n✅ Generated formatted-faqs.js with ${allFAQs.length} FAQs and preserved markdown formatting!`);
+fs.writeFileSync(path.join(__dirname, "api/formatted-faqs.js"), apiContent);
+console.log(
+  `\n✅ Generated formatted-faqs.js with ${allFAQs.length} FAQs and preserved markdown formatting!`,
+);

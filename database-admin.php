@@ -4,6 +4,7 @@ require_once 'config/database.php';
 
 $page_title = 'Database Management';
 $page_description = 'Manage your submarine FAQ database';
+
 require_once 'includes/header.php';
 ?>
 
@@ -77,32 +78,33 @@ require_once 'includes/header.php';
         </div>
     </div>
 
-    <?php if (isset($_GET['action'])): ?>
+    <?php if (isset($_GET['action'])) { ?>
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
                     <h5>
-                        <?php if ($_GET['action'] === 'stats'): ?>
+                        <?php if ('stats' === $_GET['action']) { ?>
                             <i class="fas fa-chart-bar"></i> Database Statistics
-                        <?php elseif ($_GET['action'] === 'backup'): ?>
+                        <?php } elseif ('backup' === $_GET['action']) { ?>
                             <i class="fas fa-download"></i> Database Backup
-                        <?php endif; ?>
+                        <?php } ?>
                     </h5>
                 </div>
                 <div class="card-body">
-                    <?php if ($_GET['action'] === 'stats'): ?>
+                    <?php if ('stats' === $_GET['action']) { ?>
                         <?php
                         require_once 'config/database.php';
+
                         try {
                             $stats = [
-                                'categories' => $pdo->query("SELECT COUNT(*) as count FROM categories")->fetch()['count'],
-                                'faqs' => $pdo->query("SELECT COUNT(*) as count FROM faqs")->fetch()['count'],
+                                'categories' => $pdo->query('SELECT COUNT(*) as count FROM categories')->fetch()['count'],
+                                'faqs' => $pdo->query('SELECT COUNT(*) as count FROM faqs')->fetch()['count'],
                                 'published_faqs' => $pdo->query("SELECT COUNT(*) as count FROM faqs WHERE status = 'published'")->fetch()['count'],
-                                'total_views' => $pdo->query("SELECT SUM(views) as total FROM faqs")->fetch()['total'] ?? 0,
-                                'featured_faqs' => $pdo->query("SELECT COUNT(*) as count FROM faqs WHERE featured = 1")->fetch()['count']
+                                'total_views' => $pdo->query('SELECT SUM(views) as total FROM faqs')->fetch()['total'] ?? 0,
+                                'featured_faqs' => $pdo->query('SELECT COUNT(*) as count FROM faqs WHERE featured = 1')->fetch()['count'],
                             ];
-                        ?>
+                            ?>
                         <div class="row text-center">
                             <div class="col-md-2">
                                 <h3 class="text-primary"><?php echo $stats['categories']; ?></h3>
@@ -127,23 +129,23 @@ require_once 'includes/header.php';
                         </div>
                         <?php
                         } catch (Exception $e) {
-                            echo '<div class="alert alert-danger">Error loading statistics: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                            echo '<div class="alert alert-danger">Error loading statistics: '.htmlspecialchars($e->getMessage()).'</div>';
                         }
                         ?>
                     
-                    <?php elseif ($_GET['action'] === 'backup'): ?>
+                    <?php } elseif ('backup' === $_GET['action']) { ?>
                         <div class="alert alert-info">
                             <h6>Manual Backup Instructions:</h6>
                             <p>To create a backup of your database, run this command in your terminal:</p>
                             <code>mysqldump -u submarine_user -p submarine_faqs > backup_$(date +%Y%m%d_%H%M%S).sql</code>
                             <p class="mt-2"><small>You can also use phpMyAdmin's export feature for a GUI-based backup.</small></p>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <div class="row mt-4">
         <div class="col-md-12">

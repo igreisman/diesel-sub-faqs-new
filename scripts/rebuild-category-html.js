@@ -1,18 +1,18 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const categoriesDir = path.join(__dirname, '..', 'categories');
+const categoriesDir = path.join(__dirname, "..", "categories");
 
 function titleFromSlug(slug) {
   return slug
-    .split('-')
+    .split("-")
     .filter(Boolean)
-    .map(word => {
+    .map((word) => {
       const upper = word.toUpperCase();
-      if (upper === 'WW2' || upper === 'US' || upper === 'WWII') return upper;
+      if (upper === "WW2" || upper === "US" || upper === "WWII") return upper;
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
-    .join(' ');
+    .join(" ");
 }
 
 function stripWrapper(html) {
@@ -20,14 +20,17 @@ function stripWrapper(html) {
   let inner = bodyMatch ? bodyMatch[1] : html;
 
   // Strip dynamic loading alerts and redirect scripts
-  inner = inner.replace(/<div id="dynamic-loading"[^>]*>[\s\S]*?<\/div>/gi, '');
-  inner = inner.replace(/<script[^>]*>[\s\S]*?window\.location\.replace[\s\S]*?<\/script>/gi, '');
+  inner = inner.replace(/<div id="dynamic-loading"[^>]*>[\s\S]*?<\/div>/gi, "");
+  inner = inner.replace(
+    /<script[^>]*>[\s\S]*?window\.location\.replace[\s\S]*?<\/script>/gi,
+    "",
+  );
 
   // Remove repeated wrappers
   inner = inner
-    .replace(/<\/?(main|header|article)[^>]*>/gi, '')
-    .replace(/<script[^>]+tabs\.js[^>]*><\/script>/gi, '')
-    .replace(/<link[^>]+tabs\.css[^>]*>/gi, '');
+    .replace(/<\/?(main|header|article)[^>]*>/gi, "")
+    .replace(/<script[^>]+tabs\.js[^>]*><\/script>/gi, "")
+    .replace(/<link[^>]+tabs\.css[^>]*>/gi, "");
 
   // Focus on the last tab-box (deepest content)
   const tabPos = inner.lastIndexOf('<div class="tab-box"');
@@ -81,12 +84,12 @@ function buildPage({ title, slug, content }) {
 }
 
 function rebuildFile(filePath) {
-  const slug = path.basename(filePath, '.html');
+  const slug = path.basename(filePath, ".html");
   const title = titleFromSlug(slug);
-  const raw = fs.readFileSync(filePath, 'utf8');
+  const raw = fs.readFileSync(filePath, "utf8");
   const content = stripWrapper(raw);
   const rebuilt = buildPage({ title, slug, content });
-  fs.writeFileSync(filePath, rebuilt, 'utf8');
+  fs.writeFileSync(filePath, rebuilt, "utf8");
   return { slug };
 }
 
@@ -98,7 +101,7 @@ function walk(dir) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       count += walk(fullPath);
-    } else if (entry.isFile() && entry.name.endsWith('.html')) {
+    } else if (entry.isFile() && entry.name.endsWith(".html")) {
       rebuildFile(fullPath);
       count += 1;
     }

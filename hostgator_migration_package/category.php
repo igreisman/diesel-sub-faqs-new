@@ -4,20 +4,24 @@ require_once 'config/database.php';
 $category_name = $_GET['cat'] ?? '';
 if (empty($category_name)) {
     header('Location: index.php');
+
     exit;
 }
 
 // Get category information
-$stmt = $pdo->prepare("SELECT * FROM categories WHERE name = ?");
+$stmt = $pdo->prepare('SELECT * FROM categories WHERE name = ?');
 $stmt->execute([$category_name]);
 $category = $stmt->fetch();
 
 if (!$category) {
     header('HTTP/1.0 404 Not Found');
     $page_title = 'Category Not Found';
+
     require_once 'includes/header.php';
     echo '<div class="container"><h1>Category Not Found</h1><p>The requested category does not exist.</p></div>';
+
     require_once 'includes/footer.php';
+
     exit;
 }
 
@@ -32,6 +36,7 @@ $faqs = $stmt->fetchAll();
 
 $page_title = $category['name'];
 $page_description = $category['description'];
+
 require_once 'includes/header.php';
 ?>
 
@@ -55,13 +60,13 @@ require_once 'includes/header.php';
                 <p class="lead"><?php echo htmlspecialchars($category['description']); ?></p>
             </div>
 
-            <?php if (empty($faqs)): ?>
+            <?php if (empty($faqs)) { ?>
                 <div class="alert alert-info">
                     <h4>No FAQs Available</h4>
                     <p>There are currently no FAQs available in this category. Check back later for updates!</p>
                     <a href="index.php" class="btn btn-primary">Browse Other Categories</a>
                 </div>
-            <?php else: ?>
+            <?php } else { ?>
                 <!-- FAQ Count and Search -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <span class="text-muted"><?php echo count($faqs); ?> FAQ(s) found</span>
@@ -122,7 +127,7 @@ require_once 'includes/header.php';
 
                 <!-- FAQs List -->
                 <div class="faqs-container">
-                    <?php foreach ($faqs as $faq): ?>
+                    <?php foreach ($faqs as $faq) { ?>
                         <div class="faq-item mb-4" data-faq-id="<?php echo $faq['id']; ?>">
                             <div class="card">
                                 <div class="card-header" id="faq-heading-<?php echo $faq['id']; ?>">
@@ -131,9 +136,9 @@ require_once 'includes/header.php';
                                                 data-bs-toggle="collapse" 
                                                 data-bs-target="#faq-collapse-<?php echo $faq['id']; ?>"
                                                 aria-expanded="false">
-                                            <?php if ($faq['featured']): ?>
+                                            <?php if ($faq['featured']) { ?>
                                                 <i class="fas fa-star text-warning"></i>
-                                            <?php endif; ?>
+                                            <?php } ?>
                                             <?php echo htmlspecialchars($faq['title']); ?>
                                             <small class="text-muted">(<?php echo $faq['views']; ?> views)</small>
                                         </button>
@@ -146,22 +151,23 @@ require_once 'includes/header.php';
                                         <div class="faq-content">
                                             <?php echo nl2br(htmlspecialchars($faq['answer'])); ?>
                                         </div>
-                                        <?php if (!empty($faq['tags'])): ?>
+                                        <?php if (!empty($faq['tags'])) { ?>
                                             <div class="faq-tags mt-3">
                                                 <small class="text-muted">Tags: </small>
-                                                <?php 
+                                                <?php
                                                 $tags = explode(',', $faq['tags']);
-                                                foreach ($tags as $tag): ?>
+                                            foreach ($tags as $tag) { ?>
                                                     <span class="badge bg-secondary me-1"><?php echo trim(htmlspecialchars($tag)); ?></span>
-                                                <?php endforeach; ?>
+                                                <?php } ?>
                                             </div>
-                                        <?php endif; ?>
+                                        <?php } ?>
                                         <!-- Feedback Widget -->
-                                        <?php 
+                                        <?php
                                         // Set the current FAQ for the feedback widget
                                         $current_faq = $faq;
-                                        include 'includes/feedback-widget.php'; 
-                                        ?>
+
+                        include 'includes/feedback-widget.php';
+                        ?>
                                         
                                         <div class="faq-actions mt-3">
                                             <a href="faq.php?id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-primary">
@@ -175,7 +181,7 @@ require_once 'includes/header.php';
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </div>
 
                 <!-- Back to Categories -->
@@ -184,7 +190,7 @@ require_once 'includes/header.php';
                         <i class="fas fa-arrow-left"></i> Back to All Categories
                     </a>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 </div>

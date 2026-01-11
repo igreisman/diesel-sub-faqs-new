@@ -1,43 +1,45 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+
+require_once __DIR__.'/../config/database.php';
 
 $timestamp = date('Ymd_His');
-$backupDir = __DIR__ . '/../backups';
-if (!is_dir($backupDir)) mkdir($backupDir, 0755, true);
-$filename = $backupDir . "/lost_submarines_backup_{$timestamp}.sql";
+$backupDir = __DIR__.'/../backups';
+if (!is_dir($backupDir)) {
+    mkdir($backupDir, 0755, true);
+}
+$filename = $backupDir."/lost_submarines_backup_{$timestamp}.sql";
 
 try {
-    $stmt = $pdo->query("SELECT * FROM lost_submarines");
+    $stmt = $pdo->query('SELECT * FROM lost_submarines');
     $rows = $stmt->fetchAll();
 
     $out = "-- Backup of lost_submarines table generated on {$timestamp}\n";
-    $out .= "-- Rows: " . count($rows) . "\n\n";
+    $out .= '-- Rows: '.count($rows)."\n\n";
 
     foreach ($rows as $r) {
         // Prepare values, escape single quotes
         $vals = [];
         $cols = [
-            'boat_number','name','designation','class_info','last_captain','date_lost','location','fatalities','cause','loss_narrative','prior_history','year_lost','photo_url',
-            'image1','image1_subtitle','image2','image2_subtitle','image3','image3_subtitle','image4','image4_subtitle','image5','image5_subtitle',
-            'image6','image6_subtitle','image7','image7_subtitle','image8','image8_subtitle','image9','image9_subtitle','image10','image10_subtitle'
+            'boat_number', 'name', 'designation', 'class_info', 'last_captain', 'date_lost', 'location', 'fatalities', 'cause', 'loss_narrative', 'prior_history', 'year_lost', 'photo_url',
+            'image1', 'image1_subtitle', 'image2', 'image2_subtitle', 'image3', 'image3_subtitle', 'image4', 'image4_subtitle', 'image5', 'image5_subtitle',
+            'image6', 'image6_subtitle', 'image7', 'image7_subtitle', 'image8', 'image8_subtitle', 'image9', 'image9_subtitle', 'image10', 'image10_subtitle',
         ];
         foreach ($cols as $c) {
             $v = $r[$c] ?? null;
-            if ($v === null) {
+            if (null === $v) {
                 $vals[] = 'NULL';
             } else {
                 $escaped = str_replace("'", "\\'", $v);
-                $vals[] = "'" . $escaped . "'";
+                $vals[] = "'".$escaped."'";
             }
         }
-        $out .= "INSERT INTO lost_submarines (" . implode(",", $cols) . ") VALUES (" . implode(",", $vals) . ");\n";
+        $out .= 'INSERT INTO lost_submarines ('.implode(',', $cols).') VALUES ('.implode(',', $vals).");\n";
     }
 
     file_put_contents($filename, $out);
-    echo "Backup written to: $filename\n";
+    echo "Backup written to: {$filename}\n";
 } catch (Exception $e) {
-    echo "Backup failed: " . $e->getMessage() . "\n";
+    echo 'Backup failed: '.$e->getMessage()."\n";
+
     exit(1);
 }
-
-?>

@@ -1,11 +1,13 @@
 <?php
 $page_title = 'Glossary Admin';
 $page_description = 'Manage glossary terms';
+
 require_once 'config/database.php';
 
 // Simple admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -13,16 +15,18 @@ $message = '';
 $error = '';
 
 // Ensure glossary table exists (and add id if missing)
-function ensure_glossary_table($pdo) {
-    $pdo->exec("
+function ensure_glossary_table($pdo)
+{
+    $pdo->exec('
         CREATE TABLE IF NOT EXISTS glossary (
             id INT AUTO_INCREMENT PRIMARY KEY,
             term TINYTEXT NOT NULL,
             definition TEXT NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ");
+    ');
+
     try {
-        $pdo->exec("ALTER TABLE glossary ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY FIRST");
+        $pdo->exec('ALTER TABLE glossary ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY FIRST');
     } catch (Exception $e) {
         // ignore if column exists
     }
@@ -31,36 +35,36 @@ function ensure_glossary_table($pdo) {
 try {
     ensure_glossary_table($pdo);
 } catch (Exception $e) {
-    $error = 'Unable to prepare glossary table: ' . $e->getMessage();
+    $error = 'Unable to prepare glossary table: '.$e->getMessage();
 }
 
 // Handle create/update/delete
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && !$error) {
     $action = $_POST['action'] ?? 'save';
-    $glossaryId = isset($_POST['glossary_id']) ? (int)$_POST['glossary_id'] : 0;
+    $glossaryId = isset($_POST['glossary_id']) ? (int) $_POST['glossary_id'] : 0;
     $term = trim($_POST['term'] ?? '');
     $definition = trim($_POST['glossary_content'] ?? '');
 
     try {
-        if ($action === 'delete') {
+        if ('delete' === $action) {
             if ($glossaryId > 0) {
-                $stmt = $pdo->prepare("DELETE FROM glossary WHERE id = ?");
+                $stmt = $pdo->prepare('DELETE FROM glossary WHERE id = ?');
                 $stmt->execute([$glossaryId]);
                 $message = 'Glossary term deleted.';
             }
         } else {
-            if ($term === '' || $definition === '') {
+            if ('' === $term || '' === $definition) {
                 throw new Exception('Term and definition are required.');
             }
             if ($glossaryId > 0) {
-                $stmt = $pdo->prepare("UPDATE glossary SET term = ?, definition = ? WHERE id = ?");
+                $stmt = $pdo->prepare('UPDATE glossary SET term = ?, definition = ? WHERE id = ?');
                 $stmt->execute([$term, $definition, $glossaryId]);
                 $message = 'Glossary term updated.';
             } else {
-                $stmt = $pdo->prepare("INSERT INTO glossary (term, definition) VALUES (?, ?)");
+                $stmt = $pdo->prepare('INSERT INTO glossary (term, definition) VALUES (?, ?)');
                 $stmt->execute([$term, $definition]);
                 $message = 'Glossary term added.';
-                $glossaryId = (int)$pdo->lastInsertId();
+                $glossaryId = (int) $pdo->lastInsertId();
             }
         }
     } catch (Exception $e) {
@@ -72,22 +76,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 $glossaryItems = [];
 if (!$error) {
     try {
-        $stmt = $pdo->query("SELECT id, term, definition FROM glossary ORDER BY term ASC");
+        $stmt = $pdo->query('SELECT id, term, definition FROM glossary ORDER BY term ASC');
         $glossaryItems = $stmt->fetchAll();
     } catch (Exception $e) {
-        $error = 'Unable to load glossary items: ' . $e->getMessage();
+        $error = 'Unable to load glossary items: '.$e->getMessage();
     }
 }
 
 // Preselect item if provided
-$editId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$editId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $editTerm = '';
 $editDefinition = '';
 if ($editId && $glossaryItems) {
     foreach ($glossaryItems as $item) {
-        if ((int)$item['id'] === $editId) {
+        if ((int) $item['id'] === $editId) {
             $editTerm = $item['term'];
             $editDefinition = $item['definition'];
+
             break;
         }
     }
@@ -101,19 +106,19 @@ require_once 'includes/header.php';
         <h1 class="mb-0">Glossary</h1>
     </div>
 
-    <?php if ($message): ?>
+    <?php if ($message) { ?>
         <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-    <?php endif; ?>
-    <?php if ($error): ?>
+    <?php } ?>
+    <?php if ($error) { ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
     <!-- Existing terms -->
     <div class="card shadow-sm mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0 d-flex align-items-center gap-2">
                 <i class="fas fa-list"></i>
-                <span>Glossary Terms (<?php echo count($glossaryItems); ?> item<?php echo count($glossaryItems) === 1 ? '' : 's'; ?>)</span>
+                <span>Glossary Terms (<?php echo count($glossaryItems); ?> item<?php echo 1 === count($glossaryItems) ? '' : 's'; ?>)</span>
             </h5>
             <div>
                 <a href="glossary-add.php?return=glossary-admin.php" class="btn btn-sm btn-primary">
@@ -122,9 +127,9 @@ require_once 'includes/header.php';
             </div>
         </div>
         <div class="card-body p-0">
-            <?php if (empty($glossaryItems)): ?>
+            <?php if (empty($glossaryItems)) { ?>
                 <p class="p-3 mb-0 text-muted">No glossary terms found.</p>
-            <?php else: ?>
+            <?php } else { ?>
                 <div class="table-responsive">
                     <table class="table table-sm mb-0 align-middle">
                         <thead class="table-light">
@@ -135,7 +140,7 @@ require_once 'includes/header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($glossaryItems as $item): ?>
+                            <?php foreach ($glossaryItems as $item) { ?>
                                 <tr>
                                     <td class="fw-semibold"><?php echo htmlspecialchars($item['term']); ?></td>
                                     <td class="text-muted">
@@ -143,12 +148,12 @@ require_once 'includes/header.php';
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadGlossaryItem(<?php echo (int)$item['id']; ?>)" title="Edit">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadGlossaryItem(<?php echo (int) $item['id']; ?>)" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <form method="POST" action="" class="d-inline" onsubmit="return confirm('Delete this glossary term?');">
                                                 <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="glossary_id" value="<?php echo (int)$item['id']; ?>">
+                                                <input type="hidden" name="glossary_id" value="<?php echo (int) $item['id']; ?>">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
@@ -156,11 +161,11 @@ require_once 'includes/header.php';
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 
@@ -185,7 +190,7 @@ require_once 'includes/header.php';
         <div class="card-body">
             <form id="glossaryForm" method="POST" onsubmit="handleGlossarySave(event)">
                 <input type="hidden" name="action" value="save">
-                <input type="hidden" name="glossary_id" id="glossary_id" value="<?php echo (int)$editId; ?>">
+                <input type="hidden" name="glossary_id" id="glossary_id" value="<?php echo (int) $editId; ?>">
                 <div class="mb-3">
                     <label class="form-label"><i class="fas fa-tag"></i> Term</label>
                     <input type="text" class="form-control" id="term" name="term" value="<?php echo htmlspecialchars($editTerm); ?>" required>
@@ -295,9 +300,9 @@ require_once 'includes/header.php';
     }
 
     // If editing via GET id, prefill
-    <?php if ($editId && $editDefinition): ?>
-        loadGlossaryItem(<?php echo (int)$editId; ?>);
-    <?php endif; ?>
+    <?php if ($editId && $editDefinition) { ?>
+        loadGlossaryItem(<?php echo (int) $editId; ?>);
+    <?php } ?>
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

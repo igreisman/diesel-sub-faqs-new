@@ -1,13 +1,14 @@
 <?php
+
 require_once 'config/database.php';
 header('Content-Type: text/plain');
 
-$stmt = $pdo->query("
+$stmt = $pdo->query('
     SELECT id, boat_number, name, date_lost, date_lost_sort
     FROM lost_submarines 
     ORDER BY date_lost_sort ASC, boat_number ASC
     LIMIT 10
-");
+');
 
 $boats = $stmt->fetchAll();
 

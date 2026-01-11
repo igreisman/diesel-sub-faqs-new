@@ -5,11 +5,11 @@ $page_title = 'Simple FAQ Explorer';
 $page_description = 'One-page view of every published FAQ with instant in-page search.';
 
 try {
-    $categories = $pdo->query("
+    $categories = $pdo->query('
         SELECT id, name, slug, description, sort_order
         FROM categories
         ORDER BY sort_order ASC, name ASC
-    ")->fetchAll();
+    ')->fetchAll();
 
     $faqsStmt = $pdo->prepare("
         SELECT id, category_id, title, slug, question, answer, tags, updated_at, created_at, display_order
@@ -29,7 +29,7 @@ $grouped = [];
 foreach ($categories as $cat) {
     $grouped[$cat['id']] = [
         'meta' => $cat,
-        'faqs' => []
+        'faqs' => [],
     ];
 }
 
@@ -45,9 +45,9 @@ foreach ($faqs as $faq) {
                     'name' => 'Uncategorized',
                     'slug' => 'uncategorized',
                     'description' => 'FAQs that do not have a category set',
-                    'sort_order' => 9999
+                    'sort_order' => 9999,
                 ],
-                'faqs' => []
+                'faqs' => [],
             ];
         }
         $grouped[0]['faqs'][] = $faq;
@@ -55,22 +55,26 @@ foreach ($faqs as $faq) {
 }
 
 // Helper to make a safe anchor id
-function faq_anchor_id($faq, $fallbackPrefix = 'faq') {
-    $raw = !empty($faq['slug']) ? $faq['slug'] : $fallbackPrefix . '-' . $faq['id'];
+function faq_anchor_id($faq, $fallbackPrefix = 'faq')
+{
+    $raw = !empty($faq['slug']) ? $faq['slug'] : $fallbackPrefix.'-'.$faq['id'];
     $slug = strtolower(preg_replace('/[^a-z0-9\-]+/i', '-', $raw));
     $slug = trim($slug, '-');
-    return $slug ?: ($fallbackPrefix . '-' . $faq['id']);
+
+    return $slug ?: ($fallbackPrefix.'-'.$faq['id']);
 }
 
 // Helper to render answers:
 // - If it already contains HTML tags (common for pre-rendered markdown), trust and output as-is.
 // - Otherwise, escape and add line breaks for plain text.
-function render_answer($text) {
-    $text = $text ?? '';
+function render_answer($text)
+{
+    $text ??= '';
     $trimmed = trim($text);
-    if ($trimmed !== '' && preg_match('/<\/?[a-z][\\s\\S]*>/i', $trimmed)) {
+    if ('' !== $trimmed && preg_match('/<\/?[a-z][\s\S]*>/i', $trimmed)) {
         return $text;
     }
+
     return nl2br(htmlspecialchars($text));
 }
 ?>
@@ -79,7 +83,7 @@ function render_answer($text) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($page_title . ' | ' . SITE_NAME); ?></title>
+    <title><?php echo htmlspecialchars($page_title.' | '.SITE_NAME); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($page_description); ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -142,75 +146,75 @@ function render_answer($text) {
             </div>
         </div>
 
-        <?php if (!empty($grouped)): ?>
+        <?php if (!empty($grouped)) { ?>
             <div class="category-nav">
-                <?php foreach ($grouped as $group):
+                <?php foreach ($grouped as $group) {
                     $meta = $group['meta'];
                     $count = count($group['faqs']);
-                    $slug = !empty($meta['slug']) ? $meta['slug'] : ('category-' . $meta['id']);
-                    $anchor = 'cat-' . htmlspecialchars($slug);
-                ?>
+                    $slug = !empty($meta['slug']) ? $meta['slug'] : ('category-'.$meta['id']);
+                    $anchor = 'cat-'.htmlspecialchars($slug);
+                    ?>
                     <a class="category-chip" href="#<?php echo $anchor; ?>">
                         <?php echo htmlspecialchars($meta['name']); ?>
                         <small>(<?php echo $count; ?>)</small>
                     </a>
-                <?php endforeach; ?>
+                <?php } ?>
             </div>
 
-            <?php foreach ($grouped as $group):
+            <?php foreach ($grouped as $group) {
                 $meta = $group['meta'];
                 $faqsInGroup = $group['faqs'];
-                $slug = !empty($meta['slug']) ? $meta['slug'] : ('category-' . $meta['id']);
-                $sectionId = 'cat-' . htmlspecialchars($slug);
-            ?>
+                $slug = !empty($meta['slug']) ? $meta['slug'] : ('category-'.$meta['id']);
+                $sectionId = 'cat-'.htmlspecialchars($slug);
+                ?>
                 <section class="faq-section" id="<?php echo $sectionId; ?>" data-category-section>
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <h2 class="mb-0"><?php echo htmlspecialchars($meta['name']); ?></h2>
                         <span class="badge bg-secondary"><?php echo count($faqsInGroup); ?> FAQs</span>
                     </div>
-                    <?php if (!empty($meta['description'])): ?>
+                    <?php if (!empty($meta['description'])) { ?>
                         <p class="section-desc"><?php echo htmlspecialchars($meta['description']); ?></p>
-                    <?php endif; ?>
-                    <?php if (empty($faqsInGroup)): ?>
+                    <?php } ?>
+                    <?php if (empty($faqsInGroup)) { ?>
                         <div class="empty">No FAQs in this category yet.</div>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <div class="faq-list">
-                            <?php foreach ($faqsInGroup as $faq):
+                            <?php foreach ($faqsInGroup as $faq) {
                                 $faqAnchor = faq_anchor_id($faq);
                                 $searchText = strtolower(
-                                    strip_tags(($faq['title'] ?? '') . ' ' .
-                                    ($faq['question'] ?? '') . ' ' .
-                                    ($faq['answer'] ?? '') . ' ' .
-                                    ($faq['tags'] ?? ''))
+                                    strip_tags(($faq['title'] ?? '').' '
+                                    .($faq['question'] ?? '').' '
+                                    .($faq['answer'] ?? '').' '
+                                    .($faq['tags'] ?? ''))
                                 );
-                            ?>
+                                ?>
                                 <details class="faq-item" id="<?php echo $faqAnchor; ?>" data-faq-item data-search="<?php echo htmlspecialchars($searchText); ?>">
                                     <summary>
                                         <span class="title"><?php echo htmlspecialchars($faq['title'] ?? $faq['question']); ?></span>
-                                        <span class="text-muted small">#<?php echo (int)$faq['id']; ?></span>
+                                        <span class="text-muted small">#<?php echo (int) $faq['id']; ?></span>
                                     </summary>
                                     <div class="faq-body">
                                         <p class="mb-2"><?php echo render_answer($faq['answer']); ?></p>
                                         <div class="faq-meta">
                                             <span>Last updated: <?php echo htmlspecialchars(format_date($faq['updated_at'] ?? $faq['created_at'] ?? date('Y-m-d'))); ?></span>
-                                            <?php if (!empty($faq['tags'])): ?>
+                                            <?php if (!empty($faq['tags'])) { ?>
                                                 <span>Tags: <?php echo htmlspecialchars($faq['tags']); ?></span>
-                                            <?php endif; ?>
+                                            <?php } ?>
                                             <button class="copy-btn" type="button" data-copy-anchor="<?php echo $faqAnchor; ?>">Copy link</button>
                                         </div>
                                     </div>
                                 </details>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </section>
-            <?php endforeach; ?>
-        <?php else: ?>
+            <?php } ?>
+        <?php } else { ?>
             <div class="empty">
                 <p class="mb-2">No FAQs available yet.</p>
                 <p class="mb-0 text-muted">Add content in the admin and refresh this page.</p>
             </div>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
     <script>

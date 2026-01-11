@@ -1,27 +1,30 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
+
 require_once 'includes/markdown-helper.php';
 
-$faq_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$preset_category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$faq_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$preset_category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : 0;
 $return_url = isset($_GET['return']) ? trim($_GET['return']) : '';
-if ($return_url === '' && isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+if ('' === $return_url && isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in']) {
     $return_url = '/admin/manage-faqs.php';
 }
 $faq = null;
 $display_title = '';
 
 if ($faq_id > 0) {
-    $stmt = $pdo->prepare("SELECT * FROM faqs WHERE id = ?");
+    $stmt = $pdo->prepare('SELECT * FROM faqs WHERE id = ?');
     $stmt->execute([$faq_id]);
     $faq = $stmt->fetch();
-    
+
     if (!$faq) {
-        header("Location: index.php");
+        header('Location: index.php');
+
         exit;
     }
-    
+
     $display_title = htmlspecialchars($faq['title'] ?? strip_tags($faq['question']));
 }
 
@@ -38,7 +41,7 @@ if ($faq && isset($faq['question'])) {
     $initial_question = render_content($faq['question']);
 }
 
-$display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display_order'] : 1;
+$display_order_value = $faq && isset($faq['display_order']) ? (int) $faq['display_order'] : 1;
 ?>
 
 <!DOCTYPE html>
@@ -124,8 +127,8 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         <div class="row mb-4">
             <div class="col-12">
                 <?php
-                    $editorQuery = $faq ? '?id=' . $faq['id'] : ($preset_category_id ? '?category_id=' . $preset_category_id : '');
-                ?>
+                    $editorQuery = $faq ? '?id='.$faq['id'] : ($preset_category_id ? '?category_id='.$preset_category_id : '');
+?>
                 <div class="d-flex justify-content-between align-items-center">
                     <h1><i class="fas fa-edit text-primary"></i> <?php echo $faq ? 'Edit FAQ' : 'Create New FAQ'; ?></h1>
                     <div class="editor-toggle d-flex align-items-center">
@@ -137,7 +140,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                             <input class="form-check-input" type="radio" name="editorToggle" id="editorMarkdown" value="markdown">
                             <label class="form-check-label" for="editorMarkdown">Markdown</label>
                         </div>
-                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id='.$faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
@@ -146,9 +149,9 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
         </div>
 
         <form id="faqForm" method="POST" action="save-faq-wysiwyg.php">
-            <?php if ($faq): ?>
+            <?php if ($faq) { ?>
                 <input type="hidden" name="faq_id" value="<?php echo $faq['id']; ?>">
-            <?php endif; ?>
+            <?php } ?>
             <input type="hidden" name="display_order" value="<?php echo $display_order_value; ?>">
             <input type="hidden" id="title-hidden" name="title" value="<?php echo $initial_title; ?>">
             <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($return_url, ENT_QUOTES, 'UTF-8'); ?>">
@@ -159,19 +162,19 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
                         <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Select Category</option>
                             <?php
-                            $cats = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
-                            foreach ($cats as $cat):
-                                $selected = '';
-                                if ($faq && $faq['category_id'] == $cat['id']) {
-                                    $selected = 'selected';
-                                } elseif (!$faq && $preset_category_id == $cat['id']) {
-                                    $selected = 'selected';
-                                }
-                            ?>
+            $cats = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+foreach ($cats as $cat) {
+    $selected = '';
+    if ($faq && $faq['category_id'] == $cat['id']) {
+        $selected = 'selected';
+    } elseif (!$faq && $preset_category_id == $cat['id']) {
+        $selected = 'selected';
+    }
+    ?>
                                 <option value="<?php echo $cat['id']; ?>" <?php echo $selected; ?>>
                                     <?php echo htmlspecialchars($cat['name']); ?>
                                 </option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </select>
                         <label for="category_id"><i class="fas fa-folder"></i> Category</label>
                     </div>
@@ -222,7 +225,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             <div class="row mt-4 mb-5">
                 <div class="col-12">
                     <div class="d-flex justify-content-end align-items-center gap-2">
-                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id=' . $faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
+                        <a href="<?php echo $return_url ? htmlspecialchars($return_url) : ($faq ? 'faq.php?id='.$faq['id'] : 'index.php'); ?>" class="btn btn-outline-secondary">
                             Cancel
                         </a>
                         <button type="submit" class="btn btn-primary">
@@ -331,7 +334,7 @@ $display_order_value = $faq && isset($faq['display_order']) ? (int)$faq['display
             document.getElementById('mainAnswerCount').textContent = mainContent.trim() ? mainContent.trim().split(/\s+/).length : 0;
         }
         
-        const faqId = <?php echo $faq ? (int)$faq['id'] : 'null'; ?>;
+        const faqId = <?php echo $faq ? (int) $faq['id'] : 'null'; ?>;
         const draftKey = `faq_draft_${faqId || 'new'}`;
         
         // Show status messages

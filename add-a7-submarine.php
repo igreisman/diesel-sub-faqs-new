@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -50,14 +51,13 @@ A-7 was placed in ordinary on 1 April 1918 and decommissioned on 12 December 191
 
 In 1908, she was taken to the New York Naval Yard where she, along with USS A-6 (SS-7) (Porpoise), were decommissioned and placed aboard the collier Caesar for the trip to Cavite in the Philippines. They were recommissioned at Cavite on 14 August 1908. There A-7 conducted training and underwent maintenance and repairs. During WW1, while still operating out of Cavite, A-7 carried out patrols of the entrance to Manila Bay.',
     'era' => 'wwi',
-    'year_lost' => 1917
+    'year_lost' => 1917,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS A-7 (SS-8) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

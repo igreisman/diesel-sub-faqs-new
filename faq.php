@@ -1,5 +1,6 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/markdown-helper.php';
 
 // Get FAQ by ID or slug
@@ -8,6 +9,7 @@ $faq_slug = $_GET['slug'] ?? null;
 
 if (!$faq_id && !$faq_slug) {
     header('Location: index.php');
+
     exit;
 }
 
@@ -29,48 +31,52 @@ try {
         ");
         $stmt->execute([$faq_slug]);
     }
-    
+
     $faq = $stmt->fetch();
-    
+
     if (!$faq) {
         header('HTTP/1.0 404 Not Found');
+
         include '404.php';
+
         exit;
     }
-    
+
     // Update view count
-    $stmt = $pdo->prepare("UPDATE faqs SET views = views + 1 WHERE id = ?");
+    $stmt = $pdo->prepare('UPDATE faqs SET views = views + 1 WHERE id = ?');
     $stmt->execute([$faq['id']]);
-    
+
     // Get related FAQs
     $related_faqs = get_related_faqs($pdo, $faq['id'], 3);
 
     // Get contributions
-    $contrib_stmt = $pdo->prepare("
+    $contrib_stmt = $pdo->prepare('
         SELECT contributor_name, contributed_at, notes
         FROM faq_contributions
         WHERE faq_id = ?
         ORDER BY contributed_at DESC, id DESC
-    ");
+    ');
     $contrib_stmt->execute([$faq['id']]);
     $contributions = $contrib_stmt->fetchAll();
 
     // Get glossary terms for tooltip highlighting
     $glossary_terms = [];
+
     try {
-        $gStmt = $pdo->query("SELECT term, definition FROM glossary");
+        $gStmt = $pdo->query('SELECT term, definition FROM glossary');
         $glossary_terms = $gStmt->fetchAll();
     } catch (Exception $e) {
         $glossary_terms = [];
     }
-    
 } catch (Exception $e) {
     header('Location: index.php');
+
     exit;
 }
 
 $page_title = $faq['title'];
 $page_description = substr($faq['answer'], 0, 160);
+
 require_once 'includes/header.php';
 ?>
 <style>
@@ -112,36 +118,36 @@ require_once 'includes/header.php';
                         <div>
                             <h1 class="faq-title"><?php echo htmlspecialchars($faq['title']); ?></h1>
                             <div class="faq-meta text-muted mb-3 d-flex align-items-center flex-wrap gap-3">
-                                <?php if (!empty($faq['author'])): ?>
+                                <?php if (!empty($faq['author'])) { ?>
                                     <small class="d-inline-flex align-items-center gap-1">
                                         <i class="fas fa-user"></i> <?php echo htmlspecialchars($faq['author']); ?>
                                     </small>
-                                <?php endif; ?>
-                                <?php 
+                                <?php } ?>
+                                <?php
                                 $createdDate = !empty($faq['date_submitted']) ? $faq['date_submitted'] : ($faq['created_at'] ?? '');
-                                if (!empty($createdDate)): ?>
+if (!empty($createdDate)) { ?>
                                     <small class="d-inline-flex align-items-center gap-1">
                                         <i class="fas fa-calendar-alt"></i> <?php echo format_date($createdDate); ?>
                                     </small>
-                                <?php endif; ?>
-                                <?php if ($faq['featured']): ?>
+                                <?php } ?>
+                                <?php if ($faq['featured']) { ?>
                                     <span class="badge bg-warning text-dark ms-2">
                                         <i class="fas fa-star"></i> Featured
                                     </span>
-                                <?php endif; ?>
+                                <?php } ?>
                                 <small class="d-inline-flex align-items-center gap-1">
                                     <i class="fas fa-eye"></i> <?php echo number_format($faq['views']); ?> views
                                 </small>
                             </div>
                         </div>
                         <div class="faq-actions">
-                            <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']): ?>
+                            <?php if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']) { ?>
                                 <div class="btn-group me-2">
                                     <a href="edit-faq-wysiwyg.php?id=<?php echo $faq['id']; ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
                                 </div>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </header>
@@ -154,20 +160,20 @@ require_once 'includes/header.php';
 
                
 
-                <?php if (!empty($contributions)): ?>
+                <?php if (!empty($contributions)) { ?>
                     <div class="mt-1 text-muted">
                         <?php $label = count($contributions) > 1 ? 'Contributions by:' : 'Contribution by:'; ?>
-                        <?php foreach ($contributions as $idx => $c): ?>
+                        <?php foreach ($contributions as $idx => $c) { ?>
                             <div class="d-flex align-items-center gap-3">
-                                <span class="contrib-label"><?php echo $idx === 0 ? $label : ''; ?></span>
+                                <span class="contrib-label"><?php echo 0 === $idx ? $label : ''; ?></span>
                                 <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($c['contributor_name']); ?></span>
-                                <?php if (!empty($c['contributed_at'])): ?>
+                                <?php if (!empty($c['contributed_at'])) { ?>
                                     <span><i class="fas fa-calendar-alt"></i> <?php echo date('M j, Y', strtotime($c['contributed_at'])); ?></span>
-                                <?php endif; ?>
+                                <?php } ?>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
 
                 <!-- Reading Engagement Tracker -->
                 <div id="reading-progress" class="mt-4 mb-3" style="display: none;">
@@ -189,35 +195,36 @@ require_once 'includes/header.php';
                     </div>
                 </div>
 
-                <?php if (!empty($faq['tags'])): ?>
+                <?php if (!empty($faq['tags'])) { ?>
                     <div class="faq-tags mt-4">
                         <h6>Related Topics:</h6>
-                        <?php 
+                        <?php
                         $tags = array_filter(array_map('trim', explode(',', $faq['tags'])));
-                        $seen = [];
-                        foreach ($tags as $tag) {
-                            $lower = strtolower($tag);
-                            $singular = rtrim($lower, 's');
-                            if (isset($seen[$lower])) {
-                                continue;
-                            }
-                            if ($lower !== $singular && isset($seen[$singular])) {
-                                continue;
-                            }
-                            $seen[$lower] = true;
-                            $safeTag = htmlspecialchars($tag, ENT_QUOTES, 'UTF-8');
-                            $safeUrl = 'tag.php?tag=' . urlencode($tag);
-                            echo '<button type="button" class="badge bg-secondary me-1 text-decoration-none tag-link" data-href="' . $safeUrl . '" data-tag="' . $safeTag . '">' . $safeTag . '</button>';
+                    $seen = [];
+                    foreach ($tags as $tag) {
+                        $lower = strtolower($tag);
+                        $singular = rtrim($lower, 's');
+                        if (isset($seen[$lower])) {
+                            continue;
                         }
-                        ?>
+                        if ($lower !== $singular && isset($seen[$singular])) {
+                            continue;
+                        }
+                        $seen[$lower] = true;
+                        $safeTag = htmlspecialchars($tag, ENT_QUOTES, 'UTF-8');
+                        $safeUrl = 'tag.php?tag='.urlencode($tag);
+                        echo '<button type="button" class="badge bg-secondary me-1 text-decoration-none tag-link" data-href="'.$safeUrl.'" data-tag="'.$safeTag.'">'.$safeTag.'</button>';
+                    }
+                    ?>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
 
                 <!-- Feedback Widget -->
-                <?php 
+                <?php
                 $current_faq = $faq;
-                include 'includes/feedback-widget.php'; 
-                ?>
+
+include 'includes/feedback-widget.php';
+?>
 
                 <div class="faq-footer mt-4 pt-3 border-top">
                     <div class="row">
@@ -235,7 +242,7 @@ require_once 'includes/header.php';
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- Related FAQs -->
-            <?php if (!empty($related_faqs)): ?>
+            <?php if (!empty($related_faqs)) { ?>
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">
@@ -244,7 +251,7 @@ require_once 'includes/header.php';
                         </h5>
                     </div>
                     <div class="card-body">
-                        <?php foreach ($related_faqs as $related): ?>
+                        <?php foreach ($related_faqs as $related) { ?>
                             <div class="mb-3">
                                 <a href="faq.php?id=<?php echo $related['id']; ?>" class="text-decoration-none">
                                     <strong><?php echo htmlspecialchars($related['title']); ?></strong>
@@ -255,10 +262,10 @@ require_once 'includes/header.php';
                                     <span class="badge badge-sm bg-light text-dark"><?php echo ucfirst($related['relationship_type']); ?></span>
                                 </small>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- Suggest New FAQ -->
             <div class="card mb-4">
@@ -278,33 +285,33 @@ require_once 'includes/header.php';
                 </div>
                 <div class="card-body">
                     <?php
-                    try {
-                        $stmt = $pdo->prepare("
+    try {
+        $stmt = $pdo->prepare("
                             SELECT id, title, views
                             FROM faqs 
                             WHERE category_id = ? AND id != ? AND status = 'published'
                             ORDER BY views DESC 
                             LIMIT 5
                         ");
-                        $stmt->execute([$faq['category_id'], $faq['id']]);
-                        $popular = $stmt->fetchAll();
-                        
-                        if ($popular) {
-                            foreach ($popular as $pop) {
-                                echo '<div class="mb-2">';
-                                echo '<a href="faq.php?id=' . $pop['id'] . '" class="text-decoration-none small">';
-                                echo htmlspecialchars($pop['title']);
-                                echo '</a>';
-                                echo '<br><small class="text-muted">' . number_format($pop['views']) . ' views</small>';
-                                echo '</div>';
-                            }
-                        } else {
-                            echo '<small class="text-muted">No other FAQs in this category yet.</small>';
-                        }
-                    } catch (Exception $e) {
-                        echo '<small class="text-muted">Unable to load popular FAQs.</small>';
-                    }
-                    ?>
+        $stmt->execute([$faq['category_id'], $faq['id']]);
+        $popular = $stmt->fetchAll();
+
+        if ($popular) {
+            foreach ($popular as $pop) {
+                echo '<div class="mb-2">';
+                echo '<a href="faq.php?id='.$pop['id'].'" class="text-decoration-none small">';
+                echo htmlspecialchars($pop['title']);
+                echo '</a>';
+                echo '<br><small class="text-muted">'.number_format($pop['views']).' views</small>';
+                echo '</div>';
+            }
+        } else {
+            echo '<small class="text-muted">No other FAQs in this category yet.</small>';
+        }
+    } catch (Exception $e) {
+        echo '<small class="text-muted">Unable to load popular FAQs.</small>';
+    }
+?>
                 </div>
             </div>
         </div>

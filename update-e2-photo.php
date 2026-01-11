@@ -1,4 +1,5 @@
 <?php
+
 require_once 'config/database.php';
 
 $sql = "UPDATE lost_submarines 
@@ -12,6 +13,5 @@ try {
     echo "✓ Photo URL updated for USS E-2 (SS-25)\n";
     echo "Photo: images/e2-captain-cooke.jpg\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

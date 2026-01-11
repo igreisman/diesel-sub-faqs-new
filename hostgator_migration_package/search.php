@@ -1,7 +1,9 @@
 <?php
 $page_title = 'Advanced Search';
 $page_description = 'Search through our comprehensive database of submarine FAQs with advanced filters and options.';
+
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 ?>
 
@@ -38,14 +40,14 @@ require_once 'includes/header.php';
                                             ORDER BY c.name
                                         ");
                                         while ($category = $stmt->fetch()) {
-                                            echo "<option value='" . htmlspecialchars($category['name']) . "'>";
-                                            echo htmlspecialchars($category['name']) . " ({$category['faq_count']} FAQs)";
-                                            echo "</option>";
+                                            echo "<option value='".htmlspecialchars($category['name'])."'>";
+                                            echo htmlspecialchars($category['name'])." ({$category['faq_count']} FAQs)";
+                                            echo '</option>';
                                         }
                                     } catch (Exception $e) {
                                         echo "<option value=''>Error loading categories</option>";
                                     }
-                                    ?>
+?>
                                 </select>
                             </div>
                         </div>

@@ -1,56 +1,58 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 
 require_once '../config/database.php';
 // Simple authentication check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
+
 require_once '../includes/header.php';
 
 // Get statistics
 $totalFaqs = 0;
+
 try {
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM faqs WHERE is_published = 1");
+    $stmt = $pdo->query('SELECT COUNT(*) as count FROM faqs WHERE is_published = 1');
     $publishedFaqs = $stmt->fetch()['count'];
-    
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM faqs WHERE is_published = 0");
+
+    $stmt = $pdo->query('SELECT COUNT(*) as count FROM faqs WHERE is_published = 0');
     $draftFaqs = $stmt->fetch()['count'];
-    
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM faqs");
+
+    $stmt = $pdo->query('SELECT COUNT(*) as count FROM faqs');
     $totalFaqs = $stmt->fetch()['count'];
-    
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM categories");
+
+    $stmt = $pdo->query('SELECT COUNT(*) as count FROM categories');
     $totalCategories = $stmt->fetch()['count'];
-    
+
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM feedback WHERE status = 'pending'");
     $pendingFeedback = $stmt->fetch()['count'];
-    
-    $stmt = $pdo->query("SELECT SUM(view_count) as total FROM faqs");
+
+    $stmt = $pdo->query('SELECT SUM(view_count) as total FROM faqs');
     $totalViews = $stmt->fetch()['total'] ?? 0;
 
-    $stmt = $pdo->query("SELECT COUNT(*) as count FROM faq_contributions");
+    $stmt = $pdo->query('SELECT COUNT(*) as count FROM faq_contributions');
     $totalContributors = $stmt->fetch()['count'];
 
     // Glossary count (table may not exist on older installs)
     try {
-        $stmt = $pdo->query("SELECT COUNT(*) as count FROM glossary");
+        $stmt = $pdo->query('SELECT COUNT(*) as count FROM glossary');
         $totalGlossary = $stmt->fetch()['count'];
     } catch (Exception $e) {
         $totalGlossary = 0;
     }
-    
+
     // Recent FAQs
-    $stmt = $pdo->query("SELECT id, title, created_at, view_count FROM faqs ORDER BY created_at DESC LIMIT 5");
+    $stmt = $pdo->query('SELECT id, title, created_at, view_count FROM faqs ORDER BY created_at DESC LIMIT 5');
     $recentFaqs = $stmt->fetchAll();
-    
+
     // Popular FAQs
-    $stmt = $pdo->query("SELECT id, title, view_count FROM faqs ORDER BY view_count DESC LIMIT 5");
+    $stmt = $pdo->query('SELECT id, title, view_count FROM faqs ORDER BY view_count DESC LIMIT 5');
     $popularFaqs = $stmt->fetchAll();
-    
 } catch (Exception $e) {
     $error = $e->getMessage();
 }
@@ -61,11 +63,11 @@ try {
         <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
     </div>
 
-    <?php if (isset($error)): ?>
+    <?php if (isset($error)) { ?>
         <div class="alert alert-danger">
             <i class="fas fa-exclamation-triangle"></i> Error: <?php echo htmlspecialchars($error); ?>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <!-- Quick Actions -->
     <div class="row mb-4">
@@ -86,7 +88,7 @@ try {
                         </a>
                         <a href="feedback-review.php" class="btn btn-warning btn-lg quick-action-btn">
                             <i class="fas fa-comments"></i>
-                            <span>Feedback<?php echo isset($pendingFeedback) ? ' (' . number_format($pendingFeedback) . ')' : ''; ?></span>
+                            <span>Feedback<?php echo isset($pendingFeedback) ? ' ('.number_format($pendingFeedback).')' : ''; ?></span>
                         </a>
                         <a href="manage-contributions.php" class="btn btn-primary btn-lg quick-action-btn">
                             <i class="fas fa-hands-helping"></i>
@@ -126,11 +128,11 @@ try {
                     <h5><i class="fas fa-clock"></i> Recent FAQs</h5>
                 </div>
                 <div class="card-body">
-                    <?php if (empty($recentFaqs)): ?>
+                    <?php if (empty($recentFaqs)) { ?>
                         <p class="text-muted">No FAQs found.</p>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <div class="list-group list-group-flush">
-                            <?php foreach ($recentFaqs as $faq): ?>
+                            <?php foreach ($recentFaqs as $faq) { ?>
                                 <div class="list-group-item d-flex justify-content-between align-items-start">
                                     <div class="ms-2 me-auto">
                                         <div class="fw-bold">
@@ -144,9 +146,9 @@ try {
                                     </div>
                                     <span class="badge bg-primary rounded-pill"><?php echo $faq['view_count']; ?> views</span>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -158,11 +160,11 @@ try {
                     <h5><i class="fas fa-fire"></i> Most Popular FAQs</h5>
                 </div>
                 <div class="card-body">
-                    <?php if (empty($popularFaqs)): ?>
+                    <?php if (empty($popularFaqs)) { ?>
                         <p class="text-muted">No FAQs found.</p>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <div class="list-group list-group-flush">
-                            <?php foreach ($popularFaqs as $faq): ?>
+                            <?php foreach ($popularFaqs as $faq) { ?>
                                 <div class="list-group-item d-flex justify-content-between align-items-start">
                                     <div class="ms-2 me-auto">
                                         <div class="fw-bold">
@@ -173,9 +175,9 @@ try {
                                     </div>
                                     <span class="badge bg-success rounded-pill"><?php echo $faq['view_count']; ?> views</span>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>

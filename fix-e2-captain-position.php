@@ -1,4 +1,5 @@
 <?php
+
 require_once 'config/database.php';
 
 $sql = "UPDATE lost_submarines 
@@ -10,6 +11,5 @@ try {
     echo "✓ Captain photo moved to photo_url_2 field for USS E-2\n";
     echo "The captain photo will now display in the same position as F-4\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

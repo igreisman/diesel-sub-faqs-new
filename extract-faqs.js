@@ -1,38 +1,43 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Map filenames to category info
 const categoryMap = {
-  '05-Hull-and-Compartments.md': {
+  "05-Hull-and-Compartments.md": {
     id: 1,
-    name: 'Hull and Compartments',
-    description: 'Learn about submarine construction, hull design, and compartment layouts.'
+    name: "Hull and Compartments",
+    description:
+      "Learn about submarine construction, hull design, and compartment layouts.",
   },
-  '08-US-WW2-Subs-in-General.md': {
+  "08-US-WW2-Subs-in-General.md": {
     id: 2,
-    name: 'US WW2 Subs in General',
-    description: 'General information about American submarines during World War II.'
+    name: "US WW2 Subs in General",
+    description:
+      "General information about American submarines during World War II.",
   },
-  '10-Operating-US-WW2-Subs.md': {
+  "10-Operating-US-WW2-Subs.md": {
     id: 3,
-    name: 'Operating US Subs in WW2',
-    description: 'Operational procedures, tactics, and submarine warfare techniques.'
+    name: "Operating US Subs in WW2",
+    description:
+      "Operational procedures, tactics, and submarine warfare techniques.",
   },
-  '12-Crews-Aboard-US-WW2-Subs.md': {
+  "12-Crews-Aboard-US-WW2-Subs.md": {
     id: 4,
-    name: 'Who Were the Crews Aboard WW2 US Subs',
-    description: 'Information about submarine crews, their roles, and backgrounds.'
+    name: "Who Were the Crews Aboard WW2 US Subs",
+    description:
+      "Information about submarine crews, their roles, and backgrounds.",
   },
-  '15-Life-Aboard-US-WW2-Subs.md': {
+  "15-Life-Aboard-US-WW2-Subs.md": {
     id: 5,
-    name: 'Life Aboard WW2 US Subs',
-    description: 'Daily life, living conditions, and crew experiences aboard submarines.'
+    name: "Life Aboard WW2 US Subs",
+    description:
+      "Daily life, living conditions, and crew experiences aboard submarines.",
   },
-  '20-Attacks-and-Battles-Small-and-Large.md': {
+  "20-Attacks-and-Battles-Small-and-Large.md": {
     id: 6,
-    name: 'Attacks and Battles, Small and Large',
-    description: 'Combat operations, battles, and military engagements.'
-  }
+    name: "Attacks and Battles, Small and Large",
+    description: "Combat operations, battles, and military engagements.",
+  },
 };
 
 function extractFAQsFromMarkdown(content, categoryInfo) {
@@ -44,23 +49,24 @@ function extractFAQsFromMarkdown(content, categoryInfo) {
 
   for (let i = 1; i < sections.length; i += 2) {
     const question = sections[i].trim();
-    const answer = sections[i + 1] ? sections[i + 1].trim() : '';
+    const answer = sections[i + 1] ? sections[i + 1].trim() : "";
 
-    if (question && answer && question.includes('?')) {
+    if (question && answer && question.includes("?")) {
       // Clean up the answer - remove markdown formatting and extra whitespace
       const cleanAnswer = answer
-        .replace(/\n\n+/g, '\n\n')
-        .replace(/>\s*\*\*NOTE:\*\*/g, 'NOTE:')
-        .replace(/>\s*/g, '')
+        .replace(/\n\n+/g, "\n\n")
+        .replace(/>\s*\*\*NOTE:\*\*/g, "NOTE:")
+        .replace(/>\s*/g, "")
         .trim();
 
-      if (cleanAnswer.length > 10) { // Only include substantial answers
+      if (cleanAnswer.length > 10) {
+        // Only include substantial answers
         faqs.push({
           id: faqId++,
           question: question.trim(),
           answer: cleanAnswer,
           category_id: categoryInfo.id,
-          category_name: categoryInfo.name
+          category_name: categoryInfo.name,
         });
       }
     }
@@ -79,11 +85,11 @@ Object.entries(categoryMap).forEach(([filename, categoryInfo]) => {
 
   if (fs.existsSync(filePath)) {
     console.log(`Processing ${filename}...`);
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = fs.readFileSync(filePath, "utf8");
     const faqs = extractFAQsFromMarkdown(content, categoryInfo);
 
     // Update FAQ IDs to be globally unique
-    faqs.forEach(faq => {
+    faqs.forEach((faq) => {
       faq.id = totalFAQId++;
     });
 
@@ -170,7 +176,7 @@ export default async function handler(req, res) {
 }`;
 
 // Write the new API file
-fs.writeFileSync(path.join(__dirname, 'api', 'real-submarine-faqs.js'), jsData);
+fs.writeFileSync(path.join(__dirname, "api", "real-submarine-faqs.js"), jsData);
 
 console.log(`\\n✅ SUCCESS!`);
 console.log(`📊 Total Categories: ${categories.length}`);
@@ -178,7 +184,7 @@ console.log(`📋 Total FAQs: ${allFAQs.length}`);
 console.log(`📁 Generated: api/real-submarine-faqs.js`);
 console.log(`\\nFAQs by category:`);
 
-categories.forEach(cat => {
-  const count = allFAQs.filter(faq => faq.category_id === cat.id).length;
+categories.forEach((cat) => {
+  const count = allFAQs.filter((faq) => faq.category_id === cat.id).length;
   console.log(`  ${cat.name}: ${count} FAQs`);
 });

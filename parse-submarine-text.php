@@ -1,14 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 $page_title = 'Parse Submarine Text';
 $page_description = 'Admin: Parse submarine text and import';
+
 require_once 'config/database.php';
 
 // Admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
@@ -16,13 +18,14 @@ $parsedData = null;
 $error = '';
 
 if (
-    $_SERVER['REQUEST_METHOD'] === 'POST'
+    'POST' === $_SERVER['REQUEST_METHOD']
     && isset($_POST['submarine_text'])
 ) {
     $text = $_POST['submarine_text'];
+
     try {
         // Parse the text
-        $data = array(
+        $data = [
             'boat_number' => '',
             'name' => '',
             'designation' => '',
@@ -30,11 +33,11 @@ if (
             'date_lost' => '',
             'location' => '',
             'description' => '',
-            'prior_history' => ''
-        );
+            'prior_history' => '',
+        ];
         $lines = explode("\n", $text);
-        $descriptionLines = array();
-        $priorHistoryLines = array();
+        $descriptionLines = [];
+        $priorHistoryLines = [];
         $skipNextEmpty = false;
         $inPriorHistory = false;
         foreach ($lines as $line) {
@@ -47,14 +50,16 @@ if (
                 if (!empty($afterColon)) {
                     $priorHistoryLines[] = $afterColon;
                 }
+
                 continue;
             }
             // If we're in prior history, keep collecting until a blank line or a new section
             if ($inPriorHistory) {
-                if ($line === '' || preg_match('/^(Last captain:|Date lost:|Location:|Fatalities:|Cause:)/i', $line)) {
+                if ('' === $line || preg_match('/^(Last captain:|Date lost:|Location:|Fatalities:|Cause:)/i', $line)) {
                     $inPriorHistory = false;
                 } else {
                     $priorHistoryLines[] = $line;
+
                     continue;
                 }
             }
@@ -63,13 +68,15 @@ if (
                 $data['name'] = $matches[1];
                 $data['boat_number'] = $matches[2];
                 // Full designation is the complete USS Name (Number) format
-                $data['designation'] = 'USS ' . $matches[1] . ' (' . $matches[2] . ')';
+                $data['designation'] = 'USS '.$matches[1].' ('.$matches[2].')';
+
                 continue;
             }
             // Extract captain
             if (preg_match('/Last captain:\s*(.+?)\.?\s*$/i', $line, $matches)) {
                 $data['captain_name'] = trim($matches[1]);
                 $skipNextEmpty = true;
+
                 continue;
             }
             // Extract date lost
@@ -93,23 +100,27 @@ if (
                     $data['date_lost'] = $dateStr;
                 }
                 $skipNextEmpty = true;
+
                 continue;
             }
             // Extract location
             if (preg_match('/Location:\s*(.+)/i', $line, $matches)) {
                 $data['location'] = trim($matches[1]);
                 $skipNextEmpty = true;
+
                 continue;
             }
             // Skip metadata lines
             if (preg_match('/^(Fatalities|Cause):/i', $line)) {
                 $descriptionLines[] = $line;
                 $skipNextEmpty = true;
+
                 continue;
             }
             // Skip empty lines after metadata
             if (empty($line) && $skipNextEmpty) {
                 $skipNextEmpty = false;
+
                 continue;
             }
             // Add everything else to description
@@ -121,7 +132,7 @@ if (
             }
         }
         // Build description
-        $data['description'] = implode("\n\n", array_filter(array_map(function($para) {
+        $data['description'] = implode("\n\n", array_filter(array_map(function ($para) {
             return trim($para);
         }, explode("\n\n", implode("\n", $descriptionLines)))));
         // Build prior history
@@ -134,14 +145,14 @@ if (
                 $dateForCalc = $data['date_lost'];
             } else {
                 $ts = strtotime($data['date_lost']);
-                if ($ts !== false) {
+                if (false !== $ts) {
                     $dateForCalc = date('Y-m-d', $ts);
                 }
             }
             // Validate the date is actually valid
             if (!empty($dateForCalc)) {
                 $parts = explode('-', $dateForCalc);
-                if (count($parts) === 3 && !checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0])) {
+                if (3 === count($parts) && !checkdate((int) $parts[1], (int) $parts[2], (int) $parts[0])) {
                     // Invalid date, don't use it
                     $dateForCalc = '';
                 }
@@ -162,7 +173,7 @@ if (
         $data['calculated_era'] = $calculated_era;
         $parsedData = $data;
     } catch (Exception $e) {
-        $error = 'Error parsing text: ' . $e->getMessage();
+        $error = 'Error parsing text: '.$e->getMessage();
     }
 }
 // End PHP logic block cleanly before HTML
@@ -258,12 +269,12 @@ if (
             </div>
         </div>
 
-        <?php if ($error): ?>
+        <?php if ($error) { ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($error) ?>
+                <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <div class="row">
             <div class="col-lg-6 mb-4">
@@ -280,7 +291,7 @@ E-2 was an E class submarine completed in February of 1912...
 Last captain: LT Charles M. Cooke.
 Date lost: 15 January 1916.
 Location: New York Navy Yard.
-..."><?= htmlspecialchars($_POST['submarine_text'] ?? '') ?></textarea>
+..."><?php echo htmlspecialchars($_POST['submarine_text'] ?? ''); ?></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary">Parse Text</button>
                         </form>
@@ -289,64 +300,64 @@ Location: New York Navy Yard.
             </div>
 
             <div class="col-lg-6 mb-4">
-                <?php if ($parsedData): ?>
+                <?php if ($parsedData) { ?>
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Parsed Data</h5>
                             <div class="preview-section">
                                 <div class="preview-field">
                                     <div class="preview-label">Boat Number</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['boat_number']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['boat_number']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Name</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['name']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['name']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Designation</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['designation']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['designation']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Captain Name</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['captain_name']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['captain_name']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Date Lost</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['date_lost']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['date_lost']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Location</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['location']) ?: '(not found)' ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['location']) ?: '(not found)'; ?></div>
                                 </div>
                                 
                                 <div class="preview-field">
                                     <div class="preview-label">Description</div>
-                                    <div class="preview-value"><?= htmlspecialchars($parsedData['description']) ?></div>
+                                    <div class="preview-value"><?php echo htmlspecialchars($parsedData['description']); ?></div>
                                 </div>
-                                <?php if (!empty($parsedData['prior_history'])): ?>
+                                <?php if (!empty($parsedData['prior_history'])) { ?>
                                 <div class="preview-field">
                                     <div class="preview-label">Prior History</div>
-                                    <div class="preview-value"><?= nl2br(htmlspecialchars($parsedData['prior_history'])) ?></div>
+                                    <div class="preview-value"><?php echo nl2br(htmlspecialchars($parsedData['prior_history'])); ?></div>
                                 </div>
-                                <?php endif; ?>
+                                <?php } ?>
                             </div>
                             
                             
                             <form method="POST" action="admin-eternal-patrol-edit.php" class="mt-3">
-                                <input type="hidden" name="boat_number" value="<?= htmlspecialchars($parsedData['boat_number'] ?? '') ?>">
-                                <input type="hidden" name="name" value="<?= htmlspecialchars($parsedData['name'] ?? '') ?>">
-                                <input type="hidden" name="designation" value="<?= htmlspecialchars($parsedData['designation'] ?? '') ?>">
-                                <input type="hidden" name="captain_name" value="<?= htmlspecialchars($parsedData['captain_name'] ?? '') ?>">
-                                <input type="hidden" name="date_lost" value="<?= htmlspecialchars($parsedData['date_lost'] ?? '') ?>">
-                                <input type="hidden" name="date_lost_sort" value="<?= htmlspecialchars($parsedData['date_lost_sort'] ?? '') ?>">
-                                <input type="hidden" name="location" value="<?= htmlspecialchars($parsedData['location'] ?? '') ?>">
-                                <input type="hidden" name="description" value="<?= htmlspecialchars($parsedData['description'] ?? '') ?>">
-                                <input type="hidden" name="prior_history" value="<?= htmlspecialchars($parsedData['prior_history'] ?? '') ?>">
+                                <input type="hidden" name="boat_number" value="<?php echo htmlspecialchars($parsedData['boat_number'] ?? ''); ?>">
+                                <input type="hidden" name="name" value="<?php echo htmlspecialchars($parsedData['name'] ?? ''); ?>">
+                                <input type="hidden" name="designation" value="<?php echo htmlspecialchars($parsedData['designation'] ?? ''); ?>">
+                                <input type="hidden" name="captain_name" value="<?php echo htmlspecialchars($parsedData['captain_name'] ?? ''); ?>">
+                                <input type="hidden" name="date_lost" value="<?php echo htmlspecialchars($parsedData['date_lost'] ?? ''); ?>">
+                                <input type="hidden" name="date_lost_sort" value="<?php echo htmlspecialchars($parsedData['date_lost_sort'] ?? ''); ?>">
+                                <input type="hidden" name="location" value="<?php echo htmlspecialchars($parsedData['location'] ?? ''); ?>">
+                                <input type="hidden" name="description" value="<?php echo htmlspecialchars($parsedData['description'] ?? ''); ?>">
+                                <input type="hidden" name="prior_history" value="<?php echo htmlspecialchars($parsedData['prior_history'] ?? ''); ?>">
                                 <input type="hidden" name="prefilled" value="1">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="bi bi-arrow-right-circle"></i> Continue to Add Lost Boat Form
@@ -354,13 +365,13 @@ Location: New York Navy Yard.
                             </form>
                         </div>
                     </div>
-                <?php else: ?>
+                <?php } else { ?>
                     <div class="card">
                         <div class="card-body text-center text-muted">
                             <p class="mb-0">Paste submarine text on the left and click "Parse Text" to see extracted data here.</p>
                         </div>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
     </div>

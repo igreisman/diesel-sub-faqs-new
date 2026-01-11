@@ -1,28 +1,30 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once '../config/database.php';
 
 // If already logged in, redirect to dashboard
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+if (isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in']) {
     header('Location: dashboard.php');
+
     exit;
 }
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $password = $_POST['password'] ?? '';
 
     // Simple password-only authentication
-    if ($password === '1945') {
+    if ('1945' === $password) {
         $_SESSION['admin_logged_in'] = true;
         header('Location: dashboard.php');
+
         exit;
-    } else {
-        $error = 'Invalid password';
     }
+    $error = 'Invalid password';
 }
 ?>
 <!DOCTYPE html>
@@ -46,11 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="text-muted">Submarine FAQ Dashboard</p>
                         </div>
 
-                        <?php if ($error): ?>
+                        <?php if ($error) { ?>
                             <div class="alert alert-danger" role="alert">
                                 <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
                             </div>
-                        <?php endif; ?>
+                        <?php } ?>
 
                         <form method="POST">
                             <div class="mb-4">

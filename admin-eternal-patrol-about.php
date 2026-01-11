@@ -1,14 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 $page_title = 'Edit About Section';
 $page_description = 'Admin: Edit Eternal Patrol About Text';
+
 require_once 'config/database.php';
 
 // Admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
@@ -17,33 +19,34 @@ $error = '';
 
 // Create table if it doesn't exist
 try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS settings (
+    $pdo->exec('CREATE TABLE IF NOT EXISTS settings (
         setting_key VARCHAR(100) PRIMARY KEY,
         setting_value LONGTEXT NOT NULL,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
+    )');
 } catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    $error = 'Database error: '.$e->getMessage();
 }
 
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     try {
         $aboutText = $_POST['about_text'] ?? '';
-        
+
         // Insert or update
         $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES ('eternal_patrol_about', ?) 
                               ON DUPLICATE KEY UPDATE setting_value = ?");
         $stmt->execute([$aboutText, $aboutText]);
-        
-        $message = "About text updated successfully!";
+
+        $message = 'About text updated successfully!';
     } catch (PDOException $e) {
-        $error = "Error saving: " . $e->getMessage();
+        $error = 'Error saving: '.$e->getMessage();
     }
 }
 
 // Get current text
 $aboutText = '';
+
 try {
     $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'eternal_patrol_about'");
     $stmt->execute();
@@ -81,7 +84,7 @@ My thanks go to Diane Cooper for the idea which we then expanded. Her guidance a
 This is dedicated to all submariners, particularly those who gave their lives for their countries, in times of war and in keeping the peace.</p>';
     }
 } catch (PDOException $e) {
-    $error = "Error loading text: " . $e->getMessage();
+    $error = 'Error loading text: '.$e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -106,19 +109,19 @@ This is dedicated to all submariners, particularly those who gave their lives fo
     </nav>
 
     <div class="container mt-4">
-        <?php if ($message): ?>
+        <?php if ($message) { ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($message) ?>
+                <?php echo htmlspecialchars($message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if ($error): ?>
+        <?php if ($error) { ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($error) ?>
+                <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <div class="card">
             <div class="card-header">
@@ -128,7 +131,7 @@ This is dedicated to all submariners, particularly those who gave their lives fo
                 <form method="POST">
                     <div class="mb-3">
                         <label for="about_text" class="form-label">About Text (HTML allowed)</label>
-                        <textarea class="form-control" id="about_text" name="about_text" rows="20"><?= htmlspecialchars($aboutText) ?></textarea>
+                        <textarea class="form-control" id="about_text" name="about_text" rows="20"><?php echo htmlspecialchars($aboutText); ?></textarea>
                         <div class="form-text">You can use HTML tags for formatting (p, strong, br, etc.)</div>
                     </div>
                     

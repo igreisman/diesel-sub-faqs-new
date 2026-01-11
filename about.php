@@ -1,7 +1,9 @@
 <?php
 $page_title = 'About';
 $page_description = 'Learn about this comprehensive collection of diesel-electric submarine FAQs from World War II.';
+
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 ?>
 
@@ -76,7 +78,7 @@ require_once 'includes/header.php';
                             ORDER BY faq_count DESC
                         ");
                         $categories = $stmt->fetchAll();
-                        
+
                         echo "<div class='row'>";
                         foreach ($categories as $category) {
                             echo "<div class='col-md-6 mb-3'>";
@@ -86,42 +88,41 @@ require_once 'includes/header.php';
                             echo "<i class='fas fa-folder me-2'></i>";
                             echo htmlspecialchars($category['name']);
                             echo "<span class='badge bg-secondary ms-2'>{$category['faq_count']} FAQs</span>";
-                            echo "</h6>";
+                            echo '</h6>';
                             echo "<p class='card-text small text-muted'>";
-                            echo htmlspecialchars($category['description'] ?? 'Detailed information about ' . $category['name']);
-                            echo "</p>";
-                            echo "<a href='category.php?cat=" . urlencode($category['name']) . "' class='btn btn-sm btn-outline-primary'>Browse FAQs</a>";
-                            echo "</div>";
-                            echo "</div>";
-                            echo "</div>";
+                            echo htmlspecialchars($category['description'] ?? 'Detailed information about '.$category['name']);
+                            echo '</p>';
+                            echo "<a href='category.php?cat=".urlencode($category['name'])."' class='btn btn-sm btn-outline-primary'>Browse FAQs</a>";
+                            echo '</div>';
+                            echo '</div>';
+                            echo '</div>';
                         }
-                        echo "</div>";
-                        
+                        echo '</div>';
+
                         // Get total statistics
                         $stmt = $pdo->query("SELECT COUNT(*) as total_faqs FROM faqs WHERE status = 'published'");
                         $stats = $stmt->fetch();
-                        
+
                         echo "<div class='alert alert-success mt-4'>";
                         echo "<div class='row text-center'>";
                         echo "<div class='col-md-4'>";
-                        echo "<h3 class='text-success'>" . count($categories) . "</h3>";
+                        echo "<h3 class='text-success'>".count($categories).'</h3>';
                         echo "<p class='mb-0'>Categories</p>";
-                        echo "</div>";
+                        echo '</div>';
                         echo "<div class='col-md-4'>";
-                        echo "<h3 class='text-success'>" . $stats['total_faqs'] . "</h3>";
+                        echo "<h3 class='text-success'>".$stats['total_faqs'].'</h3>';
                         echo "<p class='mb-0'>Total FAQs</p>";
-                        echo "</div>";
+                        echo '</div>';
                         echo "<div class='col-md-4'>";
                         echo "<h3 class='text-success'>1942-1945</h3>";
                         echo "<p class='mb-0'>War Period Covered</p>";
-                        echo "</div>";
-                        echo "</div>";
-                        echo "</div>";
-                        
+                        echo '</div>';
+                        echo '</div>';
+                        echo '</div>';
                     } catch (Exception $e) {
                         echo "<div class='alert alert-warning'>Unable to load category statistics.</div>";
                     }
-                    ?>
+?>
                     
                     <h4>How to Use This Site</h4>
                     <ol>

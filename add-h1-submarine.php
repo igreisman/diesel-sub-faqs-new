@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -48,14 +49,13 @@ $data = [
 Further salvage attempts were abandoned. H-1 was sold for scrap in June of 1920, but was never recovered. The wreck was located and identified in 2019.',
     'prior_history' => 'H-1 was first assigned to Torpedo Flotilla 2, Pacific Fleet. Based in San Pedro, CA, she travelled the West Coast from Southern California to lower British Columbia. She frequently sailed with sister ships USS H-2 (SS-29) and USS H-3 (SS-30). In October of 1917, she sailed to New London, CT. There she patrolled Long Island Sound for the rest of WW1. She often patrolled with officer students from the Submarine School.',
     'era' => 'interwar',
-    'year_lost' => 1920
+    'year_lost' => 1920,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS H-1 (SS-28) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

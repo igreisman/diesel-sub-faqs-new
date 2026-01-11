@@ -1,19 +1,22 @@
 <?php
 $page_title = 'Edit Release Checklist';
 $page_description = 'Admin editing for the release checklist';
+
 require_once 'config/database.php';
 
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
-$isAdmin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+$isAdmin = isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in'];
 if (!$isAdmin) {
     header('Location: admin/login.php');
+
     exit;
 }
 
 // Default checklist data
-function default_checklist() {
+function default_checklist()
+{
     return [
         'Technical Readiness' => [
             'Website Functionality' => [
@@ -64,7 +67,7 @@ function default_checklist() {
                 'Conduct a “first-time visitor” walkthrough for clarity and orientation',
                 'Validate category structure is intuitive and final',
                 'Ensure mobile experience is clean and readable',
-            ]
+            ],
         ],
         'Branding & Presentation' => [
             'General' => [
@@ -73,7 +76,7 @@ function default_checklist() {
                 'Finalize About/Intro page language',
                 'Verify docent credits and acknowledgments',
                 'Ensure mission and project story messaging feels polished and authentic',
-            ]
+            ],
         ],
         'Launch Communication Preparation' => [
             'Outreach & PR' => [
@@ -101,7 +104,7 @@ function default_checklist() {
                 'Verify alignment with Pampanito’s visitor experience and restoration narrative',
                 'Highlight Pampanito-specific FAQs for museum outreach',
                 'Identify 3–5 FAQs recommended for museum newsletters or docent materials',
-            ]
+            ],
         ],
         'Post-Launch Infrastructure' => [
             'General' => [
@@ -110,7 +113,7 @@ function default_checklist() {
                 'Maintain internal “Known Issues” list',
                 'Verify database backups are functioning',
                 'Optional: Set up uptime monitoring for the site',
-            ]
+            ],
         ],
         'Long-Term Continuity & Handover Plan' => [
             'General' => [
@@ -119,37 +122,40 @@ function default_checklist() {
                 'Identify individuals for future historical and technical stewardship roles',
                 'Prepare a transition plan for long-term project maintenance',
                 'Create a contributor onboarding guide (optional)',
-            ]
+            ],
         ],
     ];
 }
 
-function checklist_to_html($checklist) {
+function checklist_to_html($checklist)
+{
     $html = '';
     foreach ($checklist as $section => $groups) {
-        $html .= '<h3>' . htmlspecialchars($section) . '</h3>';
+        $html .= '<h3>'.htmlspecialchars($section).'</h3>';
         foreach ($groups as $group => $items) {
-            $html .= '<h5>' . htmlspecialchars($group) . '</h5><ul>';
+            $html .= '<h5>'.htmlspecialchars($group).'</h5><ul>';
             foreach ($items as $item) {
-                $html .= '<li>' . htmlspecialchars($item) . '</li>';
+                $html .= '<li>'.htmlspecialchars($item).'</li>';
             }
             $html .= '</ul>';
         }
     }
+
     return $html;
 }
 
-function parse_checklist_html($html) {
+function parse_checklist_html($html)
+{
     $dom = new DOMDocument();
     libxml_use_internal_errors(true);
-    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+    $dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
     libxml_clear_errors();
     $body = $dom->getElementsByTagName('body')->item(0);
 
     $data = [];
     $currentSection = 'General';
     $currentGroup = 'Items';
-    $ensure = function($section, $group) use (&$data) {
+    $ensure = function ($section, $group) use (&$data) {
         if (!isset($data[$section])) {
             $data[$section] = [];
         }
@@ -159,33 +165,33 @@ function parse_checklist_html($html) {
     };
     $ensure($currentSection, $currentGroup);
 
-    $walker = function($node) use (&$walker, &$data, &$currentSection, &$currentGroup, $ensure) {
-        if ($node->nodeType === XML_ELEMENT_NODE) {
+    $walker = function ($node) use (&$walker, &$data, &$currentSection, &$currentGroup, $ensure) {
+        if (XML_ELEMENT_NODE === $node->nodeType) {
             $tag = strtolower($node->nodeName);
             if (in_array($tag, ['h2', 'h3'])) {
                 $text = trim($node->textContent);
-                if ($text !== '') {
+                if ('' !== $text) {
                     $currentSection = $text;
                     $currentGroup = 'Items';
                     $ensure($currentSection, $currentGroup);
                 }
             } elseif (in_array($tag, ['h4', 'h5'])) {
                 $text = trim($node->textContent);
-                if ($text !== '') {
+                if ('' !== $text) {
                     $currentGroup = $text;
                     $ensure($currentSection, $currentGroup);
                 }
             } elseif (in_array($tag, ['ul', 'ol'])) {
                 foreach ($node->getElementsByTagName('li') as $li) {
                     $itemText = trim($li->textContent);
-                    if ($itemText !== '') {
+                    if ('' !== $itemText) {
                         $ensure($currentSection, $currentGroup);
                         $data[$currentSection][$currentGroup][] = $itemText;
                     }
                 }
-            } elseif ($tag === 'p') {
+            } elseif ('p' === $tag) {
                 $itemText = trim($node->textContent);
-                if ($itemText !== '') {
+                if ('' !== $itemText) {
                     $ensure($currentSection, $currentGroup);
                     $data[$currentSection][$currentGroup][] = $itemText;
                 }
@@ -225,21 +231,22 @@ $error = '';
 
 // Ensure storage table exists
 try {
-    $pdo->exec("
+    $pdo->exec('
         CREATE TABLE IF NOT EXISTS release_checklist (
             id INT PRIMARY KEY,
             content LONGTEXT NOT NULL,
             notes LONGTEXT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ");
+    ');
+
     try {
-        $pdo->exec("ALTER TABLE release_checklist ADD COLUMN notes LONGTEXT NULL");
+        $pdo->exec('ALTER TABLE release_checklist ADD COLUMN notes LONGTEXT NULL');
     } catch (Exception $e) {
         // ignore if exists
     }
 } catch (Exception $e) {
-    $error = 'Unable to prepare checklist storage: ' . $e->getMessage();
+    $error = 'Unable to prepare checklist storage: '.$e->getMessage();
 }
 
 // Load existing content
@@ -247,7 +254,7 @@ $checklist = default_checklist();
 $notesHtml = '';
 if (!$error) {
     try {
-        $stmt = $pdo->query("SELECT content, notes FROM release_checklist WHERE id = 1 LIMIT 1");
+        $stmt = $pdo->query('SELECT content, notes FROM release_checklist WHERE id = 1 LIMIT 1');
         $row = $stmt->fetch();
         if ($row && $row['content']) {
             $decoded = json_decode($row['content'], true);
@@ -256,15 +263,15 @@ if (!$error) {
             }
             $notesHtml = $row['notes'] ?? '';
         } else {
-            $stmt = $pdo->prepare("REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)");
+            $stmt = $pdo->prepare('REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)');
             $stmt->execute([json_encode($checklist), $notesHtml]);
         }
     } catch (Exception $e) {
-        $error = 'Unable to load checklist: ' . $e->getMessage();
+        $error = 'Unable to load checklist: '.$e->getMessage();
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && !$error) {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && $isAdmin && !$error) {
     $checklistHtml = $_POST['checklist_html'] ?? '';
     // Notes are preserved (no editing on this page)
 
@@ -273,13 +280,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && !$error) {
         $error = 'Could not parse checklist content. Please ensure you use headings for sections/groups and bullets for items.';
     } else {
         try {
-            $stmt = $pdo->prepare("REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)");
+            $stmt = $pdo->prepare('REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)');
             $stmt->execute([json_encode($parsed), $notesHtml]);
             $message = 'Checklist updated.';
             $checklist = $parsed;
             if (isset($_POST['autosave'])) {
                 header('Content-Type: application/json');
                 echo json_encode(['ok' => true, 'message' => 'Checklist saved']);
+
                 exit;
             }
         } catch (Exception $e) {
@@ -287,9 +295,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && !$error) {
                 header('Content-Type: application/json');
                 http_response_code(500);
                 echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
+
                 exit;
             }
-            $error = 'Failed to save checklist: ' . $e->getMessage();
+            $error = 'Failed to save checklist: '.$e->getMessage();
         }
     }
 }

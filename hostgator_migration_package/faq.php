@@ -7,6 +7,7 @@ $faq_slug = $_GET['slug'] ?? null;
 
 if (!$faq_id && !$faq_slug) {
     header('Location: index.php');
+
     exit;
 }
 
@@ -28,29 +29,32 @@ try {
         ");
         $stmt->execute([$faq_slug]);
     }
-    
+
     $faq = $stmt->fetch();
-    
+
     if (!$faq) {
         header('HTTP/1.0 404 Not Found');
+
         include '404.php';
+
         exit;
     }
-    
+
     // Update view count
-    $stmt = $pdo->prepare("UPDATE faqs SET views = views + 1 WHERE id = ?");
+    $stmt = $pdo->prepare('UPDATE faqs SET views = views + 1 WHERE id = ?');
     $stmt->execute([$faq['id']]);
-    
+
     // Get related FAQs
     $related_faqs = get_related_faqs($pdo, $faq['id'], 3);
-    
 } catch (Exception $e) {
     header('Location: index.php');
+
     exit;
 }
 
 $page_title = $faq['title'];
 $page_description = $faq['short_answer'] ? substr($faq['short_answer'], 0, 160) : substr($faq['answer'], 0, 160);
+
 require_once 'includes/header.php';
 ?>
 
@@ -75,11 +79,11 @@ require_once 'includes/header.php';
                             <div class="faq-meta text-muted mb-3">
                                 <span class="badge bg-primary me-2"><?php echo htmlspecialchars($faq['category_name']); ?></span>
                                 <small><i class="fas fa-eye"></i> <?php echo number_format($faq['views']); ?> views</small>
-                                <?php if ($faq['featured']): ?>
+                                <?php if ($faq['featured']) { ?>
                                     <span class="badge bg-warning text-dark ms-2">
                                         <i class="fas fa-star"></i> Featured
                                     </span>
-                                <?php endif; ?>
+                                <?php } ?>
                             </div>
                         </div>
                         <div class="faq-actions">
@@ -98,14 +102,14 @@ require_once 'includes/header.php';
                 </div>
 
                 <div class="faq-answer">
-                    <?php if ($faq['short_answer'] && $faq['short_answer'] !== $faq['answer']): ?>
+                    <?php if ($faq['short_answer'] && $faq['short_answer'] !== $faq['answer']) { ?>
                         <div class="alert alert-info">
                             <h5>Quick Answer:</h5>
                             <p class="mb-0"><?php echo nl2br(htmlspecialchars($faq['short_answer'])); ?></p>
                         </div>
                         
                         <h5>Detailed Answer:</h5>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <div class="answer-content" id="faq-content">
                         <?php echo nl2br(htmlspecialchars($faq['answer'])); ?>
@@ -132,22 +136,23 @@ require_once 'includes/header.php';
                     </div>
                 </div>
 
-                <?php if (!empty($faq['tags'])): ?>
+                <?php if (!empty($faq['tags'])) { ?>
                     <div class="faq-tags mt-4">
                         <h6>Related Topics:</h6>
-                        <?php 
+                        <?php
                         $tags = explode(',', $faq['tags']);
-                        foreach ($tags as $tag): ?>
+                    foreach ($tags as $tag) { ?>
                             <span class="badge bg-secondary me-1"><?php echo trim(htmlspecialchars($tag)); ?></span>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
 
                 <!-- Feedback Widget -->
-                <?php 
+                <?php
                 $current_faq = $faq;
-                include 'includes/feedback-widget.php'; 
-                ?>
+
+include 'includes/feedback-widget.php';
+?>
 
                 <div class="faq-footer mt-4 pt-3 border-top">
                     <div class="row">
@@ -169,7 +174,7 @@ require_once 'includes/header.php';
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- Related FAQs -->
-            <?php if (!empty($related_faqs)): ?>
+            <?php if (!empty($related_faqs)) { ?>
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">
@@ -178,7 +183,7 @@ require_once 'includes/header.php';
                         </h5>
                     </div>
                     <div class="card-body">
-                        <?php foreach ($related_faqs as $related): ?>
+                        <?php foreach ($related_faqs as $related) { ?>
                             <div class="mb-3">
                                 <a href="faq.php?id=<?php echo $related['id']; ?>" class="text-decoration-none">
                                     <strong><?php echo htmlspecialchars($related['title']); ?></strong>
@@ -189,10 +194,10 @@ require_once 'includes/header.php';
                                     <span class="badge badge-sm bg-light text-dark"><?php echo ucfirst($related['relationship_type']); ?></span>
                                 </small>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- Suggest New FAQ -->
             <div class="card mb-4">
@@ -212,33 +217,33 @@ require_once 'includes/header.php';
                 </div>
                 <div class="card-body">
                     <?php
-                    try {
-                        $stmt = $pdo->prepare("
+    try {
+        $stmt = $pdo->prepare("
                             SELECT id, title, views
                             FROM faqs 
                             WHERE category_id = ? AND id != ? AND status = 'published'
                             ORDER BY views DESC 
                             LIMIT 5
                         ");
-                        $stmt->execute([$faq['category_id'], $faq['id']]);
-                        $popular = $stmt->fetchAll();
-                        
-                        if ($popular) {
-                            foreach ($popular as $pop) {
-                                echo '<div class="mb-2">';
-                                echo '<a href="faq.php?id=' . $pop['id'] . '" class="text-decoration-none small">';
-                                echo htmlspecialchars($pop['title']);
-                                echo '</a>';
-                                echo '<br><small class="text-muted">' . number_format($pop['views']) . ' views</small>';
-                                echo '</div>';
-                            }
-                        } else {
-                            echo '<small class="text-muted">No other FAQs in this category yet.</small>';
-                        }
-                    } catch (Exception $e) {
-                        echo '<small class="text-muted">Unable to load popular FAQs.</small>';
-                    }
-                    ?>
+        $stmt->execute([$faq['category_id'], $faq['id']]);
+        $popular = $stmt->fetchAll();
+
+        if ($popular) {
+            foreach ($popular as $pop) {
+                echo '<div class="mb-2">';
+                echo '<a href="faq.php?id='.$pop['id'].'" class="text-decoration-none small">';
+                echo htmlspecialchars($pop['title']);
+                echo '</a>';
+                echo '<br><small class="text-muted">'.number_format($pop['views']).' views</small>';
+                echo '</div>';
+            }
+        } else {
+            echo '<small class="text-muted">No other FAQs in this category yet.</small>';
+        }
+    } catch (Exception $e) {
+        echo '<small class="text-muted">Unable to load popular FAQs.</small>';
+    }
+?>
                 </div>
             </div>
         </div>

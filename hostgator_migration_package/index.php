@@ -1,5 +1,6 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 ?>
 
@@ -24,33 +25,33 @@ require_once 'includes/header.php';
                 $categories = [
                     'US WW2 Subs in General' => [
                         'description' => 'General information about US submarines in World War II',
-                        'icon' => 'fas fa-ship'
+                        'icon' => 'fas fa-ship',
                     ],
                     'Hull and Compartments' => [
                         'description' => 'Structure, design, and compartment layout of submarines',
-                        'icon' => 'fas fa-cogs'
+                        'icon' => 'fas fa-cogs',
                     ],
                     'Operating US Subs in WW2' => [
                         'description' => 'Operational procedures and tactics used during WWII',
-                        'icon' => 'fas fa-compass'
+                        'icon' => 'fas fa-compass',
                     ],
                     'Life Aboard WW2 US Subs' => [
                         'description' => 'Daily life, conditions, and experiences of submarine crews',
-                        'icon' => 'fas fa-users'
+                        'icon' => 'fas fa-users',
                     ],
                     'Crews Aboard WW2 US Subs' => [
                         'description' => 'Crew composition, roles, and personnel information',
-                        'icon' => 'fas fa-user-friends'
+                        'icon' => 'fas fa-user-friends',
                     ],
                     'Battles Small and Large' => [
                         'description' => 'Combat engagements and battle histories',
-                        'icon' => 'fas fa-crosshairs'
-                    ]
+                        'icon' => 'fas fa-crosshairs',
+                    ],
                 ];
 
-                foreach ($categories as $name => $info): 
-                    $slug = str_replace([' ', '/'], ['-', '-'], strtolower($name));
-                ?>
+foreach ($categories as $name => $info) {
+    $slug = str_replace([' ', '/'], ['-', '-'], strtolower($name));
+    ?>
                 <div class="category-card">
                     <div class="card">
                         <div class="card-body">
@@ -65,7 +66,7 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
+                <?php } ?>
             </div>
             
             <!-- Community Feedback Section -->

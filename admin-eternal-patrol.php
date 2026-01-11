@@ -1,14 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 $page_title = 'Manage Eternal Patrol';
 $page_description = 'Admin: Manage lost submarines';
+
 require_once 'config/database.php';
 
 // Admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
@@ -18,65 +20,68 @@ $error = '';
 // Add display_order column if it doesn't exist
 try {
     $stmt = $pdo->query("SHOW COLUMNS FROM lost_submarines LIKE 'display_order'");
-    if ($stmt->rowCount() == 0) {
-        $pdo->exec("ALTER TABLE lost_submarines ADD COLUMN display_order INT DEFAULT 0");
+    if (0 == $stmt->rowCount()) {
+        $pdo->exec('ALTER TABLE lost_submarines ADD COLUMN display_order INT DEFAULT 0');
     }
 } catch (PDOException $e) {
     // Column might already exist, that's fine
 }
 
 // Handle delete
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $id = (int)$_POST['id'];
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['action']) && 'delete' === $_POST['action']) {
+    $id = (int) $_POST['id'];
+
     try {
-        $stmt = $pdo->prepare("DELETE FROM lost_submarines WHERE id = ?");
+        $stmt = $pdo->prepare('DELETE FROM lost_submarines WHERE id = ?');
         $stmt->execute([$id]);
         $message = 'Submarine deleted successfully.';
     } catch (PDOException $e) {
-        $error = 'Error deleting submarine: ' . $e->getMessage();
+        $error = 'Error deleting submarine: '.$e->getMessage();
     }
 }
 
 // Handle reorder (drag and drop)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reorder') {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['action']) && 'reorder' === $_POST['action']) {
     header('Content-Type: application/json');
-    
+
     try {
-        $id = (int)$_POST['id'];
-        $newPosition = (int)$_POST['position']; // 0-based index
-        
+        $id = (int) $_POST['id'];
+        $newPosition = (int) $_POST['position']; // 0-based index
+
         // Get all submarines in current order
-        $stmt = $pdo->query("SELECT id, display_order FROM lost_submarines ORDER BY display_order ASC");
+        $stmt = $pdo->query('SELECT id, display_order FROM lost_submarines ORDER BY display_order ASC');
         $subs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // Find the submarine being moved
         $oldIndex = null;
         foreach ($subs as $index => $sub) {
             if ($sub['id'] == $id) {
                 $oldIndex = $index;
+
                 break;
             }
         }
-        
-        if ($oldIndex === null) {
+
+        if (null === $oldIndex) {
             echo json_encode(['success' => false, 'error' => 'Submarine not found']);
+
             exit;
         }
-        
+
         // Remove submarine from old position
         $movedSub = array_splice($subs, $oldIndex, 1)[0];
-        
+
         // Insert at new position
         array_splice($subs, $newPosition, 0, [$movedSub]);
-        
+
         // Update all display_order values
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("UPDATE lost_submarines SET display_order = ? WHERE id = ?");
+        $stmt = $pdo->prepare('UPDATE lost_submarines SET display_order = ? WHERE id = ?');
         foreach ($subs as $index => $sub) {
             $stmt->execute([$index + 1, $sub['id']]);
         }
         $pdo->commit();
-        
+
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
@@ -84,23 +89,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
+
     exit;
 }
 
 // Initialize display_order if needed
 try {
-    $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM lost_submarines WHERE display_order = 0");
+    $stmt = $pdo->query('SELECT COUNT(*) as cnt FROM lost_submarines WHERE display_order = 0');
     $result = $stmt->fetch();
     if ($result['cnt'] > 0) {
         // Set initial display order based on date_lost_sort
-        $stmt = $pdo->query("
+        $stmt = $pdo->query('
             SELECT id FROM lost_submarines 
             ORDER BY date_lost_sort ASC
-        ");
+        ');
         $subs = $stmt->fetchAll();
         $order = 1;
         foreach ($subs as $sub) {
-            $pdo->prepare("UPDATE lost_submarines SET display_order = ? WHERE id = ?")->execute([$order++, $sub['id']]);
+            $pdo->prepare('UPDATE lost_submarines SET display_order = ? WHERE id = ?')->execute([$order++, $sub['id']]);
         }
     }
 } catch (PDOException $e) {
@@ -109,23 +115,23 @@ try {
 
 // Get all submarines
 try {
-    $stmt = $pdo->query("
+    $stmt = $pdo->query('
         SELECT id, boat_number, name, designation, date_lost, location, display_order, date_lost_sort
         FROM lost_submarines 
         ORDER BY date_lost_sort IS NULL ASC, date_lost_sort ASC, boat_number ASC
-    ");
+    ');
     $submarines = $stmt->fetchAll();
 } catch (PDOException $e) {
-    $error = 'Error loading submarines: ' . $e->getMessage();
+    $error = 'Error loading submarines: '.$e->getMessage();
     $submarines = [];
 }
 
 // Get stats
 try {
-    $stats = $pdo->query("
+    $stats = $pdo->query('
         SELECT COUNT(*) as total
         FROM lost_submarines
-    ")->fetch();
+    ')->fetch();
     $totalBoats = $stats['total'] ?? 0;
 } catch (PDOException $e) {
     $totalBoats = 0;
@@ -136,7 +142,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title) ?> - Diesel-Electric Submarine FAQs</title>
+    <title><?php echo htmlspecialchars($page_title); ?> - Diesel-Electric Submarine FAQs</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -221,25 +227,25 @@ try {
             </div>
         </div>
 
-        <?php if ($message): ?>
+        <?php if ($message) { ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($message) ?>
+                <?php echo htmlspecialchars($message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if ($error): ?>
+        <?php if ($error) { ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($error) ?>
+                <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <!-- Stats -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $totalBoats ?></div>
+                    <div class="stats-number"><?php echo $totalBoats; ?></div>
                     <div class="text-muted">Total Boats</div>
                 </div>
             </div>
@@ -258,11 +264,11 @@ try {
         <!-- Submarines Table -->
         <div class="card bg-dark text-light">
             <div class="card-body">
-                <h3 class="card-title mb-4">All Submarines (<?= count($submarines) ?>)</h3>
+                <h3 class="card-title mb-4">All Submarines (<?php echo count($submarines); ?>)</h3>
                 
-                <?php if (empty($submarines)): ?>
+                <?php if (empty($submarines)) { ?>
                     <p class="text-muted">No submarines in database yet.</p>
-                <?php else: ?>
+                <?php } else { ?>
                     <div class="table-responsive">
                         <table class="table table-dark table-striped table-hover">
                             <thead>
@@ -278,30 +284,30 @@ try {
                                 </tr>
                             </thead>
                             <tbody id="submarines-tbody">
-                                <?php foreach ($submarines as $index => $sub): ?>
-                                    <tr draggable="true" data-id="<?= $sub['id'] ?>">
+                                <?php foreach ($submarines as $index => $sub) { ?>
+                                    <tr draggable="true" data-id="<?php echo $sub['id']; ?>">
                                         <td class="drag-handle" title="Drag to reorder">⋮⋮</td>
-                                        <td><?= $sub['id'] ?></td>
-                                        <td><?= htmlspecialchars($sub['boat_number']) ?></td>
-                                        <td><?= htmlspecialchars($sub['name']) ?></td>
-                                        <td><?= htmlspecialchars($sub['designation']) ?></td>
-                                        <td><?= htmlspecialchars($sub['date_lost']) ?></td>
-                                        <td><?= htmlspecialchars(substr($sub['location'], 0, 30)) ?><?= strlen($sub['location']) > 30 ? '...' : '' ?></td>
+                                        <td><?php echo $sub['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($sub['boat_number']); ?></td>
+                                        <td><?php echo htmlspecialchars($sub['name']); ?></td>
+                                        <td><?php echo htmlspecialchars($sub['designation']); ?></td>
+                                        <td><?php echo htmlspecialchars($sub['date_lost']); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($sub['location'], 0, 30)); ?><?php echo strlen($sub['location']) > 30 ? '...' : ''; ?></td>
                                         <td class="action-cell">
-                                            <a href="boat.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-info" target="_blank" title="View">👁️</a>
-                                            <a href="admin-eternal-patrol-edit.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-warning" title="Edit">✏️</a>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete <?= htmlspecialchars($sub['name']) ?>?');">
+                                            <a href="boat.php?id=<?php echo $sub['id']; ?>" class="btn btn-sm btn-info" target="_blank" title="View">👁️</a>
+                                            <a href="admin-eternal-patrol-edit.php?id=<?php echo $sub['id']; ?>" class="btn btn-sm btn-warning" title="Edit">✏️</a>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($sub['name']); ?>?');">
                                                 <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id" value="<?= $sub['id'] ?>">
+                                                <input type="hidden" name="id" value="<?php echo $sub['id']; ?>">
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php } ?>
                             </tbody>
                         </table>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
     </div>

@@ -1,12 +1,15 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once '../config/database.php';
+
 require_once '../includes/header.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -16,20 +19,20 @@ $search = trim($_GET['search'] ?? '');
 
 $where = [];
 $params = [];
-if ($status_filter !== '') {
+if ('' !== $status_filter) {
     $where[] = 'f.status = ?';
     $params[] = $status_filter;
 }
-if ($type_filter !== '') {
+if ('' !== $type_filter) {
     $where[] = 'f.feedback_type = ?';
     $params[] = $type_filter;
 }
-if ($search !== '') {
-    $like = '%' . $search . '%';
+if ('' !== $search) {
+    $like = '%'.$search.'%';
     $where[] = '(f.message LIKE ? OR f.subject LIKE ? OR f.name LIKE ? OR f.email LIKE ?)';
     array_push($params, $like, $like, $like, $like);
 }
-$whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+$whereSql = $where ? 'WHERE '.implode(' AND ', $where) : '';
 
 $stmt = $pdo->prepare("
     SELECT f.*, faq.title AS faq_title, c.name AS category_name
@@ -39,16 +42,20 @@ $stmt = $pdo->prepare("
         (f.category_id IS NOT NULL AND f.category_id = c.id) OR
         (faq.category_id = c.id)
     )
-    $whereSql
+    {$whereSql}
     ORDER BY f.created_at DESC
 ");
 $stmt->execute($params);
 $feedback = $stmt->fetchAll();
 
-function truncate_text($text, $len = 140) {
-    $text = trim((string)$text);
-    if (strlen($text) <= $len) return $text;
-    return substr($text, 0, $len - 3) . '...';
+function truncate_text($text, $len = 140)
+{
+    $text = trim((string) $text);
+    if (strlen($text) <= $len) {
+        return $text;
+    }
+
+    return substr($text, 0, $len - 3).'...';
 }
 ?>
 
@@ -63,22 +70,22 @@ function truncate_text($text, $len = 140) {
             <label class="form-label">Status</label>
             <select name="status" class="form-select">
                 <option value="">All</option>
-                <?php foreach (['pending','approved','rejected','implemented'] as $s): ?>
+                <?php foreach (['pending', 'approved', 'rejected', 'implemented'] as $s) { ?>
                     <option value="<?php echo $s; ?>" <?php echo $status_filter === $s ? 'selected' : ''; ?>>
                         <?php echo ucfirst($s); ?>
                     </option>
-                <?php endforeach; ?>
+                <?php } ?>
             </select>
         </div>
         <div class="col-md-3">
             <label class="form-label">Type</label>
             <select name="type" class="form-select">
                 <option value="">All</option>
-                <?php foreach (['correction','suggestion','new_faq','technical','general','praise'] as $t): ?>
+                <?php foreach (['correction', 'suggestion', 'new_faq', 'technical', 'general', 'praise'] as $t) { ?>
                     <option value="<?php echo $t; ?>" <?php echo $type_filter === $t ? 'selected' : ''; ?>>
                         <?php echo ucfirst(str_replace('_', ' ', $t)); ?>
                     </option>
-                <?php endforeach; ?>
+                <?php } ?>
             </select>
         </div>
         <div class="col-md-4">
@@ -109,14 +116,14 @@ function truncate_text($text, $len = 140) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($feedback)): ?>
+                        <?php if (empty($feedback)) { ?>
                             <tr><td colspan="8" class="text-center text-muted py-4">No feedback found.</td></tr>
-                        <?php else: ?>
-                            <?php foreach ($feedback as $fb): ?>
+                        <?php } else { ?>
+                            <?php foreach ($feedback as $fb) { ?>
                                 <tr>
                                     <td>
-                                        <a href="feedback-view.php?id=<?php echo (int)$fb['id']; ?>">
-                                            <?php echo (int)$fb['id']; ?>
+                                        <a href="feedback-view.php?id=<?php echo (int) $fb['id']; ?>">
+                                            <?php echo (int) $fb['id']; ?>
                                         </a>
                                     </td>
                                     <td><?php echo htmlspecialchars(date('m/d/Y', strtotime($fb['created_at']))); ?></td>
@@ -126,13 +133,13 @@ function truncate_text($text, $len = 140) {
                                     <td><?php echo htmlspecialchars(truncate_text($fb['message'])); ?></td>
                                     <td>
                                         <?php echo htmlspecialchars($fb['name'] ?: 'Anonymous'); ?>
-                                        <?php if (!empty($fb['email'])): ?>
+                                        <?php if (!empty($fb['email'])) { ?>
                                             <br><small class="text-muted"><?php echo htmlspecialchars($fb['email']); ?></small>
-                                        <?php endif; ?>
+                                        <?php } ?>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                            <?php } ?>
+                        <?php } ?>
                     </tbody>
                 </table>
             </div>

@@ -1,7 +1,9 @@
 <?php
 $page_title = 'Feedback & Suggestions';
 $page_description = 'Help us improve our submarine FAQ collection by sharing your feedback, corrections, and suggestions.';
+
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 
 // Handle feedback submission
@@ -9,43 +11,42 @@ $submitted = false;
 $error = null;
 
 // Capture context
-$faq_context_id = !empty($_GET['faq_id']) ? (int)$_GET['faq_id'] : null;
-$category_context_id = !empty($_GET['category_id']) ? (int)$_GET['category_id'] : null;
+$faq_context_id = !empty($_GET['faq_id']) ? (int) $_GET['faq_id'] : null;
+$category_context_id = !empty($_GET['category_id']) ? (int) $_GET['category_id'] : null;
 // Allow legacy ?category=name to resolve to an id
 if (!$category_context_id && !empty($_GET['category'])) {
-    $stmt = $pdo->prepare("SELECT id FROM categories WHERE name = ? LIMIT 1");
+    $stmt = $pdo->prepare('SELECT id FROM categories WHERE name = ? LIMIT 1');
     $stmt->execute([$_GET['category']]);
     $row = $stmt->fetch();
     if ($row) {
-        $category_context_id = (int)$row['id'];
+        $category_context_id = (int) $row['id'];
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     try {
         $name = sanitize_input($_POST['name'] ?? '');
         $email = sanitize_input($_POST['email'] ?? '');
         // Since we removed type/rating/subject selectors, use safe defaults
         $feedback_type = 'general';
-        $faq_id = !empty($_POST['faq_id']) ? (int)$_POST['faq_id'] : $faq_context_id;
-        $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : $category_context_id;
+        $faq_id = !empty($_POST['faq_id']) ? (int) $_POST['faq_id'] : $faq_context_id;
+        $category_id = !empty($_POST['category_id']) ? (int) $_POST['category_id'] : $category_context_id;
         $subject = '';
         $message = sanitize_input($_POST['message'] ?? '');
         $rating = null;
-        
+
         if (empty($message)) {
             throw new Exception('Message is required');
         }
-        
+
         // Insert feedback into database
         $stmt = $pdo->prepare("
             INSERT INTO feedback (name, email, feedback_type, faq_id, category_id, subject, message, rating, status, created_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
         ");
-        
+
         $stmt->execute([$name, $email, $feedback_type, $faq_id, $category_id, $subject, $message, $rating]);
         $submitted = true;
-        
     } catch (Exception $e) {
         $error = $e->getMessage();
     }
@@ -56,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="row">
         <div class="col-lg-8 mx-auto">
             
-            <?php if ($submitted): ?>
+            <?php if ($submitted) { ?>
                 <div class="alert alert-success">
                     <h4><i class="fas fa-check-circle"></i> Thank You!</h4>
                     <p>Your feedback has been submitted successfully. We appreciate your contribution to improving our submarine FAQ collection!</p>
                     <a href="index.php" class="btn btn-primary">Return to Home</a>
                 </div>
-            <?php else: ?>
+            <?php } else { ?>
             
             <div class="card">
                 <div class="card-header bg-primary text-white">
@@ -73,11 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="card-body">
                     
-                    <?php if ($error): ?>
+                    <?php if ($error) { ?>
                         <div class="alert alert-danger">
                             <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <p class="lead">Help us improve our submarine FAQ collection! Your feedback is valuable whether you're a history buff, veteran, bubblehead, researcher, or just curious about WWII submarines.</p>
                     
@@ -113,12 +114,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <?php if ($faq_context_id): ?>
+                        <?php if ($faq_context_id) { ?>
                             <input type="hidden" name="faq_id" value="<?php echo $faq_context_id; ?>">
-                        <?php endif; ?>
-                        <?php if ($category_context_id): ?>
+                        <?php } ?>
+                        <?php if ($category_context_id) { ?>
                             <input type="hidden" name="category_id" value="<?php echo $category_context_id; ?>">
-                        <?php endif; ?>
+                        <?php } ?>
 
                         <div class="mb-3">
                             <label for="message" class="form-label">Your Message *</label>
@@ -151,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <?php endif; ?>
+            <?php } ?>
             
             <!-- Feedback Statistics -->
             <div class="card mt-4">
@@ -175,33 +176,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             WHERE status IN ('approved', 'pending')
                         ");
                         $stats = $stmt->fetch();
-                        
+
                         if ($stats && $stats['total_feedback'] > 0) {
                             echo "<div class='row text-center'>";
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-primary'>" . $stats['total_feedback'] . "</h4>";
+                            echo "<h4 class='text-primary'>".$stats['total_feedback'].'</h4>';
                             echo "<p class='mb-0 small'>Total Feedback</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-success'>" . round($stats['avg_rating'] ?? 0, 1) . "/5</h4>";
+                            echo "<h4 class='text-success'>".round($stats['avg_rating'] ?? 0, 1).'/5</h4>';
                             echo "<p class='mb-0 small'>Average Rating</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-info'>" . $stats['corrections'] . "</h4>";
+                            echo "<h4 class='text-info'>".$stats['corrections'].'</h4>';
                             echo "<p class='mb-0 small'>Corrections</p>";
-                            echo "</div>";
+                            echo '</div>';
                             echo "<div class='col-md-3'>";
-                            echo "<h4 class='text-warning'>" . $stats['suggestions'] . "</h4>";
+                            echo "<h4 class='text-warning'>".$stats['suggestions'].'</h4>';
                             echo "<p class='mb-0 small'>Suggestions</p>";
-                            echo "</div>";
-                            echo "</div>";
+                            echo '</div>';
+                            echo '</div>';
                         } else {
                             echo "<p class='text-center text-muted'>Be the first to leave feedback!</p>";
                         }
                     } catch (Exception $e) {
                         echo "<p class='text-center text-muted'>Help us build a community of submarine history enthusiasts!</p>";
                     }
-                    ?>
+?>
                 </div>
             </div>
             

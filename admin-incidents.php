@@ -1,12 +1,14 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once 'config/database.php';
 
 // Admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
@@ -15,32 +17,33 @@ $error = '';
 
 // Handle delete
 if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
+    $id = (int) $_GET['delete'];
+
     try {
-        $stmt = $pdo->prepare("DELETE FROM submarine_incidents WHERE id = ?");
+        $stmt = $pdo->prepare('DELETE FROM submarine_incidents WHERE id = ?');
         $stmt->execute([$id]);
-        $message = "Incident deleted successfully!";
+        $message = 'Incident deleted successfully!';
     } catch (PDOException $e) {
-        $error = "Error deleting incident: " . $e->getMessage();
+        $error = 'Error deleting incident: '.$e->getMessage();
     }
 }
 
 // Get all incidents
 try {
-    $stmt = $pdo->query("SELECT * FROM submarine_incidents ORDER BY date ASC");
+    $stmt = $pdo->query('SELECT * FROM submarine_incidents ORDER BY date ASC');
     $incidents = $stmt->fetchAll();
 } catch (PDOException $e) {
-    $error = "Error loading incidents: " . $e->getMessage();
+    $error = 'Error loading incidents: '.$e->getMessage();
     $incidents = [];
 }
 
 // Get statistics
 $stats = [
     'total' => count($incidents),
-    'pre_ww2' => count(array_filter($incidents, fn($i) => $i['era'] === 'Pre-WW2')),
-    'ww2' => count(array_filter($incidents, fn($i) => $i['era'] === 'WW2')),
-    'post_ww2' => count(array_filter($incidents, fn($i) => $i['era'] === 'Post-WW2')),
-    'total_casualties' => array_sum(array_column($incidents, 'casualties'))
+    'pre_ww2' => count(array_filter($incidents, fn ($i) => 'Pre-WW2' === $i['era'])),
+    'ww2' => count(array_filter($incidents, fn ($i) => 'WW2' === $i['era'])),
+    'post_ww2' => count(array_filter($incidents, fn ($i) => 'Post-WW2' === $i['era'])),
+    'total_casualties' => array_sum(array_column($incidents, 'casualties')),
 ];
 ?>
 <!DOCTYPE html>
@@ -109,43 +112,43 @@ $stats = [
             </div>
         </div>
 
-        <?php if ($message): ?>
+        <?php if ($message) { ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($message) ?>
+                <?php echo htmlspecialchars($message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if ($error): ?>
+        <?php if ($error) { ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($error) ?>
+                <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <!-- Statistics -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $stats['total'] ?></div>
+                    <div class="stats-number"><?php echo $stats['total']; ?></div>
                     <div class="text-muted">Total Incidents</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $stats['pre_ww2'] ?></div>
+                    <div class="stats-number"><?php echo $stats['pre_ww2']; ?></div>
                     <div class="text-muted">Pre-WW2</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $stats['ww2'] ?></div>
+                    <div class="stats-number"><?php echo $stats['ww2']; ?></div>
                     <div class="text-muted">WW2</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $stats['post_ww2'] ?></div>
+                    <div class="stats-number"><?php echo $stats['post_ww2']; ?></div>
                     <div class="text-muted">Post-WW2</div>
                 </div>
             </div>
@@ -154,7 +157,7 @@ $stats = [
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number"><?= $stats['total_casualties'] ?></div>
+                    <div class="stats-number"><?php echo $stats['total_casualties']; ?></div>
                     <div class="text-muted">Total Casualties</div>
                 </div>
             </div>
@@ -183,28 +186,28 @@ $stats = [
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($incidents as $incident): ?>
+                            <?php foreach ($incidents as $incident) { ?>
                             <tr>
-                                <td><?= date('M d, Y', strtotime($incident['date'])) ?></td>
-                                <td><?= htmlspecialchars($incident['submarine_name']) ?></td>
-                                <td><?= htmlspecialchars($incident['hull_number'] ?? '-') ?></td>
-                                <td><?= htmlspecialchars($incident['incident_type']) ?></td>
-                                <td><?= $incident['casualties'] ?></td>
-                                <td><?= htmlspecialchars($incident['status']) ?></td>
+                                <td><?php echo date('M d, Y', strtotime($incident['date'])); ?></td>
+                                <td><?php echo htmlspecialchars($incident['submarine_name']); ?></td>
+                                <td><?php echo htmlspecialchars($incident['hull_number'] ?? '-'); ?></td>
+                                <td><?php echo htmlspecialchars($incident['incident_type']); ?></td>
+                                <td><?php echo $incident['casualties']; ?></td>
+                                <td><?php echo htmlspecialchars($incident['status']); ?></td>
                                 <td>
-                                    <span class="badge era-badge <?php 
-                                        echo $incident['era'] === 'Pre-WW2' ? 'bg-secondary' : 
-                                             ($incident['era'] === 'WW2' ? 'bg-danger' : 'bg-info'); 
-                                    ?>">
-                                        <?= htmlspecialchars($incident['era']) ?>
+                                    <span class="badge era-badge <?php
+                                        echo 'Pre-WW2' === $incident['era'] ? 'bg-secondary'
+                                             : ('WW2' === $incident['era'] ? 'bg-danger' : 'bg-info');
+                                ?>">
+                                        <?php echo htmlspecialchars($incident['era']); ?>
                                     </span>
                                 </td>
                                 <td class="action-cell">
-                                    <a href="admin-incidents-edit.php?id=<?= $incident['id'] ?>" 
+                                    <a href="admin-incidents-edit.php?id=<?php echo $incident['id']; ?>" 
                                        class="btn btn-sm btn-primary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="?delete=<?= $incident['id'] ?>" 
+                                    <a href="?delete=<?php echo $incident['id']; ?>" 
                                        class="btn btn-sm btn-danger" 
                                        onclick="return confirm('Are you sure you want to delete this incident?')" 
                                        title="Delete">
@@ -212,7 +215,7 @@ $stats = [
                                     </a>
                                 </td>
                             </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>

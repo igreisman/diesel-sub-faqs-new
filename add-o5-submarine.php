@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -38,7 +39,7 @@ $data = [
     'name' => 'O-5',
     'designation' => 'USS O-5 (SS-66)',
     'class_info' => 'O class submarine completed in June of 1918 by Fore River Shipbuilding Company in Quincy, MA.',
-    'last_captain' => NULL,
+    'last_captain' => null,
     'date_lost' => '28 October 1923',
     'location' => 'Off Bahia Limon, Panama',
     'fatalities' => 'Three, 16 escaped.',
@@ -54,15 +55,14 @@ The O-5 was initially held responsible for the collision. That would be reversed
 
 After repairs, O-5 departed on 3 November 1918 for European waters as part of a 20-submarine contingent. However, before the boats reached the Azores, the war had ended. The O-5 was then assigned to duties at the Submarine School at New London. In 1923, O-5 was assigned to Coco Solo in the Panama Canal Zone for a brief tour.',
     'era' => 'interwar',
-    'year_lost' => 1923
+    'year_lost' => 1923,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS O-5 (SS-66) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
     echo "\nNote: O-5 was salvaged and crew rescued - includes Medal of Honor story\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

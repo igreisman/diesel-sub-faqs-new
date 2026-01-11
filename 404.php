@@ -2,8 +2,9 @@
 if (!defined('SITE_NAME')) {
     define('SITE_NAME', 'Diesel-Electric Submarine FAQs');
 }
-$page_title = "Page Not Found";
-require_once __DIR__ . '/includes/header.php';
+$page_title = 'Page Not Found';
+
+require_once __DIR__.'/includes/header.php';
 ?>
 
 <main class="container py-5">
@@ -24,4 +25,4 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 </main>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__.'/includes/footer.php'; ?>

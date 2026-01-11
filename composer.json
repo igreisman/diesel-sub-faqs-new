@@ -1,0 +1,8 @@
+{
+  "name": "diesel-electric-submarine-faqs",
+  "description": "Documentation and code for Diesel-Electric Submarine FAQs project.",
+  "type": "project",
+  "require": {
+    "php": ">=8.0"
+  }
+}

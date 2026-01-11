@@ -1,6 +1,8 @@
 <?php
 session_start();
+
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 
 // Get all published submarine class articles
@@ -21,7 +23,7 @@ $eraMapping = [
     'Nuclear' => 'postwar',
     'Cold War' => 'postwar',
     'Experimental' => 'postwar',
-    'Modern' => 'postwar'
+    'Modern' => 'postwar',
 ];
 
 // Map class to era
@@ -40,7 +42,7 @@ $classToEra = [
     'Halibut' => 'Cold War', 'Los Angeles' => 'Cold War', 'Seawolf' => 'Cold War',
     'Albacore' => 'Experimental', 'NR-1' => 'Experimental',
     'Ohio' => 'Modern', 'Ohio (SSGN conversion)' => 'Modern', 'Virginia' => 'Modern',
-    'Jimmy Carter (SSN-23)' => 'Modern', 'Columbia' => 'Modern'
+    'Jimmy Carter (SSN-23)' => 'Modern', 'Columbia' => 'Modern',
 ];
 
 // Group articles by tab
@@ -48,7 +50,7 @@ $articlesByEra = [
     'early' => [],
     'interwar' => [],
     'ww2' => [],
-    'postwar' => []
+    'postwar' => [],
 ];
 
 foreach ($articles as $article) {
@@ -122,32 +124,32 @@ foreach ($articles as $article) {
                 <div class="card-body">
                     <p class="lead">From the Holland purchase to World War I service, early US submarines were experimental vessels that proved the concept of underwater warfare.</p>
                     
-                    <?php if (empty($articlesByEra['early'])): ?>
+                    <?php if (empty($articlesByEra['early'])) { ?>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> Content for early submarine classes coming soon. Check back later or contact admin to add articles.
                         </div>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <!-- Accordion for Detailed Information -->
                         <div class="accordion" id="earlyAccordion">
-                            <?php foreach ($articlesByEra['early'] as $index => $article): ?>
+                            <?php foreach ($articlesByEra['early'] as $index => $article) { ?>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button <?= $index > 0 ? 'collapsed' : '' ?>" type="button" 
-                                                data-bs-toggle="collapse" data-bs-target="#early-<?= $article['id'] ?>">
-                                            <?= htmlspecialchars($article['title']) ?>
+                                        <button class="accordion-button <?php echo $index > 0 ? 'collapsed' : ''; ?>" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#early-<?php echo $article['id']; ?>">
+                                            <?php echo htmlspecialchars($article['title']); ?>
                                         </button>
                                     </h2>
-                                    <div id="early-<?= $article['id'] ?>" 
-                                         class="accordion-collapse collapse <?= $index === 0 ? 'show' : '' ?>" 
+                                    <div id="early-<?php echo $article['id']; ?>" 
+                                         class="accordion-collapse collapse <?php echo 0 === $index ? 'show' : ''; ?>" 
                                          data-bs-parent="#earlyAccordion">
                                         <div class="accordion-body">
-                                            <?= $article['content'] ?>
+                                            <?php echo $article['content']; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -161,32 +163,32 @@ foreach ($articles as $article) {
                 <div class="card-body">
                     <p class="lead">Between the World Wars, submarine design matured with longer range, better habitability, and improved performance.</p>
                     
-                    <?php if (empty($articlesByEra['interwar'])): ?>
+                    <?php if (empty($articlesByEra['interwar'])) { ?>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> Content for interwar submarine classes coming soon. Check back later or contact admin to add articles.
                         </div>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <!-- Accordion for Interwar Classes -->
                         <div class="accordion" id="interwarAccordion">
-                            <?php foreach ($articlesByEra['interwar'] as $index => $article): ?>
+                            <?php foreach ($articlesByEra['interwar'] as $index => $article) { ?>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button <?= $index > 0 ? 'collapsed' : '' ?>" type="button" 
-                                                data-bs-toggle="collapse" data-bs-target="#interwar-<?= $article['id'] ?>">
-                                            <?= htmlspecialchars($article['title']) ?>
+                                        <button class="accordion-button <?php echo $index > 0 ? 'collapsed' : ''; ?>" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#interwar-<?php echo $article['id']; ?>">
+                                            <?php echo htmlspecialchars($article['title']); ?>
                                         </button>
                                     </h2>
-                                    <div id="interwar-<?= $article['id'] ?>" 
-                                         class="accordion-collapse collapse <?= $index === 0 ? 'show' : '' ?>" 
+                                    <div id="interwar-<?php echo $article['id']; ?>" 
+                                         class="accordion-collapse collapse <?php echo 0 === $index ? 'show' : ''; ?>" 
                                          data-bs-parent="#interwarAccordion">
                                         <div class="accordion-body">
-                                            <?= $article['content'] ?>
+                                            <?php echo $article['content']; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -200,32 +202,32 @@ foreach ($articles as $article) {
                 <div class="card-body">
                     <p class="lead">The workhorses of the Pacific War: Gato, Balao, and Tench class submarines that dominated Japanese shipping lanes.</p>
                     
-                    <?php if (empty($articlesByEra['ww2'])): ?>
+                    <?php if (empty($articlesByEra['ww2'])) { ?>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> Content for WW2 submarine classes coming soon. Check back later or contact admin to add articles.
                         </div>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <!-- Accordion for WW2 Classes -->
                         <div class="accordion" id="ww2Accordion">
-                            <?php foreach ($articlesByEra['ww2'] as $index => $article): ?>
+                            <?php foreach ($articlesByEra['ww2'] as $index => $article) { ?>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button <?= $index > 0 ? 'collapsed' : '' ?>" type="button" 
-                                                data-bs-toggle="collapse" data-bs-target="#ww2-<?= $article['id'] ?>">
-                                            <?= htmlspecialchars($article['title']) ?>
+                                        <button class="accordion-button <?php echo $index > 0 ? 'collapsed' : ''; ?>" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#ww2-<?php echo $article['id']; ?>">
+                                            <?php echo htmlspecialchars($article['title']); ?>
                                         </button>
                                     </h2>
-                                    <div id="ww2-<?= $article['id'] ?>" 
-                                         class="accordion-collapse collapse <?= $index === 0 ? 'show' : '' ?>" 
+                                    <div id="ww2-<?php echo $article['id']; ?>" 
+                                         class="accordion-collapse collapse <?php echo 0 === $index ? 'show' : ''; ?>" 
                                          data-bs-parent="#ww2Accordion">
                                         <div class="accordion-body">
-                                            <?= $article['content'] ?>
+                                            <?php echo $article['content']; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -239,32 +241,32 @@ foreach ($articles as $article) {
                 <div class="card-body">
                     <p class="lead">From GUPPY conversions to nuclear power, the post-war era transformed submarine warfare forever.</p>
                     
-                    <?php if (empty($articlesByEra['postwar'])): ?>
+                    <?php if (empty($articlesByEra['postwar'])) { ?>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> Content for post-war submarine classes coming soon. Check back later or contact admin to add articles.
                         </div>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <!-- Accordion for Post-War -->
                         <div class="accordion" id="postwarAccordion">
-                            <?php foreach ($articlesByEra['postwar'] as $index => $article): ?>
+                            <?php foreach ($articlesByEra['postwar'] as $index => $article) { ?>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button <?= $index > 0 ? 'collapsed' : '' ?>" type="button" 
-                                                data-bs-toggle="collapse" data-bs-target="#postwar-<?= $article['id'] ?>">
-                                            <?= htmlspecialchars($article['title']) ?>
+                                        <button class="accordion-button <?php echo $index > 0 ? 'collapsed' : ''; ?>" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#postwar-<?php echo $article['id']; ?>">
+                                            <?php echo htmlspecialchars($article['title']); ?>
                                         </button>
                                     </h2>
-                                    <div id="postwar-<?= $article['id'] ?>" 
-                                         class="accordion-collapse collapse <?= $index === 0 ? 'show' : '' ?>" 
+                                    <div id="postwar-<?php echo $article['id']; ?>" 
+                                         class="accordion-collapse collapse <?php echo 0 === $index ? 'show' : ''; ?>" 
                                          data-bs-parent="#postwarAccordion">
                                         <div class="accordion-body">
-                                            <?= $article['content'] ?>
+                                            <?php echo $article['content']; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
         </div>

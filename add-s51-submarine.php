@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -54,14 +55,13 @@ The Navy claimed that it was not reasonable for submarines to follow the rules o
 NOTE: One challenge for submarines in peacetime is that they are low to the water and difficult to see. Even if the running lights can be seen, the configuration of the lights appears to be that of a much smaller vessel, such as a fishing boat. Running lights are rarely used during wartime.',
     'prior_history' => 'S-51 was initially based at New London, CT as part of Submarine Division 4 (SUBDIV4). She participated in routine peacetime training. In January of 1924, she sailed to the Panama Canal Zone to participate in winter fleet maneuvers. After visiting various islands in the Caribbean, S-51 returned to New York City on 30 April 1924. She then resumed her normal training cycles.',
     'era' => 'interwar',
-    'year_lost' => 1925
+    'year_lost' => 1925,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS S-51 (SS-162) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

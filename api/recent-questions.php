@@ -1,10 +1,13 @@
 <?php
+
 header('Content-Type: application/json');
+
 require_once '../config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+if ('GET' !== $_SERVER['REQUEST_METHOD']) {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+
     exit;
 }
 
@@ -25,28 +28,26 @@ try {
     $questions = $stmt->fetchAll();
 
     // Format results
-    $formattedQuestions = array_map(function($row) {
+    $formattedQuestions = array_map(function ($row) {
         return [
             'id' => $row['id'],
             'title' => $row['title'],
             'slug' => $row['slug'],
             'category' => $row['category'],
             'views' => $row['views'],
-            'date' => format_date($row['created_at'])
+            'date' => format_date($row['created_at']),
         ];
     }, $questions);
 
     echo json_encode([
         'success' => true,
-        'questions' => $formattedQuestions
+        'questions' => $formattedQuestions,
     ]);
-
 } catch (Exception $e) {
-    error_log("Recent questions error: " . $e->getMessage());
+    error_log('Recent questions error: '.$e->getMessage());
     http_response_code(500);
     echo json_encode([
-        'success' => false, 
-        'message' => 'Unable to load recent questions'
+        'success' => false,
+        'message' => 'Unable to load recent questions',
     ]);
 }
-?>

@@ -1,12 +1,15 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
 require_once '../config/database.php';
+
 require_once '../includes/header.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -14,39 +17,39 @@ $success = null;
 $error = null;
 
 // Fetch FAQs for dropdown
-$categories = $pdo->query("SELECT id, name FROM categories ORDER BY name ASC")->fetchAll();
+$categories = $pdo->query('SELECT id, name FROM categories ORDER BY name ASC')->fetchAll();
 $faqs = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $faq_id = (int)($_POST['faq_id'] ?? 0);
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
+    $faq_id = (int) ($_POST['faq_id'] ?? 0);
     $contributor_name = trim($_POST['contributor_name'] ?? '');
     $contributed_at = trim($_POST['contributed_at'] ?? '');
     $notes = trim($_POST['notes'] ?? '');
 
-    if ($faq_id <= 0 || $contributor_name === '') {
-        $error = "FAQ and contributor name are required.";
+    if ($faq_id <= 0 || '' === $contributor_name) {
+        $error = 'FAQ and contributor name are required.';
     } else {
-        if ($contributed_at !== '') {
+        if ('' !== $contributed_at) {
             $dt = date_create($contributed_at);
             $contributed_at = $dt ? $dt->format('Y-m-d') : null;
         } else {
             $contributed_at = null;
         }
 
-        $stmt = $pdo->prepare("INSERT INTO faq_contributions (faq_id, contributor_name, contributed_at, notes) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$faq_id, $contributor_name, $contributed_at, $notes !== '' ? $notes : null]);
-        $success = "Contribution recorded.";
+        $stmt = $pdo->prepare('INSERT INTO faq_contributions (faq_id, contributor_name, contributed_at, notes) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$faq_id, $contributor_name, $contributed_at, '' !== $notes ? $notes : null]);
+        $success = 'Contribution recorded.';
     }
 }
 
 // Recent contributions
-$recent = $pdo->query("
+$recent = $pdo->query('
     SELECT fc.id, fc.contributor_name, fc.contributed_at, fc.notes, f.title, fc.faq_id
     FROM faq_contributions fc
     JOIN faqs f ON fc.faq_id = f.id
     ORDER BY fc.contributed_at DESC, fc.id DESC
     LIMIT 50
-")->fetchAll();
+')->fetchAll();
 ?>
 
 <div class="container mt-4">
@@ -57,18 +60,18 @@ $recent = $pdo->query("
         </a>
     </div>
 
-    <?php if ($success): ?>
+    <?php if ($success) { ?>
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    <?php endif; ?>
-    <?php if ($error): ?>
+    <?php } ?>
+    <?php if ($error) { ?>
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    <?php endif; ?>
+    <?php } ?>
 
     <div class="card mb-4">
         <div class="card-header">
@@ -80,9 +83,9 @@ $recent = $pdo->query("
                     <label class="form-label">Category</label>
                     <select name="category_id" id="category_id" class="form-select">
                         <option value="">Select Category</option>
-                        <?php foreach ($categories as $cat): ?>
+                        <?php foreach ($categories as $cat) { ?>
                             <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -117,9 +120,9 @@ $recent = $pdo->query("
             <h5 class="mb-0"><i class="fas fa-list"></i> Recent Contributions</h5>
         </div>
         <div class="card-body">
-            <?php if (empty($recent)): ?>
+            <?php if (empty($recent)) { ?>
                 <p class="text-muted">No contributions recorded yet.</p>
-            <?php else: ?>
+            <?php } else { ?>
                 <div class="table-responsive">
                     <table class="table table-sm align-middle">
                         <thead>
@@ -131,18 +134,18 @@ $recent = $pdo->query("
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($recent as $row): ?>
+                            <?php foreach ($recent as $row) { ?>
                                 <tr>
                                     <td><a href="../faq.php?id=<?php echo $row['faq_id']; ?>" target="_blank"><?php echo htmlspecialchars($row['title']); ?></a></td>
                                     <td><?php echo htmlspecialchars($row['contributor_name']); ?></td>
                                     <td><?php echo $row['contributed_at'] ? date('M j, Y', strtotime($row['contributed_at'])) : '—'; ?></td>
                                     <td><?php echo $row['notes'] ? nl2br(htmlspecialchars($row['notes'])) : '<span class="text-muted">—</span>'; ?></td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                     </table>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 </div>

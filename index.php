@@ -1,13 +1,14 @@
 <?php
 // Redirect all visitors to the Coming Soon page
 header('Location: coming-soon.html');
-exit;
 
+exit;
 
 // Check if this is the user's first visit
 if (!isset($_COOKIE['visited']) && !isset($_GET['skip_welcome'])) {
     header('Location: welcome.html');
-    exit();
+
+    exit;
 }
 
 // Set cookie for future visits (expires in 1 year)
@@ -16,27 +17,30 @@ if (!isset($_COOKIE['visited'])) {
 }
 
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 
 // Load categories ordered by sort_order with FAQ counts
 $categoryCards = [];
+
 try {
-    $stmt = $pdo->query("
+    $stmt = $pdo->query('
         SELECT c.id, c.name, c.description, c.icon, COUNT(f.id) as faq_count
         FROM categories c
         LEFT JOIN faqs f ON c.id = f.category_id
         GROUP BY c.id, c.name, c.description, c.icon
         ORDER BY c.sort_order ASC, c.name ASC
-    ");
+    ');
     $categoryCards = $stmt->fetchAll();
 } catch (Exception $e) {
     $categoryCards = [];
 }
 
-function category_icon_fallback($name, $icon) {
+function category_icon_fallback($name, $icon)
+{
     // Treat empty or default question icon as missing
-    $icon = trim((string)$icon);
-    if (!empty($icon) && stripos($icon, 'question-circle') === false) {
+    $icon = trim((string) $icon);
+    if (!empty($icon) && false === stripos($icon, 'question-circle')) {
         return $icon;
     }
     $map = [
@@ -49,6 +53,7 @@ function category_icon_fallback($name, $icon) {
         'attacks and battles, small and large' => 'fas fa-crosshairs',
     ];
     $key = strtolower(trim($name));
+
     return $map[$key] ?? 'fas fa-ship';
 }
 
@@ -82,14 +87,14 @@ if (empty($categoryCards)) {
         <div class="col-md-12">
             <h2>Browse by Category</h2>
             <div class="category-grid">
-                <?php foreach ($categoryCards as $cat): ?>
+                <?php foreach ($categoryCards as $cat) { ?>
                 <div class="category-card">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">
                                 <i class="<?php echo htmlspecialchars(category_icon_fallback($cat['name'], $cat['icon'] ?? '')); ?>"></i>
                                 <?php echo htmlspecialchars($cat['name']); ?>
-                                <small class="text-muted">(<?php echo isset($cat['faq_count']) ? $cat['faq_count'] : 0; ?>)</small>
+                                <small class="text-muted">(<?php echo $cat['faq_count'] ?? 0; ?>)</small>
                             </h5>
                             <a href="category.php?cat=<?php echo urlencode($cat['name']); ?>" class="btn btn-primary">
                                 Explore FAQs
@@ -97,7 +102,7 @@ if (empty($categoryCards)) {
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
+                <?php } ?>
                 <!-- Lost Submarines Card -->
                 <div class="category-card">
                     <div class="card bg-warning text-dark">

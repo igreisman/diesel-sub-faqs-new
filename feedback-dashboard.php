@@ -1,5 +1,6 @@
 <?php
 require_once 'config/database.php';
+
 require_once 'includes/header.php';
 
 // Get feedback statistics
@@ -7,7 +8,7 @@ try {
     // Total feedback count
     $stmt = $pdo->query("SELECT COUNT(*) as total FROM feedback WHERE status = 'approved'");
     $total_feedback = $stmt->fetch()['total'];
-    
+
     // Recent feedback
     $stmt = $pdo->query("
         SELECT f.*, fq.title as faq_title, c.name as category_name 
@@ -19,9 +20,10 @@ try {
         LIMIT 10
     ");
     $recent_feedback = $stmt->fetchAll();
-    
+
     // Quick feedback stats (if table exists)
     $quick_stats = [];
+
     try {
         $stmt = $pdo->query("
             SELECT value, COUNT(*) as count 
@@ -33,7 +35,7 @@ try {
     } catch (Exception $e) {
         // Table might not exist yet
     }
-    
+
     // Top categories by feedback
     $stmt = $pdo->query("
         SELECT c.name, COUNT(f.id) as feedback_count
@@ -46,12 +48,11 @@ try {
         LIMIT 6
     ");
     $category_stats = $stmt->fetchAll();
-    
 } catch (Exception $e) {
     $error = $e->getMessage();
 }
 
-$page_title = "Community Feedback Dashboard";
+$page_title = 'Community Feedback Dashboard';
 ?>
 
 <div class="container mt-4">
@@ -84,13 +85,15 @@ $page_title = "Community Feedback Dashboard";
                     <div class="card bg-success text-white">
                         <div class="card-body text-center">
                             <i class="fas fa-thumbs-up fa-2x mb-2"></i>
-                            <h3><?php 
+                            <h3><?php
                                 $helpful_count = 0;
-                                foreach ($quick_stats as $stat) {
-                                    if ($stat['value'] == 'helpful') $helpful_count = $stat['count'];
-                                }
-                                echo number_format($helpful_count);
-                            ?></h3>
+foreach ($quick_stats as $stat) {
+    if ('helpful' == $stat['value']) {
+        $helpful_count = $stat['count'];
+    }
+}
+echo number_format($helpful_count);
+?></h3>
                             <small>Helpful Ratings</small>
                         </div>
                     </div>
@@ -123,47 +126,47 @@ $page_title = "Community Feedback Dashboard";
                             <h5><i class="fas fa-history"></i> Recent Community Contributions</h5>
                         </div>
                         <div class="card-body">
-                            <?php if (empty($recent_feedback)): ?>
+                            <?php if (empty($recent_feedback)) { ?>
                                 <div class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                     <h5>Be the First to Contribute!</h5>
                                     <p class="text-muted">No feedback submissions yet. Help us improve by sharing your thoughts!</p>
                                     <a href="feedback.php" class="btn btn-primary">Share Feedback</a>
                                 </div>
-                            <?php else: ?>
+                            <?php } else { ?>
                                 <div class="list-group list-group-flush">
-                                    <?php foreach ($recent_feedback as $item): ?>
+                                    <?php foreach ($recent_feedback as $item) { ?>
                                         <div class="list-group-item">
                                             <div class="d-flex w-100 justify-content-between">
                                                 <h6 class="mb-1">
                                                     <i class="fas fa-comment-dots text-primary"></i>
-                                                    <?php 
-                                                    if ($item['faq_title']) {
-                                                        echo 'Feedback on: ' . htmlspecialchars($item['faq_title']);
-                                                    } else {
-                                                        echo 'General ' . ucfirst($item['feedback_type']) . ' Feedback';
-                                                    }
-                                                    ?>
+                                                    <?php
+                        if ($item['faq_title']) {
+                            echo 'Feedback on: '.htmlspecialchars($item['faq_title']);
+                        } else {
+                            echo 'General '.ucfirst($item['feedback_type']).' Feedback';
+                        }
+                                        ?>
                                                 </h6>
                                                 <small><?php echo date('M j, Y', strtotime($item['created_at'])); ?></small>
                                             </div>
-                                            <?php if ($item['category_name']): ?>
+                                            <?php if ($item['category_name']) { ?>
                                                 <p class="mb-1"><small class="text-muted">Category: <?php echo htmlspecialchars($item['category_name']); ?></small></p>
-                                            <?php endif; ?>
+                                            <?php } ?>
                                             <small>
-                                                <span class="badge bg-<?php 
-                                                    echo match($item['feedback_type']) {
-                                                        'correction' => 'warning',
-                                                        'suggestion' => 'info',
-                                                        'praise' => 'success',
-                                                        default => 'secondary'
-                                                    };
-                                                ?>"><?php echo ucfirst($item['feedback_type']); ?></span>
+                                                <span class="badge bg-<?php
+                                        echo match ($item['feedback_type']) {
+                                            'correction' => 'warning',
+                                            'suggestion' => 'info',
+                                            'praise' => 'success',
+                                            default => 'secondary'
+                                        };
+                                        ?>"><?php echo ucfirst($item['feedback_type']); ?></span>
                                             </small>
                                         </div>
-                                    <?php endforeach; ?>
+                                    <?php } ?>
                                 </div>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
@@ -175,27 +178,27 @@ $page_title = "Community Feedback Dashboard";
                             <h5><i class="fas fa-trophy"></i> Most Active Categories</h5>
                         </div>
                         <div class="card-body">
-                            <?php if (empty($category_stats)): ?>
+                            <?php if (empty($category_stats)) { ?>
                                 <p class="text-muted">No feedback data available yet.</p>
-                            <?php else: ?>
-                                <?php foreach ($category_stats as $index => $cat): ?>
+                            <?php } else { ?>
+                                <?php foreach ($category_stats as $index => $cat) { ?>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
-                                            <?php if ($index === 0): ?>
+                                            <?php if (0 === $index) { ?>
                                                 <i class="fas fa-crown text-warning"></i>
-                                            <?php elseif ($index === 1): ?>
+                                            <?php } elseif (1 === $index) { ?>
                                                 <i class="fas fa-medal text-secondary"></i>
-                                            <?php elseif ($index === 2): ?>
+                                            <?php } elseif (2 === $index) { ?>
                                                 <i class="fas fa-award text-warning"></i>
-                                            <?php else: ?>
+                                            <?php } else { ?>
                                                 <i class="fas fa-circle text-muted"></i>
-                                            <?php endif; ?>
+                                            <?php } ?>
                                             <small><?php echo htmlspecialchars($cat['name']); ?></small>
                                         </div>
                                         <span class="badge bg-primary"><?php echo $cat['feedback_count']; ?></span>
                                     </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                                <?php } ?>
+                            <?php } ?>
                             
                             <hr>
                             <div class="text-center">
@@ -209,30 +212,30 @@ $page_title = "Community Feedback Dashboard";
                     </div>
                     
                     <!-- Quick Feedback Stats -->
-                    <?php if (!empty($quick_stats)): ?>
+                    <?php if (!empty($quick_stats)) { ?>
                     <div class="card mt-3">
                         <div class="card-header">
                             <h6><i class="fas fa-pulse"></i> Quick Feedback</h6>
                         </div>
                         <div class="card-body">
-                            <?php foreach ($quick_stats as $stat): ?>
+                            <?php foreach ($quick_stats as $stat) { ?>
                                 <div class="d-flex justify-content-between mb-1">
                                     <small>
-                                        <?php 
-                                        echo match($stat['value']) {
+                                        <?php
+                                        echo match ($stat['value']) {
                                             'helpful' => '👍 Helpful',
                                             'partial' => '😐 Partial',
                                             'not_helpful' => '👎 Needs Work',
                                             default => ucfirst($stat['value'])
                                         };
-                                        ?>
+                                ?>
                                     </small>
                                     <span class="badge bg-info"><?php echo $stat['count']; ?></span>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
                     </div>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </div>
             

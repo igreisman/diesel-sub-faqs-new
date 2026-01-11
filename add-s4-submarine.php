@@ -1,7 +1,8 @@
 <?php
+
 require_once 'config/database.php';
 
-$sql = "INSERT INTO lost_submarines (
+$sql = 'INSERT INTO lost_submarines (
     boat_number, 
     name, 
     designation, 
@@ -29,7 +30,7 @@ $sql = "INSERT INTO lost_submarines (
     :prior_history,
     :era,
     :year_lost
-)";
+)';
 
 $stmt = $pdo->prepare($sql);
 
@@ -52,14 +53,13 @@ S-4 was raised in March of 1928. It would then be used as a test vessel for resc
 
 S-4 operated from Cavite until 1924. From there, the division was assigned to the U. S. West Coast, arriving at Mare Island, CA on 30 December 1924. For the next few years, S-4 operated primarily from San Francisco, San Pedro and San Diego. In early 1927, she sailed to the Canal Zone where she operated for a couple months before sailing on to New London, CT. For the remainder of that year, she operated off the New England coast.',
     'era' => 'interwar',
-    'year_lost' => 1927
+    'year_lost' => 1927,
 ];
 
 try {
     $stmt->execute($data);
     echo "✓ USS S-4 (SS-109) successfully added to lost_submarines table\n";
-    echo "Record ID: " . $pdo->lastInsertId() . "\n";
+    echo 'Record ID: '.$pdo->lastInsertId()."\n";
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-?>

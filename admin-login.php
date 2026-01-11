@@ -1,20 +1,21 @@
 <?php
 require_once 'config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $password = $_POST['password'] ?? '';
-    
+
     // Simple password check - you can enhance this later with proper user management
-    if ($password === '1945') {
+    if ('1945' === $password) {
         $_SESSION['admin_logged_in'] = true;
         header('Location: admin/dashboard.php');
+
         exit;
-    } else {
-        $error = 'Invalid password';
     }
+    $error = 'Invalid password';
 }
 
 $page_title = 'Admin Login';
+
 require_once 'includes/header.php';
 ?>
 
@@ -26,9 +27,9 @@ require_once 'includes/header.php';
                     <h4><i class="fas fa-submarine text-primary"></i> Admin Login</h4>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($error)): ?>
+                    <?php if (isset($error)) { ?>
                         <div class="alert alert-danger"><?php echo $error; ?></div>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <form method="POST">
                         <div class="mb-3">

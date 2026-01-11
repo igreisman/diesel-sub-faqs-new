@@ -1,15 +1,17 @@
 <?php
 $page_title = 'Release Checklist';
 $page_description = 'Pre-launch checklist';
+
 require_once 'config/database.php';
 
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
-$isAdmin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+$isAdmin = isset($_SESSION['admin_logged_in']) && true === $_SESSION['admin_logged_in'];
 
 // Default checklist data
-function default_checklist() {
+function default_checklist()
+{
     return [
         'Technical Readiness' => [
             'Website Functionality' => [
@@ -60,7 +62,7 @@ function default_checklist() {
                 'Conduct a “first-time visitor” walkthrough for clarity and orientation',
                 'Validate category structure is intuitive and final',
                 'Ensure mobile experience is clean and readable',
-            ]
+            ],
         ],
         'Branding & Presentation' => [
             'General' => [
@@ -69,7 +71,7 @@ function default_checklist() {
                 'Finalize About/Intro page language',
                 'Verify docent credits and acknowledgments',
                 'Ensure mission and project story messaging feels polished and authentic',
-            ]
+            ],
         ],
         'Launch Communication Preparation' => [
             'Outreach & PR' => [
@@ -97,7 +99,7 @@ function default_checklist() {
                 'Verify alignment with Pampanito’s visitor experience and restoration narrative',
                 'Highlight Pampanito-specific FAQs for museum outreach',
                 'Identify 3–5 FAQs recommended for museum newsletters or docent materials',
-            ]
+            ],
         ],
         'Post-Launch Infrastructure' => [
             'General' => [
@@ -106,7 +108,7 @@ function default_checklist() {
                 'Maintain internal “Known Issues” list',
                 'Verify database backups are functioning',
                 'Optional: Set up uptime monitoring for the site',
-            ]
+            ],
         ],
         'Long-Term Continuity & Handover Plan' => [
             'General' => [
@@ -115,7 +117,7 @@ function default_checklist() {
                 'Identify individuals for future historical and technical stewardship roles',
                 'Prepare a transition plan for long-term project maintenance',
                 'Create a contributor onboarding guide (optional)',
-            ]
+            ],
         ],
     ];
 }
@@ -125,22 +127,23 @@ $error = '';
 
 // Ensure storage table exists
 try {
-    $pdo->exec("
+    $pdo->exec('
         CREATE TABLE IF NOT EXISTS release_checklist (
             id INT PRIMARY KEY,
             content LONGTEXT NOT NULL,
             notes LONGTEXT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ");
+    ');
+
     // Add notes column if missing
     try {
-        $pdo->exec("ALTER TABLE release_checklist ADD COLUMN notes LONGTEXT NULL");
+        $pdo->exec('ALTER TABLE release_checklist ADD COLUMN notes LONGTEXT NULL');
     } catch (Exception $e) {
         // ignore if exists
     }
 } catch (Exception $e) {
-    $error = 'Unable to prepare checklist storage: ' . $e->getMessage();
+    $error = 'Unable to prepare checklist storage: '.$e->getMessage();
 }
 
 // Load checklist
@@ -148,7 +151,7 @@ $checklist = default_checklist();
 $notesHtml = '';
 if (!$error) {
     try {
-        $stmt = $pdo->query("SELECT content, notes FROM release_checklist WHERE id = 1 LIMIT 1");
+        $stmt = $pdo->query('SELECT content, notes FROM release_checklist WHERE id = 1 LIMIT 1');
         $row = $stmt->fetch();
         if ($row && $row['content']) {
             $decoded = json_decode($row['content'], true);
@@ -158,11 +161,11 @@ if (!$error) {
             $notesHtml = $row['notes'] ?? '';
         } else {
             // Seed defaults
-            $stmt = $pdo->prepare("REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)");
+            $stmt = $pdo->prepare('REPLACE INTO release_checklist (id, content, notes) VALUES (1, ?, ?)');
             $stmt->execute([json_encode($checklist), $notesHtml]);
         }
     } catch (Exception $e) {
-        $error = 'Unable to load checklist: ' . $e->getMessage();
+        $error = 'Unable to load checklist: '.$e->getMessage();
     }
 }
 
@@ -172,19 +175,19 @@ require_once 'includes/header.php';
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">Release Checklist</h1>
-        <?php if ($isAdmin): ?>
+        <?php if ($isAdmin) { ?>
             <a class="btn btn-sm btn-outline-primary" href="release-checklist-edit.php">
                 <i class="fas fa-pen"></i> Edit Items
             </a>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
-    <?php if ($message): ?>
+    <?php if ($message) { ?>
         <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-    <?php endif; ?>
-    <?php if ($error): ?>
+    <?php } ?>
+    <?php if ($error) { ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
     <article class="card shadow-sm">
         <div class="card-body">
@@ -192,30 +195,30 @@ require_once 'includes/header.php';
             <p class="text-muted mb-1">Shared release checklist for Irving &amp; Dwight</p>
             <p class="text-muted"><em>Last updated: 2025-12-06</em></p>
 
-            <?php if (!empty($notesHtml)): ?>
+            <?php if (!empty($notesHtml)) { ?>
                 <div class="alert alert-info">
                     <?php echo $notesHtml; ?>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <?php $sectionIndex = 1; ?>
-            <?php foreach ($checklist as $section => $groups): ?>
-                <h3 class="mt-4"><?php echo $sectionIndex . '. ' . htmlspecialchars($section); ?></h3>
-                <?php foreach ($groups as $group => $items): ?>
+            <?php foreach ($checklist as $section => $groups) { ?>
+                <h3 class="mt-4"><?php echo $sectionIndex.'. '.htmlspecialchars($section); ?></h3>
+                <?php foreach ($groups as $group => $items) { ?>
                     <h5 class="mt-3"><?php echo htmlspecialchars($group); ?></h5>
                     <ul class="list-unstyled ms-1 checklist-group">
-                        <?php foreach ($items as $idx => $item): 
-                            $id = 'chk_' . md5($section . '|' . $group . '|' . $item);
-                        ?>
+                        <?php foreach ($items as $idx => $item) {
+                            $id = 'chk_'.md5($section.'|'.$group.'|'.$item);
+                            ?>
                             <li class="form-check">
                                 <input class="form-check-input checklist-item" type="checkbox" id="<?php echo $id; ?>" data-key="<?php echo $id; ?>">
                                 <label class="form-check-label" for="<?php echo $id; ?>"><?php echo htmlspecialchars($item); ?></label>
                             </li>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </ul>
-                <?php endforeach; ?>
-                <?php $sectionIndex++; ?>
-            <?php endforeach; ?>
+                <?php } ?>
+                <?php ++$sectionIndex; ?>
+            <?php } ?>
         </div>
     </article>
 

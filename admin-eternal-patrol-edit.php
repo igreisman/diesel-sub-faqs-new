@@ -1,14 +1,16 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
 $page_title = 'Edit Submarine';
 $page_description = 'Admin: Edit submarine details';
+
 require_once 'config/database.php';
 
 // Admin gate
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: admin-login.php');
+
     exit;
 }
 
@@ -21,153 +23,171 @@ $isEdit = isset($_GET['id']);
 $prior_id = null;
 $next_id = null;
 if ($isEdit) {
-    $boat_id = (int)$_GET['id'];
-    $order_sql = "SELECT id FROM lost_submarines ORDER BY display_order ASC, boat_number ASC";
+    $boat_id = (int) $_GET['id'];
+    $order_sql = 'SELECT id FROM lost_submarines ORDER BY display_order ASC, boat_number ASC';
     $order_stmt = $pdo->query($order_sql);
     $boat_ids = $order_stmt->fetchAll(PDO::FETCH_COLUMN);
-    
+
     $current_index = array_search($boat_id, $boat_ids);
-    $prior_id = $current_index !== false && $current_index > 0 ? $boat_ids[$current_index - 1] : null;
-    $next_id = $current_index !== false && $current_index < count($boat_ids) - 1 ? $boat_ids[$current_index + 1] : null;
+    $prior_id = false !== $current_index && $current_index > 0 ? $boat_ids[$current_index - 1] : null;
+    $next_id = false !== $current_index && $current_index < count($boat_ids) - 1 ? $boat_ids[$current_index + 1] : null;
 }
 
 // Handle image uploads
-function handleImageUpload($file, $prefix) {
-    if (!isset($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+function handleImageUpload($file, $prefix)
+{
+    if (!isset($file) || UPLOAD_ERR_NO_FILE === $file['error']) {
         return null;
     }
-    
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('Upload error: ' . $file['error']);
+
+    if (UPLOAD_ERR_OK !== $file['error']) {
+        throw new Exception('Upload error: '.$file['error']);
     }
-    
+
     // Validate file type
     $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mimeType = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
-    
+
     if (!in_array($mimeType, $allowedTypes)) {
         throw new Exception('Invalid file type. Only images allowed.');
     }
-    
+
     // Generate unique filename
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $filename = $prefix . '-' . uniqid() . '.' . $extension;
-    $uploadPath = __DIR__ . '/images/' . $filename;
-    
+    $filename = $prefix.'-'.uniqid().'.'.$extension;
+    $uploadPath = __DIR__.'/images/'.$filename;
+
     // Create images directory if it doesn't exist
-    if (!is_dir(__DIR__ . '/images')) {
-        mkdir(__DIR__ . '/images', 0755, true);
+    if (!is_dir(__DIR__.'/images')) {
+        mkdir(__DIR__.'/images', 0755, true);
     }
-    
+
     // Process and resize image
-    list($width, $height) = getimagesize($file['tmp_name']);
+    [$width, $height] = getimagesize($file['tmp_name']);
     $maxWidth = 1200;
     $maxHeight = 1200;
-    
+
     // Calculate new dimensions
     if ($width > $maxWidth || $height > $maxHeight) {
         $ratio = min($maxWidth / $width, $maxHeight / $height);
-        $newWidth = (int)($width * $ratio);
-        $newHeight = (int)($height * $ratio);
+        $newWidth = (int) ($width * $ratio);
+        $newHeight = (int) ($height * $ratio);
     } else {
         $newWidth = $width;
         $newHeight = $height;
     }
-    
+
     // Create image resource based on type
     switch ($mimeType) {
         case 'image/jpeg':
         case 'image/jpg':
             $source = imagecreatefromjpeg($file['tmp_name']);
+
             break;
+
         case 'image/png':
             $source = imagecreatefrompng($file['tmp_name']);
+
             break;
+
         case 'image/gif':
             $source = imagecreatefromgif($file['tmp_name']);
+
             break;
+
         case 'image/webp':
             $source = imagecreatefromwebp($file['tmp_name']);
+
             break;
+
         default:
             throw new Exception('Unsupported image type');
     }
-    
+
     // Create new image
     $dest = imagecreatetruecolor($newWidth, $newHeight);
-    
+
     // Preserve transparency for PNG and GIF
-    if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
+    if ('image/png' === $mimeType || 'image/gif' === $mimeType) {
         imagealphablending($dest, false);
         imagesavealpha($dest, true);
         $transparent = imagecolorallocatealpha($dest, 255, 255, 255, 127);
         imagefilledrectangle($dest, 0, 0, $newWidth, $newHeight, $transparent);
     }
-    
+
     // Resize image
     imagecopyresampled($dest, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-    
+
     // Save image
     switch ($mimeType) {
         case 'image/jpeg':
         case 'image/jpg':
             imagejpeg($dest, $uploadPath, 85);
+
             break;
+
         case 'image/png':
             imagepng($dest, $uploadPath, 8);
+
             break;
+
         case 'image/gif':
             imagegif($dest, $uploadPath);
+
             break;
+
         case 'image/webp':
             imagewebp($dest, $uploadPath, 85);
+
             break;
     }
-    
+
     // Free memory
     imagedestroy($source);
     imagedestroy($dest);
-    
-    return 'images/' . $filename;
+
+    return 'images/'.$filename;
 }
 
 // Function to find first empty image field
-function getFirstEmptyImageField($submarine) {
+function getFirstEmptyImageField($submarine)
+{
     if (empty($submarine)) {
         return 'image1';
     }
-    for ($i = 1; $i <= 10; $i++) {
-        $field = 'image' . $i;
+    for ($i = 1; $i <= 10; ++$i) {
+        $field = 'image'.$i;
         if (empty($submarine[$field])) {
             return $field;
         }
     }
+
     return 'image10'; // Default to last if all are full
 }
 
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
+if ('POST' === $_SERVER['REQUEST_METHOD'] && !isset($_POST['prefilled'])) {
     $boat_number = trim($_POST['boat_number'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $designation = trim($_POST['designation'] ?? '');
     $date_lost = trim($_POST['date_lost'] ?? '');
     $date_lost_sort = trim($_POST['date_lost_sort'] ?? '');
-    
+
     // If date_lost_sort is empty, try to parse date_lost
     if (empty($date_lost_sort) && !empty($date_lost)) {
         $ts = strtotime($date_lost);
-        if ($ts !== false) {
+        if (false !== $ts) {
             $date_lost_sort = date('Y-m-d', $ts);
         }
     }
-    
+
     // Validate date_lost_sort is a valid date
     if (!empty($date_lost_sort)) {
         $parts = explode('-', $date_lost_sort);
-        if (count($parts) === 3) {
-            if (!checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0])) {
+        if (3 === count($parts)) {
+            if (!checkdate((int) $parts[1], (int) $parts[2], (int) $parts[0])) {
                 // Invalid date, set to NULL
                 $date_lost_sort = null;
             }
@@ -178,27 +198,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
     } else {
         $date_lost_sort = null;
     }
-    
+
     $location = trim($_POST['location'] ?? '');
     $last_captain = trim($_POST['last_captain'] ?? '');
     $loss_narrative = trim($_POST['loss_narrative'] ?? '');
-    
+
     // Handle image uploads or use existing URLs
     try {
-        $photo_boat = handleImageUpload($_FILES['photo_boat_file'] ?? null, 'boat') 
+        $photo_boat = handleImageUpload($_FILES['photo_boat_file'] ?? null, 'boat')
             ?? trim($_POST['photo_boat'] ?? '');
-        $photo_captain = handleImageUpload($_FILES['photo_captain_file'] ?? null, 'captain') 
+        $photo_captain = handleImageUpload($_FILES['photo_captain_file'] ?? null, 'captain')
             ?? trim($_POST['photo_captain'] ?? '');
-        
+
         // Get the target image field for extra photo
         $extraImageField = $_POST['extra_image_field'] ?? 'image1';
-        $extraImageValue = handleImageUpload($_FILES['photo_extra_file'] ?? null, 'extra') 
+        $extraImageValue = handleImageUpload($_FILES['photo_extra_file'] ?? null, 'extra')
             ?? trim($_POST['photo_url_extra'] ?? '');
         $extraImageSubtitle = trim($_POST['extra_image_subtitle'] ?? '');
     } catch (Exception $e) {
-        $error = 'Image upload error: ' . $e->getMessage();
+        $error = 'Image upload error: '.$e->getMessage();
     }
-    
+
     // Validation
     if (empty($boat_number) || empty($name) || empty($designation)) {
         $error = 'Boat number, name, and designation are required.';
@@ -206,31 +226,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
         try {
             if ($isEdit) {
                 // Update existing submarine
-                $id = (int)$_GET['id'];
-                
+                $id = (int) $_GET['id'];
+
                 // Build the update query dynamically to include extra image if provided
-                $updateFields = "boat_number = ?, name = ?, designation = ?, date_lost = ?, date_lost_sort = ?,
+                $updateFields = 'boat_number = ?, name = ?, designation = ?, date_lost = ?, date_lost_sort = ?,
                                  location = ?, last_captain = ?, loss_narrative = ?,
-                                 photo_boat = ?, photo_captain = ?";
+                                 photo_boat = ?, photo_captain = ?';
                 $params = [
                     $boat_number, $name, $designation, $date_lost, $date_lost_sort,
                     $location, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain
+                    $photo_boat, $photo_captain,
                 ];
-                
+
                 // Add extra image field if provided
                 if (!empty($extraImageValue) && !empty($extraImageField)) {
                     $updateFields .= ", {$extraImageField} = ?";
                     $params[] = $extraImageValue;
-                    
+
                     // Add subtitle if provided
-                    $subtitleField = $extraImageField . '_subtitle';
+                    $subtitleField = $extraImageField.'_subtitle';
                     $updateFields .= ", {$subtitleField} = ?";
                     $params[] = $extraImageSubtitle;
                 }
-                
+
                 $params[] = $id; // Add ID for WHERE clause
-                
+
                 $stmt = $pdo->prepare("
                     UPDATE lost_submarines 
                     SET {$updateFields}
@@ -240,27 +260,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
                 $message = 'Submarine updated successfully!';
             } else {
                 // Insert new submarine
-                $insertFields = "boat_number, name, designation, date_lost, date_lost_sort, location, last_captain, loss_narrative, photo_boat, photo_captain, display_order";
-                $insertPlaceholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0";
+                $insertFields = 'boat_number, name, designation, date_lost, date_lost_sort, location, last_captain, loss_narrative, photo_boat, photo_captain, display_order';
+                $insertPlaceholders = '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0';
                 $params = [
                     $boat_number, $name, $designation, $date_lost, $date_lost_sort,
                     $location, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain
+                    $photo_boat, $photo_captain,
                 ];
-                
+
                 // Add extra image field if provided
                 if (!empty($extraImageValue) && !empty($extraImageField)) {
                     $insertFields .= ", {$extraImageField}";
-                    $insertPlaceholders .= ", ?";
+                    $insertPlaceholders .= ', ?';
                     $params[] = $extraImageValue;
-                    
+
                     // Add subtitle if provided
-                    $subtitleField = $extraImageField . '_subtitle';
+                    $subtitleField = $extraImageField.'_subtitle';
                     $insertFields .= ", {$subtitleField}";
-                    $insertPlaceholders .= ", ?";
+                    $insertPlaceholders .= ', ?';
                     $params[] = $extraImageSubtitle;
                 }
-                
+
                 $stmt = $pdo->prepare("
                     INSERT INTO lost_submarines 
                     ({$insertFields})
@@ -269,16 +289,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['prefilled'])) {
                 $stmt->execute($params);
                 $message = 'Submarine added successfully!';
                 header('Location: admin-eternal-patrol.php');
+
                 exit;
             }
         } catch (PDOException $e) {
-            $error = 'Database error: ' . $e->getMessage();
+            $error = 'Database error: '.$e->getMessage();
         }
     }
 }
 
 // Handle prefilled data from parser
-if (isset($_POST['prefilled']) && $_POST['prefilled'] == '1') {
+if (isset($_POST['prefilled']) && '1' == $_POST['prefilled']) {
     $submarine = [
         'boat_number' => $_POST['boat_number'] ?? '',
         'name' => $_POST['name'] ?? '',
@@ -294,21 +315,22 @@ if (isset($_POST['prefilled']) && $_POST['prefilled'] == '1') {
 }
 // Load submarine data for editing
 elseif ($isEdit) {
-    $id = (int)$_GET['id'];
+    $id = (int) $_GET['id'];
+
     try {
-        $stmt = $pdo->prepare("SELECT * FROM lost_submarines WHERE id = ?");
+        $stmt = $pdo->prepare('SELECT * FROM lost_submarines WHERE id = ?');
         $stmt->execute([$id]);
         $submarine = $stmt->fetch();
-        
+
         if (!$submarine) {
             $error = 'Submarine not found.';
         } else {
             // Determine which image field to use for "Extra Photo"
             $extraImageField = getFirstEmptyImageField($submarine);
-            $extraImageFieldNum = (int)str_replace('image', '', $extraImageField);
+            $extraImageFieldNum = (int) str_replace('image', '', $extraImageField);
         }
     } catch (PDOException $e) {
-        $error = 'Error loading submarine: ' . $e->getMessage();
+        $error = 'Error loading submarine: '.$e->getMessage();
     }
 } else {
     $extraImageField = 'image1';
@@ -320,7 +342,7 @@ elseif ($isEdit) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $isEdit ? 'Edit Lost Boat' : 'Add Lost Boat' ?> - Diesel-Electric Submarine FAQs</title>
+    <title><?php echo $isEdit ? 'Edit Lost Boat' : 'Add Lost Boat'; ?> - Diesel-Electric Submarine FAQs</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -401,43 +423,43 @@ elseif ($isEdit) {
         <div class="admin-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="mb-2">⚓ <?= $isEdit ? 'Edit' : 'Add Lost Boat' ?></h1>
-                    <p class="mb-0 text-muted"><?= $isEdit ? 'Update submarine details' : 'Add a new lost submarine' ?></p>
+                    <h1 class="mb-2">⚓ <?php echo $isEdit ? 'Edit' : 'Add Lost Boat'; ?></h1>
+                    <p class="mb-0 text-muted"><?php echo $isEdit ? 'Update submarine details' : 'Add a new lost submarine'; ?></p>
                 </div>
                 <div class="d-flex gap-2">
-                    <?php if ($isEdit): ?>
-                        <?php if ($prior_id): ?>
+                    <?php if ($isEdit) { ?>
+                        <?php if ($prior_id) { ?>
                             <a href="admin-eternal-patrol-edit.php?id=<?php echo $prior_id; ?>" class="btn btn-outline-light" title="Previous submarine">
                                 ←
                             </a>
-                        <?php endif; ?>
-                        <?php if ($next_id): ?>
+                        <?php } ?>
+                        <?php if ($next_id) { ?>
                             <a href="admin-eternal-patrol-edit.php?id=<?php echo $next_id; ?>" class="btn btn-outline-light" title="Next submarine">
                                 →
                             </a>
-                        <?php endif; ?>
-                    <?php endif; ?>
+                        <?php } ?>
+                    <?php } ?>
                     <a href="admin-eternal-patrol.php" class="btn btn-secondary">List</a>
                 </div>
             </div>
         </div>
 
-        <?php if ($message): ?>
+        <?php if ($message) { ?>
             <div id="saveNotification" class="alert alert-success alert-dismissible fade show save-notification" role="alert">
                 <strong>✓ Success!</strong><br>
-                <?= htmlspecialchars($message) ?>
+                <?php echo htmlspecialchars($message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="hideNotification()"></button>
             </div>
-        <?php endif; ?>
+        <?php } ?>
         
-        <?php if ($error): ?>
+        <?php if ($error) { ?>
             <div id="errorNotification" class="alert alert-danger alert-dismissible fade show save-notification" role="alert">
                 <strong>✗ Error!</strong><br>
-                <?= htmlspecialchars($error) ?>
+                <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="hideNotification()"></button>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if (!$isEdit || $submarine): ?>
+        <?php if (!$isEdit || $submarine) { ?>
             <div class="card">
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
@@ -445,13 +467,13 @@ elseif ($isEdit) {
                             <div class="col-md-6 mb-3">
                                 <label for="boat_number" class="form-label">Boat Number *</label>
                                 <input type="text" class="form-control" id="boat_number" name="boat_number" 
-                                       value="<?= htmlspecialchars($submarine['boat_number'] ?? '') ?>" 
+                                       value="<?php echo htmlspecialchars($submarine['boat_number'] ?? ''); ?>" 
                                        placeholder="SS-195" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Name *</label>
                                 <input type="text" class="form-control" id="name" name="name" 
-                                       value="<?= htmlspecialchars($submarine['name'] ?? '') ?>" 
+                                       value="<?php echo htmlspecialchars($submarine['name'] ?? ''); ?>" 
                                        placeholder="Sealion" required>
                             </div>
                         </div>
@@ -459,42 +481,42 @@ elseif ($isEdit) {
                         <div class="mb-3">
                             <label for="designation" class="form-label">Full Designation *</label>
                             <input type="text" class="form-control" id="designation" name="designation" 
-                                   value="<?= htmlspecialchars($submarine['designation'] ?? '') ?>" 
+                                   value="<?php echo htmlspecialchars($submarine['designation'] ?? ''); ?>" 
                                    placeholder="USS Sealion (SS-195)" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="date_lost" class="form-label">Date Lost</label>
                             <input type="text" class="form-control" id="date_lost" name="date_lost" 
-                                   value="<?= htmlspecialchars($submarine['date_lost'] ?? '') ?>" 
+                                   value="<?php echo htmlspecialchars($submarine['date_lost'] ?? ''); ?>" 
                                    placeholder="December 10, 1941">
                         </div>
 
                         <div class="mb-3">
                             <label for="date_lost_sort" class="form-label">Date Lost Sort (YYYY-MM-DD)</label>
                             <input type="text" class="form-control" id="date_lost_sort" name="date_lost_sort" 
-                                   value="<?= htmlspecialchars($submarine['date_lost_sort'] ?? '') ?>" 
+                                   value="<?php echo htmlspecialchars($submarine['date_lost_sort'] ?? ''); ?>" 
                                    placeholder="1941-12-10" pattern="\d{4}-\d{2}-\d{2}">
                         </div>
 
                         <div class="mb-3">
                             <label for="location" class="form-label">Location</label>
                             <input type="text" class="form-control" id="location" name="location" 
-                                   value="<?= htmlspecialchars($submarine['location'] ?? '') ?>" 
+                                   value="<?php echo htmlspecialchars($submarine['location'] ?? ''); ?>" 
                                    placeholder="Cavite Navy Yard, Manila Bay, Philippines">
                         </div>
 
                         <div class="mb-3">
                             <label for="last_captain" class="form-label">Last Captain</label>
                             <input type="text" class="form-control" id="last_captain" name="last_captain" 
-                                   value="<?= htmlspecialchars($submarine['last_captain'] ?? '') ?>" 
+                                   value="<?php echo htmlspecialchars($submarine['last_captain'] ?? ''); ?>" 
                                    placeholder="LT Richard G. Voge">
                         </div>
 
                         <div class="mb-3">
                             <label for="loss_narrative" class="form-label">Loss Narrative</label>
                             <textarea class="form-control" id="loss_narrative" name="loss_narrative" 
-                                      rows="8" placeholder="Describe the circumstances of the submarine's loss..."><?= htmlspecialchars($submarine['loss_narrative'] ?? '') ?></textarea>
+                                      rows="8" placeholder="Describe the circumstances of the submarine's loss..."><?php echo htmlspecialchars($submarine['loss_narrative'] ?? ''); ?></textarea>
                         </div>
 
                         <div class="mb-3">
@@ -533,12 +555,13 @@ elseif ($isEdit) {
                             addImageField();
                         };
                         // Optionally, prepopulate with existing images/subtitles from PHP
-                        <?php for ($i = 1; $i <= 10; $i++):
+                        <?php for ($i = 1; $i <= 10; ++$i) {
                             $img = htmlspecialchars($submarine['image'.$i] ?? '');
                             $sub = htmlspecialchars($submarine['image'.$i.'_subtitle'] ?? '');
-                            if ($img || $sub): ?>
-                            addImageField("<?= $img ?>", "<?= $sub ?>");
-                        <?php endif; endfor; ?>
+                            if ($img || $sub) { ?>
+                            addImageField("<?php echo $img; ?>", "<?php echo $sub; ?>");
+                        <?php }
+                            } ?>
                         </script>
                         <div class="mb-3">
                             <label for="photo_boat" class="form-label">Boat Photo</label>
@@ -554,7 +577,7 @@ elseif ($isEdit) {
                                 </div>
                             </div>
                             <input type="file" id="photo_boat_file" name="photo_boat_file" accept="image/*" style="display: none;">
-                            <input type="hidden" id="photo_boat" name="photo_boat" value="<?= htmlspecialchars($submarine['photo_boat'] ?? '') ?>">
+                            <input type="hidden" id="photo_boat" name="photo_boat" value="<?php echo htmlspecialchars($submarine['photo_boat'] ?? ''); ?>">
                             <div class="form-text">Optional: Photo of the submarine</div>
                         </div>
 
@@ -572,30 +595,31 @@ elseif ($isEdit) {
                                 </div>
                             </div>
                             <input type="file" id="photo_captain_file" name="photo_captain_file" accept="image/*" style="display: none;">
-                            <input type="hidden" id="photo_captain" name="photo_captain" value="<?= htmlspecialchars($submarine['photo_captain'] ?? '') ?>">
+                            <input type="hidden" id="photo_captain" name="photo_captain" value="<?php echo htmlspecialchars($submarine['photo_captain'] ?? ''); ?>">
                             <div class="form-text">Optional: Photo of the captain</div>
                         </div>
 
-                        <?php 
-                        // Display existing additional images
-                        if (isset($submarine)) {
-                            $hasImages = false;
-                            for ($i = 1; $i <= 10; $i++) {
-                                $imageField = 'image' . $i;
-                                if (!empty($submarine[$imageField])) {
-                                    $hasImages = true;
-                                    break;
-                                }
-                            }
-                            
-                            if ($hasImages) {
-                                echo '<div class="mb-4"><h5>Existing Additional Images</h5>';
-                                for ($i = 1; $i <= 10; $i++) {
-                                    $imageField = 'image' . $i;
-                                    $subtitleField = $imageField . '_subtitle';
-                                    
+                        <?php
+                            // Display existing additional images
+                            if (isset($submarine)) {
+                                $hasImages = false;
+                                for ($i = 1; $i <= 10; ++$i) {
+                                    $imageField = 'image'.$i;
                                     if (!empty($submarine[$imageField])) {
-                                        ?>
+                                        $hasImages = true;
+
+                                        break;
+                                    }
+                                }
+
+                                if ($hasImages) {
+                                    echo '<div class="mb-4"><h5>Existing Additional Images</h5>';
+                                    for ($i = 1; $i <= 10; ++$i) {
+                                        $imageField = 'image'.$i;
+                                        $subtitleField = $imageField.'_subtitle';
+
+                                        if (!empty($submarine[$imageField])) {
+                                            ?>
                                         <div class="card mb-3">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <strong>Image <?php echo $i; ?></strong>
@@ -615,12 +639,12 @@ elseif ($isEdit) {
                                             </div>
                                         </div>
                                         <?php
+                                        }
                                     }
+                                    echo '</div>';
                                 }
-                                echo '</div>';
                             }
-                        }
-                        ?>
+            ?>
 
                         <div class="mb-3">
                             <label for="photo_url_extra" class="form-label">
@@ -639,11 +663,11 @@ elseif ($isEdit) {
                                 </div>
                             </div>
                             <input type="file" id="photo_url_extra_file" name="photo_extra_file" accept="image/*" style="display: none;">
-                            <input type="hidden" id="photo_url_extra" name="photo_url_extra" value="<?php 
-                                if (isset($submarine) && isset($extraImageField)) {
-                                    echo htmlspecialchars($submarine[$extraImageField] ?? '');
-                                }
-                            ?>">
+                            <input type="hidden" id="photo_url_extra" name="photo_url_extra" value="<?php
+                    if (isset($submarine, $extraImageField)) {
+                        echo htmlspecialchars($submarine[$extraImageField] ?? '');
+                    }
+            ?>">
                             <div class="form-text">Optional: Additional photo</div>
                         </div>
 
@@ -652,12 +676,12 @@ elseif ($isEdit) {
                                 <?php echo isset($extraImageFieldNum) ? "Image {$extraImageFieldNum} Subtitle" : 'Extra Photo Subtitle'; ?>
                             </label>
                             <input type="text" class="form-control" id="extra_image_subtitle" name="extra_image_subtitle" 
-                                value="<?php 
-                                    if (isset($submarine) && isset($extraImageField)) {
-                                        $subtitleField = $extraImageField . '_subtitle';
-                                        echo htmlspecialchars($submarine[$subtitleField] ?? '');
-                                    }
-                                ?>" 
+                                value="<?php
+                    if (isset($submarine, $extraImageField)) {
+                        $subtitleField = $extraImageField.'_subtitle';
+                        echo htmlspecialchars($submarine[$subtitleField] ?? '');
+                    }
+            ?>" 
                                 placeholder="Enter a caption or description for this image">
                             <div class="form-text">Optional: Caption or description for the extra photo</div>
                         </div>
@@ -671,7 +695,7 @@ elseif ($isEdit) {
                     </form>
                 </div>
             </div>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

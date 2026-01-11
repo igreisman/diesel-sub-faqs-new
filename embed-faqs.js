@@ -1,7 +1,7 @@
-const fs = require('fs');
+const fs = require("fs");
 
 // Read the corrected FAQs JSON file
-const faqs = JSON.parse(fs.readFileSync('corrected-faqs.json', 'utf-8'));
+const faqs = JSON.parse(fs.readFileSync("corrected-faqs.json", "utf-8"));
 
 // Generate the embedded API file
 const apiContent = `// Corrected submarine FAQ data - 166 FAQs extracted based on **bold questions ending with ?**
@@ -96,6 +96,6 @@ module.exports = async function handler(req, res) {
 };`;
 
 // Write the new API file
-fs.writeFileSync('api/corrected-faqs.js', apiContent);
-console.log('Generated embedded API file: api/corrected-faqs.js');
+fs.writeFileSync("api/corrected-faqs.js", apiContent);
+console.log("Generated embedded API file: api/corrected-faqs.js");
 console.log(`Total FAQs embedded: ${faqs.length}`);

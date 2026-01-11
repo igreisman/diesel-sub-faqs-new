@@ -2,8 +2,9 @@
 // Admin-only add page for glossary terms
 require_once 'config/database.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || true !== $_SESSION['admin_logged_in']) {
     header('Location: login.php');
+
     exit;
 }
 
@@ -13,16 +14,18 @@ if ($returnUrl && preg_match('/^https?:/i', $returnUrl)) {
 }
 
 // Ensure glossary table exists (with id)
-function ensure_glossary_table($pdo) {
-    $pdo->exec("
+function ensure_glossary_table($pdo)
+{
+    $pdo->exec('
         CREATE TABLE IF NOT EXISTS glossary (
             id INT AUTO_INCREMENT PRIMARY KEY,
             term TINYTEXT NOT NULL,
             definition TEXT NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ");
+    ');
+
     try {
-        $pdo->exec("ALTER TABLE glossary ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY FIRST");
+        $pdo->exec('ALTER TABLE glossary ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY FIRST');
     } catch (Exception $e) {
         // ignore if column already exists
     }
@@ -30,18 +33,19 @@ function ensure_glossary_table($pdo) {
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $term = trim($_POST['term'] ?? '');
     $definition = trim($_POST['definition'] ?? '');
 
     try {
         ensure_glossary_table($pdo);
-        if ($term === '' || $definition === '') {
+        if ('' === $term || '' === $definition) {
             throw new Exception('Term and definition are required.');
         }
-        $stmt = $pdo->prepare("INSERT INTO glossary (term, definition) VALUES (?, ?)");
+        $stmt = $pdo->prepare('INSERT INTO glossary (term, definition) VALUES (?, ?)');
         $stmt->execute([$term, $definition]);
         header("Location: {$returnUrl}");
+
         exit;
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -50,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title = 'Add Glossary Term';
 $page_description = 'Add a new glossary term';
+
 require_once 'includes/header.php';
 ?>
 
@@ -81,9 +86,9 @@ require_once 'includes/header.php';
         </a>
     </div>
 
-    <?php if ($error): ?>
+    <?php if ($error) { ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
     <div class="card shadow-sm">
         <div class="card-body">

@@ -1,21 +1,41 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Category mapping based on your files
 const categories = [
   { id: 1, name: "Hull and Compartments", file: "05-Hull-and-Compartments.md" },
-  { id: 2, name: "US WW2 Subs in General", file: "08-US-WW2-Subs-in-General.md" },
-  { id: 3, name: "Operating US Subs in WW2", file: "10-Operating-US-WW2-Subs.md" },
-  { id: 4, name: "Who Were the Crews Aboard WW2 US Subs", file: "12-Crews-Aboard-US-WW2-Subs.md" },
-  { id: 5, name: "Life Aboard WW2 US Subs", file: "15-Life-Aboard-US-WW2-Subs.md" },
-  { id: 6, name: "Attacks and Battles, Small and Large", file: "20-Attacks-and-Battles-Small-and-Large.md" }
+  {
+    id: 2,
+    name: "US WW2 Subs in General",
+    file: "08-US-WW2-Subs-in-General.md",
+  },
+  {
+    id: 3,
+    name: "Operating US Subs in WW2",
+    file: "10-Operating-US-WW2-Subs.md",
+  },
+  {
+    id: 4,
+    name: "Who Were the Crews Aboard WW2 US Subs",
+    file: "12-Crews-Aboard-US-WW2-Subs.md",
+  },
+  {
+    id: 5,
+    name: "Life Aboard WW2 US Subs",
+    file: "15-Life-Aboard-US-WW2-Subs.md",
+  },
+  {
+    id: 6,
+    name: "Attacks and Battles, Small and Large",
+    file: "20-Attacks-and-Battles-Small-and-Large.md",
+  },
 ];
 
 function parseMarkdownFAQs(content, categoryId, categoryName) {
   const faqs = [];
-  const lines = content.split('\n');
-  let currentQuestion = '';
-  let currentAnswer = '';
+  const lines = content.split("\n");
+  let currentQuestion = "";
+  let currentAnswer = "";
   let faqId = 1;
   let inAnswer = false;
 
@@ -23,25 +43,28 @@ function parseMarkdownFAQs(content, categoryId, categoryName) {
     const line = lines[i];
 
     // Check if this is a question (starts and ends with **)
-    if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
+    if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
       // Save previous FAQ if exists
       if (currentQuestion && currentAnswer.trim()) {
         faqs.push({
           id: faqId++,
           question: currentQuestion.trim(),
-          answer: currentAnswer.trim().replace(/\n+/g, ' ').replace(/\s+/g, ' '),
+          answer: currentAnswer
+            .trim()
+            .replace(/\n+/g, " ")
+            .replace(/\s+/g, " "),
           category_id: categoryId,
-          category_name: categoryName
+          category_name: categoryName,
         });
       }
 
       // Start new question
       currentQuestion = line.slice(2, -2); // Remove ** markers
-      currentAnswer = '';
+      currentAnswer = "";
       inAnswer = true;
-    } else if (inAnswer && line.trim() && !line.startsWith('#')) {
+    } else if (inAnswer && line.trim() && !line.startsWith("#")) {
       // This is part of the answer - collect all lines until next question
-      currentAnswer += line + '\n';
+      currentAnswer += line + "\n";
     }
   }
 
@@ -50,9 +73,9 @@ function parseMarkdownFAQs(content, categoryId, categoryName) {
     faqs.push({
       id: faqId++,
       question: currentQuestion.trim(),
-      answer: currentAnswer.trim().replace(/\n+/g, ' ').replace(/\s+/g, ' '),
+      answer: currentAnswer.trim().replace(/\n+/g, " ").replace(/\s+/g, " "),
       category_id: categoryId,
-      category_name: categoryName
+      category_name: categoryName,
     });
   }
 
@@ -61,22 +84,28 @@ function parseMarkdownFAQs(content, categoryId, categoryName) {
 
 function getCategoryDescription(name) {
   const descriptions = {
-    'Hull and Compartments': 'Learn about submarine construction, hull design, and compartment layouts.',
-    'US WW2 Subs in General': 'General information about American submarines during World War II.',
-    'Operating US Subs in WW2': 'Operational procedures, tactics, and submarine warfare techniques.',
-    'Who Were the Crews Aboard WW2 US Subs': 'Information about submarine crews, their roles, and backgrounds.',
-    'Life Aboard WW2 US Subs': 'Daily life, living conditions, and crew experiences aboard submarines.',
-    'Attacks and Battles, Small and Large': 'Combat operations, battles, and military engagements.'
+    "Hull and Compartments":
+      "Learn about submarine construction, hull design, and compartment layouts.",
+    "US WW2 Subs in General":
+      "General information about American submarines during World War II.",
+    "Operating US Subs in WW2":
+      "Operational procedures, tactics, and submarine warfare techniques.",
+    "Who Were the Crews Aboard WW2 US Subs":
+      "Information about submarine crews, their roles, and backgrounds.",
+    "Life Aboard WW2 US Subs":
+      "Daily life, living conditions, and crew experiences aboard submarines.",
+    "Attacks and Battles, Small and Large":
+      "Combat operations, battles, and military engagements.",
   };
-  return descriptions[name] || 'Detailed submarine information and answers.';
+  return descriptions[name] || "Detailed submarine information and answers.";
 }
 
 // Extract all FAQs
 let allFAQs = [];
-categories.forEach(category => {
+categories.forEach((category) => {
   try {
     const filePath = path.join(__dirname, category.file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const faqs = parseMarkdownFAQs(content, category.id, category.name);
     allFAQs = allFAQs.concat(faqs);
     console.log(`${category.name}: ${faqs.length} FAQs`);
@@ -101,11 +130,15 @@ export default async function handler(req, res) {
 
   const { action, category_id, q } = req.query;
 
-  const categories = ${JSON.stringify(categories.map(cat => ({
-  id: cat.id,
-  name: cat.name,
-  description: getCategoryDescription(cat.name)
-})), null, 2)};
+  const categories = ${JSON.stringify(
+    categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      description: getCategoryDescription(cat.name),
+    })),
+    null,
+    2,
+  )};
 
   const faqs = ${JSON.stringify(allFAQs, null, 2)};
 
@@ -153,5 +186,5 @@ export default async function handler(req, res) {
 }`;
 
 // Write the complete API file
-fs.writeFileSync(path.join(__dirname, 'api/complete-faqs.js'), apiContent);
+fs.writeFileSync(path.join(__dirname, "api/complete-faqs.js"), apiContent);
 console.log(`\n✅ Generated complete-faqs.js with ${allFAQs.length} FAQs!`);
