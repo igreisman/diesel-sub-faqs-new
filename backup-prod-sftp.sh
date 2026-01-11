@@ -18,6 +18,16 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 # Secret key (must match the one in remote-backup.php)
 SECRET_KEY="hilds-78kdI3-ur73kldf-92jdls"
 
+# Ensure SSH key is loaded
+if ! ssh-add -l | grep -q "id_ed25519"; then
+    echo "🔑 SSH key not loaded. Adding to ssh-agent..."
+    ssh-add ~/.ssh/id_ed25519
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to add SSH key to agent"
+        exit 1
+    fi
+fi
+
 echo "🚀 Triggering remote backup generation..."
 
 # Trigger the backup on the remote server

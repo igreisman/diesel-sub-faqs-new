@@ -1,4 +1,8 @@
 <?php
+// Redirect all visitors to the Coming Soon page
+header('Location: coming-soon.html');
+exit;
+
 // Check if this is the user's first visit
 if (!isset($_COOKIE['visited']) && !isset($_GET['skip_welcome'])) {
     header('Location: welcome.html');
