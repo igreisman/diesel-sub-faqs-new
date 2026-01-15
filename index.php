@@ -1,8 +1,10 @@
 <?php
-// Redirect all visitors to the Coming Soon page
-header('Location: coming-soon.html');
-
-exit;
+session_start();
+// Allow admins to bypass Coming Soon page
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('Location: coming-soon.html');
+    exit;
+}
 
 // Check if this is the user's first visit
 if (!isset($_COOKIE['visited']) && !isset($_GET['skip_welcome'])) {
