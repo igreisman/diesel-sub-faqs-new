@@ -23,10 +23,6 @@
                 <div class="col-md-8">
                     <p class="mb-0">&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
                     <div style="display:flex; align-items:center; justify-content:flex-start; gap:1rem; flex-wrap:wrap; margin:0.5rem 0 0.5rem 0;">
-                        <span style="vertical-align:middle;">Connect with us:</span>
-                        <a href="https://www.tiktok.com/@diesel_subs" target="_blank" rel="noopener" style="display:inline-block;">
-                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok" style="width:28px;height:28px;vertical-align:middle;filter:invert(1);">
-                        </a>
                         <a href="https://www.youtube.com/@diesel_subs" target="_blank" rel="noopener" style="display:inline-block;">
                             <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube" style="width:28px;height:28px;vertical-align:middle;filter:invert(1);">
                         </a>

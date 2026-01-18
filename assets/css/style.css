@@ -1,3 +1,11 @@
+/* Ensure channel promo icons are sized correctly */
+.channel-promo img {
+  width: 36px;
+  height: 36px;
+  vertical-align: middle;
+  filter: invert(1);
+}
+
 /* Custom Styles for Submarine FAQ Site */
 
 :root {
@@ -143,6 +151,7 @@ body {
   z-index: 2;
   border: none;
 }
+
 .faq-tags {
   position: relative;
   z-index: 1;
@@ -151,6 +160,7 @@ body {
 .faq-actions .btn {
   margin-right: 0.5rem;
 }
+
 .md-table {
   border-collapse: collapse;
   /* allow explicit widths (pixel or percent) set by scripts or inline styles */
@@ -168,11 +178,13 @@ body {
   max-width: 100%;
   margin: 1rem 0;
 }
+
 .faq-content,
 .answer-content {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
 .faq-content th,
 .faq-content td,
 .answer-content th,
@@ -180,20 +192,24 @@ body {
   border: 1px solid #bcd6f2;
   padding: 6px 10px;
 }
+
 .md-table th,
 .md-table td {
   border: 1px solid #bcd6f2;
   padding: 6px 10px;
 }
+
 .faq-content th,
 .answer-content th {
   background: #e6f2ff;
   font-weight: 600;
 }
+
 .md-table th {
   background: #e6f2ff;
   font-weight: 600;
 }
+
 /* Keep header row aligned with new light-blue styling */
 .faq-content table tr:first-child th,
 .faq-content table tr:first-child td,
@@ -201,6 +217,7 @@ body {
 .answer-content table tr:first-child td {
   background: #e6f2ff;
 }
+
 .md-table tr:first-child th,
 .md-table tr:first-child td {
   background: #e6f2ff;
@@ -209,9 +226,11 @@ body {
 /* Enforce table header styling across FAQ/answer content */
 .faq-content th,
 .answer-content th {
-  background: #e6f2ff !important; /* light blue */
+  background: #e6f2ff !important;
+  /* light blue */
   border: 1px solid #bcd6f2;
 }
+
 .faq-content tr:first-child th,
 .faq-content tr:first-child td,
 .answer-content tr:first-child th,
@@ -225,11 +244,13 @@ body {
   border-collapse: collapse;
   width: auto;
 }
+
 .ql-editor th,
 .ql-editor td {
   border: 1px solid #ccc;
   padding: 6px 10px;
 }
+
 .ql-editor th {
   background: #f6f6f6;
   font-weight: 600;

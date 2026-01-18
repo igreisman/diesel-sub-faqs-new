@@ -14,6 +14,47 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <!-- Date Preferences Script -->
     <script src="/assets/js/date-preferences.js" defer></script>
+<?php if (strpos($_SERVER['SCRIPT_NAME'], 'videos') !== false): ?>
+<style>
+    .video-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        justify-content: center;
+    }
+    .video-card {
+        background: #0a2239;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        width: 350px;
+        max-width: 100%;
+    }
+    .video-card h3 {
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0.2rem 0;
+        color: #fff;
+    }
+    .video-card p {
+        color: #ccc;
+        font-size: 0.95rem;
+    }
+    .channel-promo {
+        text-align: center;
+        margin: 2rem 0 1rem 0;
+    }
+    .channel-promo a {
+        margin: 0 1rem;
+        display: inline-block;
+    }
+    .channel-promo img {
+        width: 36px;
+        height: 36px;
+        vertical-align: middle;
+        filter: invert(1);
+    }
+</style>
+<?php endif; ?>
 </head>
 <body>
 <?php

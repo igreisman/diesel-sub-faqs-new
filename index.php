@@ -192,6 +192,29 @@ if (empty($categoryCards)) {
             </div>
         </div>
     </div>
+    <!-- Latest Videos Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-3">Latest Videos</h2>
+            <div class="channel-promo mb-3" style="text-align:center;">
+                <span>Subscribe for daily videos:</span>
+                <a href="https://www.youtube.com/@diesel_subs" target="_blank" rel="noopener" style="margin:0 1rem;display:inline-block;">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube" style="width:36px;height:36px;vertical-align:middle;filter:invert(1);"> YouTube
+                </a>
+            </div>
+            <div class="video-grid" style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center;">
+                <div class="video-card" style="background:#0a2239; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.15); padding:1rem; width:350px; max-width:100%;">
+                    <iframe src="https://www.youtube.com/embed/6ZY0GTpc9YE" allowfullscreen style="width:100%; height:400px; border-radius:8px;"></iframe>
+                    <h3 style="font-size:1.1rem; margin:0.5rem 0 0.2rem 0; color:#fff;">Featured Short</h3>
+                    <p style="color:#ccc; font-size:0.95rem;">Watch our best-performing YouTube Short about diesel-electric submarines.</p>
+                </div>
+                <!-- Add more video-card blocks for individual featured videos if desired -->
+            </div>
+            <div style="text-align:right; margin-top:1rem;">
+                <a href="videos.php" class="btn btn-primary">See All Videos</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
