@@ -17,14 +17,24 @@
                     </ul>
                 </div>
             </div>
+
             <hr class="mt-4 mb-3">
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <p class="mb-0">&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+                    <div style="display:flex; align-items:center; justify-content:flex-start; gap:1rem; flex-wrap:wrap; margin:0.5rem 0 0.5rem 0;">
+                        <span style="vertical-align:middle;">Connect with us:</span>
+                        <a href="https://www.tiktok.com/@diesel_subs" target="_blank" rel="noopener" style="display:inline-block;">
+                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok" style="width:28px;height:28px;vertical-align:middle;filter:invert(1);">
+                        </a>
+                        <a href="https://www.youtube.com/@diesel_subs" target="_blank" rel="noopener" style="display:inline-block;">
+                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube" style="width:28px;height:28px;vertical-align:middle;filter:invert(1);">
+                        </a>
+                    </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <small class="text-muted d-block">Last updated<a class="text-muted" href="admin/login.php" style="text-decoration:none; cursor: default;">:</a> <?php echo date('F j, Y'); ?></small>
-                    <small class="text-muted">Webmaster: Irving Greisman</small>
+                        <small class="text-muted d-block">Last updated<a class="text-muted" href="admin/login.php" style="text-decoration:none; cursor: default;">:</a> <?php echo date('F j, Y'); ?></small>
+                        <small class="text-muted">Webmaster: Irving Greisman</small>
                 </div>
             </div>
         </div>
