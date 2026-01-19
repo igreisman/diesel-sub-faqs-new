@@ -13,11 +13,9 @@
       <div class="video-grid">
         <div class="video-card">
           <h3>Latest Uploads</h3>
-          <div class="ratio ratio-16x9" style="border-radius:8px; overflow:hidden;">
-            <iframe src="https://www.youtube.com/embed/6ZY0GTpc9YE" allowfullscreen style="border:0;"></iframe>
+          <div class="ratio ratio-16x9" style="border-radius:8px; overflow:hidden; height:588px; max-width:100%;">
+            <iframe src="https://www.youtube.com/embed/6ZY0GTpc9YE" allowfullscreen style="border:0; height:100%; width:100%;"></iframe>
           </div>
-          <h3>Featured Short</h3>
-          <p>Watch our best-performing YouTube Short about diesel-electric submarines.</p>
         </div>
       </div>
     </div>
