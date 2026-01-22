@@ -1,3 +1,17 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var moreBtn = document.getElementById('ack-more');
+    var ackShort = document.getElementById('ack-short');
+    var ackFull = document.getElementById('ack-full');
+    if (moreBtn && ackShort && ackFull) {
+        moreBtn.addEventListener('click', function() {
+            ackShort.style.display = 'inline';
+            ackFull.style.display = 'inline';
+            moreBtn.style.display = 'none';
+        });
+    }
+});
+</script>
 <?php
 session_start();
 // Redirect all visitors to the Welcome page if first visit
@@ -31,6 +45,7 @@ try {
     $categoryCards = [];
 }
 
+
 function category_icon_fallback($name, $icon)
 {
     // Treat empty or default question icon as missing
@@ -48,7 +63,6 @@ function category_icon_fallback($name, $icon)
         'attacks and battles, small and large' => 'fas fa-crosshairs',
     ];
     $key = strtolower(trim($name));
-
     return $map[$key] ?? 'fas fa-ship';
 }
 
@@ -64,11 +78,19 @@ if (empty($categoryCards)) {
 }
 ?>
 
+
+
 <div class="container">
     <div class="hero-section">
         <h1>Diesel-Electric Submarine FAQs</h1>
         <p class="lead">A comprehensive collection of frequently asked questions about diesel-electric submarines, with special focus on World War II US submarines.</p>
-        
+        <!-- Maritime Acknowledgement Section -->
+        <div class="alert alert-info mt-3" id="maritime-acknowledgement" style="font-size:1.15rem;">
+            <strong>Acknowledgement:</strong> 
+            <span id="ack-short">We are grateful to the San Francisco Maritime National Historical Park for stewarding the USS Pampanito for more than 50 years—</span>
+            <span id="ack-more" class="text-primary" style="text-decoration:underline; cursor:pointer;">(More)</span>
+            <span id="ack-full" style="display:none;">keeping her preserved, interpreted, and open to the public so visitors can learn from this historic submarine.</span>
+        </div>
         <!-- Feedback Call-to-Action -->
         <div class="alert alert-info mt-3" role="alert">
             <i class="fas fa-lightbulb"></i> 
@@ -77,6 +99,7 @@ if (empty($categoryCards)) {
             <a href="feedback.php" class="alert-link">Share your feedback</a> to help us make this resource better.
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-md-12">
