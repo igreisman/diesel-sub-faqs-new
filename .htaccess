@@ -26,13 +26,21 @@ Header always set X-Content-Type-Options nosniff
 Header always set X-XSS-Protection "1; mode=block"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-# Force HTTPS (uncomment when using SSL)
+# Force HTTPS (uncomment when using SSL).
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Skip rewrite for static files and directories
 RewriteCond %{REQUEST_URI} ^/(images|assets|css|js)/
 RewriteRule ^ - [L]
+
+# Redirect short URLs like /858 to FAQ page with anchor
+# Example: dieselsubs.com/858 → dieselsubs.com/category.php#faq-collapse-858
+RewriteRule ^([0-9]+)$ /category.php#faq-collapse-$1 [R=302,NE,L]
+
+# Optional: Track the source in Google Analytics by adding a parameter
+# Uncomment the line below if you want to track video traffic separately
+# RewriteRule ^([0-9]+)$ /category.php?video=$1#faq-collapse-$1 [R=302,NE,L]
 
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
@@ -101,11 +109,3 @@ Options -Indexes
 AddDefaultCharset UTF-8
 AddType text/markdown; charset=UTF-8 .md
 AddCharset UTF-8 .md
-
-# Redirect short URLs like /858 to FAQ page with anchor
-# Example: dieselsubs.com/858 → dieselsubs.com/faqs.php#faq-collapse-858
-RewriteRule ^([0-9]+)$ /faqs.php#faq-collapse-$1 [R=302,NE,L]
-
-# Optional: Track the source in Google Analytics by adding a parameter
-# Uncomment the line below if you want to track video traffic separately
-RewriteRule ^([0-9]+)$ /faqs.php?video=$1#faq-collapse-$1 [R=302,NE,L]
