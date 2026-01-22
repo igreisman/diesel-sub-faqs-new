@@ -5,38 +5,78 @@ require_once 'config/database.php';
 
 require_once 'includes/markdown-helper.php';
 
+
 $category_name = $_GET['cat'] ?? '';
+
+// If no category is specified, check for hash-based FAQ access and redirect to the correct category
 if (empty($category_name)) {
-    header('Location: index.php');
+    // Check if the request has a hash like #faq-collapse-123
+    if (isset($_SERVER['REQUEST_URI']) && preg_match('/#faq-collapse-(\d+)/', $_SERVER['REQUEST_URI'], $m)) {
+        $faq_id = (int)$m[1];
+    } elseif (isset($_SERVER['QUERY_STRING']) && preg_match('/faq-collapse-(\d+)/', $_SERVER['QUERY_STRING'], $m)) {
+        $faq_id = (int)$m[1];
+    } elseif (isset($_SERVER['REQUEST_URI']) && preg_match('/faq-collapse-(\d+)/', $_SERVER['REQUEST_URI'], $m)) {
+        $faq_id = (int)$m[1];
+    } else {
+        // fallback: try to get from hash in JS if not present
+        $faq_id = null;
+    }
 
-    exit;
+    if (!empty($faq_id)) {
+        // Find the category for this FAQ
+        $stmt = $pdo->prepare('SELECT c.name FROM faqs f JOIN categories c ON f.category_id = c.id WHERE f.id = ? LIMIT 1');
+        $stmt->execute([$faq_id]);
+        $row = $stmt->fetch();
+        if ($row && !empty($row['name'])) {
+            $cat = urlencode($row['name']);
+            $hash = '#faq-collapse-' . $faq_id;
+            header('Location: category.php?cat=' . $cat . $hash, true, 302);
+            exit;
+        }
+    }
+
+    // If not a direct FAQ hash, show all FAQs (legacy behavior)
+    $stmt = $pdo->prepare("
+        SELECT f.*, c.name as category_name, c.id as cat_id
+        FROM faqs f
+        JOIN categories c ON f.category_id = c.id
+        WHERE f.status = 'published'
+        ORDER BY c.name, f.display_order ASC, f.featured DESC, f.title ASC
+    ");
+    $stmt->execute();
+    $faqs = $stmt->fetchAll();
+    $category = [
+        'id' => 0,
+        'name' => 'Submarine FAQs',
+        'description' => ''
+    ];
+} else {
+    // Normal category access
+    $stmt = $pdo->prepare('SELECT * FROM categories WHERE name = ?');
+    $stmt->execute([$category_name]);
+    $category = $stmt->fetch();
+
+    if (!$category) {
+        header('HTTP/1.0 404 Not Found');
+        $page_title = 'Category Not Found';
+
+        require_once 'includes/header.php';
+        echo '<div class="container"><h1>Category Not Found</h1><p>The requested category does not exist.</p></div>';
+
+        require_once 'includes/footer.php';
+
+        exit;
+    }
+
+    // Get FAQs for this specific category
+    $stmt = $pdo->prepare("
+        SELECT * FROM faqs 
+        WHERE category_id = ? AND status = 'published' 
+        ORDER BY display_order ASC, featured DESC, title ASC
+    ");
+    $stmt->execute([$category['id']]);
+    $faqs = $stmt->fetchAll();
 }
-
-// Get category information
-$stmt = $pdo->prepare('SELECT * FROM categories WHERE name = ?');
-$stmt->execute([$category_name]);
-$category = $stmt->fetch();
-
-if (!$category) {
-    header('HTTP/1.0 404 Not Found');
-    $page_title = 'Category Not Found';
-
-    require_once 'includes/header.php';
-    echo '<div class="container"><h1>Category Not Found</h1><p>The requested category does not exist.</p></div>';
-
-    require_once 'includes/footer.php';
-
-    exit;
-}
-
-// Get FAQs for this category
-$stmt = $pdo->prepare("
-    SELECT * FROM faqs 
-    WHERE category_id = ? AND status = 'published' 
-    ORDER BY display_order ASC, featured DESC, title ASC
-");
-$stmt->execute([$category['id']]);
-$faqs = $stmt->fetchAll();
 
 // Preload contributions grouped by FAQ
 $contribMap = [];
@@ -306,20 +346,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Auto-expand FAQ if hash matches a collapse ID
-if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
-    const target = document.querySelector(window.location.hash);
-    if (target && target.classList.contains('collapse')) {
-        // Use Bootstrap's collapse API to show
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-            new bootstrap.Collapse(target, {toggle: true});
-        } else {
-            // Fallback: add 'show' class
-            target.classList.add('show');
+// Auto-expand FAQ if hash matches a collapse ID
+function expandFaqFromHash() {
+    if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
+        const target = document.querySelector(window.location.hash);
+        if (target && target.classList.contains('collapse')) {
+            // Use Bootstrap's collapse API to show
+            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                new bootstrap.Collapse(target, {toggle: true});
+            } else {
+                // Fallback: add 'show' class
+                target.classList.add('show');
+            }
+            // Fallback: trigger click on header if not expanded
+            if (!target.classList.contains('show')) {
+                var header = document.querySelector('[data-bs-target="' + window.location.hash + '"]');
+                if (header) {
+                    header.click();
+                }
+            }
+            // Optionally scroll into view
+            setTimeout(() => { target.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300);
         }
-        // Optionally scroll into view
-        setTimeout(() => { target.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300);
     }
 }
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(expandFaqFromHash, 200);
+});
+window.addEventListener('hashchange', expandFaqFromHash);
 </script>
 
 <script>
