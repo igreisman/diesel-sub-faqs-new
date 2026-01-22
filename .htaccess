@@ -101,3 +101,11 @@ Options -Indexes
 AddDefaultCharset UTF-8
 AddType text/markdown; charset=UTF-8 .md
 AddCharset UTF-8 .md
+
+# Redirect short URLs like /858 to FAQ page with anchor
+# Example: dieselsubs.com/858 → dieselsubs.com/faqs.php#faq-collapse-858
+RewriteRule ^([0-9]+)$ /faqs.php#faq-collapse-$1 [R=302,NE,L]
+
+# Optional: Track the source in Google Analytics by adding a parameter
+# Uncomment the line below if you want to track video traffic separately
+RewriteRule ^([0-9]+)$ /faqs.php?video=$1#faq-collapse-$1 [R=302,NE,L]

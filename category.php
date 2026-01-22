@@ -468,3 +468,5 @@ if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
 </style>
 
 <?php require_once 'includes/footer.php'; ?>
+
+<script src="auto-expand.js"></script>
