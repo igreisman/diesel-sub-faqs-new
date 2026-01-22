@@ -154,7 +154,7 @@ if (empty($categoryCards)) {
                         </div>
                     </div>
                 </div>
-                    <!-- Medal of Honor Winners Card -->
+                    <!-- Medal of Honor Card -->
                     <div class="category-card">
                         <div class="card bg-success text-white">
                             <div class="card-body">
