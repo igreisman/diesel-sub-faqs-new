@@ -106,7 +106,77 @@ $page_description = '';
 // Clear description to avoid showing legacy "Questions about ..." copy
 $category['description'] = '';
 
+
+
 require_once 'includes/header.php';
+?>
+<!-- Maritime Acknowledgement Section -->
+<div class="container mt-3">
+    <div class="alert alert-info" style="font-size:1.15rem; cursor:pointer;" id="maritime-acknowledgement">
+        <strong>Acknowledgement:</strong> 
+        <span id="ack-short">We are grateful to the San Francisco Maritime National Historical Park for stewarding the USS Pampanito for more than 50 years—</span>
+        <span id="ack-more" class="text-primary" style="text-decoration:underline; cursor:pointer;">(More)</span>
+        <span id="ack-full" style="display:none;">keeping her preserved, interpreted, and open to the public so visitors can learn from this historic submarine.</span>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var moreBtn = document.getElementById('ack-more');
+        var ackShort = document.getElementById('ack-short');
+        var ackFull = document.getElementById('ack-full');
+        if (moreBtn && ackShort && ackFull) {
+            moreBtn.addEventListener('click', function() {
+                ackShort.style.display = 'inline';
+                ackFull.style.display = 'inline';
+                moreBtn.style.display = 'none';
+            });
+        }
+    });
+    </script>
+    </div>
+    <style>
+    .ack-truncate {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+    }
+    .ack-expanded {
+        display: block !important;
+        -webkit-line-clamp: unset !important;
+        overflow: visible !important;
+    }
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var moreBtn = document.getElementById('ack-more');
+        var ackText = document.getElementById('ack-text');
+        var ackDiv = document.getElementById('maritime-acknowledgement');
+        if (moreBtn && ackText && ackDiv) {
+            moreBtn.addEventListener('click', function() {
+                ackText.classList.remove('ack-truncate');
+                ackText.classList.add('ack-expanded');
+                moreBtn.style.display = 'none';
+            });
+        }
+    });
+    </script>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ackToggle = document.querySelector('.ack-expand-toggle');
+    var ackShort = document.querySelector('.ack-short');
+    var ackFull = document.querySelector('.ack-full');
+    if (ackToggle && ackShort && ackFull) {
+        ackToggle.addEventListener('click', function(e) {
+            ackShort.style.display = 'none';
+            ackFull.style.display = 'inline';
+        });
+    }
+});
+</script>
+<?php
 
 function category_icon_fallback($name, $icon)
 {

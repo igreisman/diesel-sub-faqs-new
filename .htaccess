@@ -34,9 +34,9 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
 RewriteCond %{REQUEST_URI} ^/(images|assets|css|js)/
 RewriteRule ^ - [L]
 
-# Redirect short URLs like /858 to FAQ page with anchor
-# Example: dieselsubs.com/858 → dieselsubs.com/category.php#faq-collapse-858
-RewriteRule ^([0-9]+)$ /category.php#faq-collapse-$1 [R=302,NE,L]
+# Redirect short URLs like /858 to category.php?faq=858
+# Let PHP handle the redirect to the correct category and set the hash client-side
+RewriteRule ^([0-9]+)$ /category.php?faq=$1 [R=302,L]
 
 # Optional: Track the source in Google Analytics by adding a parameter
 # Uncomment the line below if you want to track video traffic separately

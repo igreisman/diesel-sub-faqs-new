@@ -154,6 +154,17 @@ if (empty($categoryCards)) {
                         </div>
                     </div>
                 </div>
+                    <!-- Medal of Honor Winners Card -->
+                    <div class="category-card">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-medal"></i> Medal of Honor Winners
+                                </h5>
+                                <a href="medal-of-honor.php" class="btn btn-light">Explore</a>
+                            </div>
+                        </div>
+                    </div>
             </div>
             
             <!-- Community Feedback Section -->
