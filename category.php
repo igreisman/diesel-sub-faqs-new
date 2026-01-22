@@ -304,6 +304,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Auto-expand FAQ if hash matches a collapse ID
+if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
+    const target = document.querySelector(window.location.hash);
+    if (target && target.classList.contains('collapse')) {
+        // Use Bootstrap's collapse API to show
+        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+            new bootstrap.Collapse(target, {toggle: true});
+        } else {
+            // Fallback: add 'show' class
+            target.classList.add('show');
+        }
+        // Optionally scroll into view
+        setTimeout(() => { target.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300);
+    }
+}
 </script>
 
 <script>
