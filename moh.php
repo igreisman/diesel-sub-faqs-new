@@ -4,7 +4,7 @@ require_once 'includes/header.php';
 ?>
 <div class="container mt-5">
     <h1 class="mb-4">U.S. Submarine Medal of Honor Recipients</h1>
-    <p class="lead">The following U.S. Navy submariners were awarded the Medal of Honor for extraordinary heroism and self-sacrifice in the line of duty. Their actions represent the highest traditions of naval service and courage under the most perilous conditions.</p>
+    <p class="lead">The following U.S. Navy Submariners were awarded the Medal of Honor for extraordinary heroism and self-sacrifice in the line of duty. Their actions represent the highest traditions of naval service and courage under the most perilous conditions.</p>
 
     <div class="list-group mb-5">
         <div class="list-group-item mb-4">

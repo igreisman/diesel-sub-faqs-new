@@ -6,23 +6,6 @@ require_once 'config/database.php';
 require_once 'includes/markdown-helper.php';
 
 
-
-// Support direct FAQ expand: category.php?faq=858
-if (isset($_GET['faq']) && is_numeric($_GET['faq'])) {
-    $faq_id = (int)$_GET['faq'];
-    // Find the category for this FAQ
-    $stmt = $pdo->prepare('SELECT c.name FROM faqs f JOIN categories c ON f.category_id = c.id WHERE f.id = ? LIMIT 1');
-    $stmt->execute([$faq_id]);
-    $row = $stmt->fetch();
-    if ($row && !empty($row['name'])) {
-        $cat = urlencode($row['name']);
-        $hash = '#faq-collapse-' . $faq_id;
-        header('Location: category.php?cat=' . $cat . $hash, true, 302);
-        exit;
-    }
-    // If not found, fall through to normal logic
-}
-
 $category_name = $_GET['cat'] ?? '';
 
 // If no category is specified, check for hash-based FAQ access and redirect to the correct category
@@ -363,6 +346,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Auto-expand FAQ if hash matches a collapse ID
+// Auto-expand FAQ if hash matches a collapse ID
+function expandFaqFromHash() {
+    if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
+        const target = document.querySelector(window.location.hash);
+        if (target && target.classList.contains('collapse')) {
+            // Use Bootstrap's collapse API to show
+            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                new bootstrap.Collapse(target, {toggle: true});
+            } else {
+                // Fallback: add 'show' class
+                target.classList.add('show');
+            }
+            // Fallback: trigger click on header if not expanded
+            if (!target.classList.contains('show')) {
+                var header = document.querySelector('[data-bs-target="' + window.location.hash + '"]');
+                if (header) {
+                    header.click();
+                }
+            }
+            // Optionally scroll into view
+            setTimeout(() => { target.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300);
+        }
+    }
+}
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(expandFaqFromHash, 200);
+});
+window.addEventListener('hashchange', expandFaqFromHash);
 </script>
 
 <script>
