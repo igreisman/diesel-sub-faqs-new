@@ -1,15 +1,15 @@
 /**
- * Auto-expand FAQ from URL hash
+ * Auto-expand FAQ from URL hash.
  * Works with Bootstrap collapse components
  * Place this at the bottom of your FAQ page, after Bootstrap JS loads
  */
 
-(function() {
+(function () {
     // Wait for page to fully load
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         // Get the hash from URL (e.g., #faq-collapse-858)
         const hash = window.location.hash;
-        
+
         function tryExpand(retries) {
             if (hash && hash.startsWith('#faq-collapse-')) {
                 const targetDiv = document.querySelector(hash);
@@ -21,7 +21,7 @@
                     } else {
                         targetDiv.classList.add('show');
                     }
-                    setTimeout(function() {
+                    setTimeout(function () {
                         targetDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 300);
                     if (typeof gtag !== 'undefined') {
@@ -32,7 +32,7 @@
                         });
                     }
                 } else if (retries > 0) {
-                    setTimeout(function() { tryExpand(retries - 1); }, 200);
+                    setTimeout(function () { tryExpand(retries - 1); }, 200);
                 }
             }
         }
