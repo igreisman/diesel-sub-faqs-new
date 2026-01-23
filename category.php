@@ -6,6 +6,23 @@ require_once 'config/database.php';
 require_once 'includes/markdown-helper.php';
 
 
+
+// Support direct FAQ expand: category.php?faq=858
+if (isset($_GET['faq']) && is_numeric($_GET['faq'])) {
+    $faq_id = (int)$_GET['faq'];
+    // Find the category for this FAQ
+    $stmt = $pdo->prepare('SELECT c.name FROM faqs f JOIN categories c ON f.category_id = c.id WHERE f.id = ? LIMIT 1');
+    $stmt->execute([$faq_id]);
+    $row = $stmt->fetch();
+    if ($row && !empty($row['name'])) {
+        $cat = urlencode($row['name']);
+        $hash = '#faq-collapse-' . $faq_id;
+        header('Location: category.php?cat=' . $cat . $hash, true, 302);
+        exit;
+    }
+    // If not found, fall through to normal logic
+}
+
 $category_name = $_GET['cat'] ?? '';
 
 // If no category is specified, check for hash-based FAQ access and redirect to the correct category
@@ -106,77 +123,7 @@ $page_description = '';
 // Clear description to avoid showing legacy "Questions about ..." copy
 $category['description'] = '';
 
-
-
 require_once 'includes/header.php';
-?>
-<!-- Maritime Acknowledgement Section -->
-<div class="container mt-3">
-    <div class="alert alert-info" style="font-size:1.15rem; cursor:pointer;" id="maritime-acknowledgement">
-        <strong>Acknowledgement:</strong> 
-        <span id="ack-short">We are grateful to the San Francisco Maritime National Historical Park for stewarding the USS Pampanito for more than 50 years—</span>
-        <span id="ack-more" class="text-primary" style="text-decoration:underline; cursor:pointer;">(More)</span>
-        <span id="ack-full" style="display:none;">keeping her preserved, interpreted, and open to the public so visitors can learn from this historic submarine.</span>
-    </div>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var moreBtn = document.getElementById('ack-more');
-        var ackShort = document.getElementById('ack-short');
-        var ackFull = document.getElementById('ack-full');
-        if (moreBtn && ackShort && ackFull) {
-            moreBtn.addEventListener('click', function() {
-                ackShort.style.display = 'inline';
-                ackFull.style.display = 'inline';
-                moreBtn.style.display = 'none';
-            });
-        }
-    });
-    </script>
-    </div>
-    <style>
-    .ack-truncate {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        white-space: normal;
-    }
-    .ack-expanded {
-        display: block !important;
-        -webkit-line-clamp: unset !important;
-        overflow: visible !important;
-    }
-    </style>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var moreBtn = document.getElementById('ack-more');
-        var ackText = document.getElementById('ack-text');
-        var ackDiv = document.getElementById('maritime-acknowledgement');
-        if (moreBtn && ackText && ackDiv) {
-            moreBtn.addEventListener('click', function() {
-                ackText.classList.remove('ack-truncate');
-                ackText.classList.add('ack-expanded');
-                moreBtn.style.display = 'none';
-            });
-        }
-    });
-    </script>
-    </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var ackToggle = document.querySelector('.ack-expand-toggle');
-    var ackShort = document.querySelector('.ack-short');
-    var ackFull = document.querySelector('.ack-full');
-    if (ackToggle && ackShort && ackFull) {
-        ackToggle.addEventListener('click', function(e) {
-            ackShort.style.display = 'none';
-            ackFull.style.display = 'inline';
-        });
-    }
-});
-</script>
-<?php
 
 function category_icon_fallback($name, $icon)
 {
@@ -416,34 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Auto-expand FAQ if hash matches a collapse ID
-// Auto-expand FAQ if hash matches a collapse ID
-function expandFaqFromHash() {
-    if (window.location.hash && window.location.hash.startsWith('#faq-collapse-')) {
-        const target = document.querySelector(window.location.hash);
-        if (target && target.classList.contains('collapse')) {
-            // Use Bootstrap's collapse API to show
-            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-                new bootstrap.Collapse(target, {toggle: true});
-            } else {
-                // Fallback: add 'show' class
-                target.classList.add('show');
-            }
-            // Fallback: trigger click on header if not expanded
-            if (!target.classList.contains('show')) {
-                var header = document.querySelector('[data-bs-target="' + window.location.hash + '"]');
-                if (header) {
-                    header.click();
-                }
-            }
-            // Optionally scroll into view
-            setTimeout(() => { target.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300);
-        }
-    }
-}
-window.addEventListener('DOMContentLoaded', function() {
-    setTimeout(expandFaqFromHash, 200);
-});
-window.addEventListener('hashchange', expandFaqFromHash);
 </script>
 
 <script>

@@ -32,9 +32,13 @@
                 
                 // Scroll to the element after a brief delay (let collapse animation complete)
                 setTimeout(function() {
-                    targetDiv.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
+                    // Scroll so the FAQ is visible below the fixed header
+                    const headerOffset = 60; // Adjust if your header is taller/shorter
+                    const elementPosition = targetDiv.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - headerOffset;
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
                     });
                 }, 300);
                 
