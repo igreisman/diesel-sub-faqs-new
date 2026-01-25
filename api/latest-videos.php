@@ -1,10 +1,12 @@
 <?php
 // This script fetches the 3 latest videos from the Diesel Subs YouTube channel using the YouTube Data API v3
 // and returns them as a JSON array for use on the homepage.
+// IMPORTANT: Make sure config.php is in your .gitignore so your API key is never committed to git!
 
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json');
 
-$apiKey = 'AIzaSyAbd_g8bWWDLiqsrLUULYojoBaGltJW998';
+$apiKey = YOUTUBE_API_KEY;
 $channelId = 'UC5mvn2ZZ6V508cVxHg4NwKA'; // Diesel Subs channel ID
 $maxResults = 3;
 
@@ -29,12 +31,10 @@ if (isset($playlistData['items'])) {
         $snippet = $item['snippet'];
         $videos[] = [
             'title' => $snippet['title'],
-$apiKey = YOUTUBE_API_KEY; // Load API key from config.php
+            'description' => $snippet['description'],
             'videoId' => $snippet['resourceId']['videoId'],
             'thumbnail' => $snippet['thumbnails']['medium']['url'],
         ];
-// IMPORTANT: Make sure config.php is in your .gitignore so your API key is never committed to git!
-require_once __DIR__ . '/../config.php';
     }
 }
 
