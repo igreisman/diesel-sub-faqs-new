@@ -214,12 +214,7 @@ if (empty($categoryCards)) {
                 </a>
             </div>
             <div class="video-grid" style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center;">
-                <div class="video-card" style="background:#0a2239; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.15); padding:1rem; width:350px; max-width:100%;">
-                    <iframe src="https://www.youtube.com/embed/6ZY0GTpc9YE" allowfullscreen style="width:100%; height:400px; border-radius:8px;"></iframe>
-                    <h3 style="font-size:1.1rem; margin:0.5rem 0 0.2rem 0; color:#fff;">Featured Short</h3>
-                    <p style="color:#ccc; font-size:0.95rem;">Watch our best-performing YouTube Short about diesel-electric submarines.</p>
-                </div>
-                <!-- Add more video-card blocks for individual featured videos if desired -->
+                <div id="latest-videos-container" style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; width:100%;"></div>
             </div>
             <div style="text-align:right; margin-top:1rem;">
                 <a href="videos.php" class="btn btn-primary">See All Videos</a>
@@ -229,6 +224,31 @@ if (empty($categoryCards)) {
 </div>
 
 <script>
+// Dynamically load latest YouTube videos
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('api/latest-videos.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.videos) {
+                const container = document.getElementById('latest-videos-container');
+                let html = '';
+                data.videos.forEach(video => {
+                    html += `
+                        <div class="video-card" style="background:#0a2239; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.15); padding:1rem; width:350px; max-width:100%;">
+                            <iframe src="https://www.youtube.com/embed/${video.videoId}" allowfullscreen style="width:100%; height:400px; border-radius:8px;"></iframe>
+                            <h3 style="font-size:1.1rem; margin:0.5rem 0 0.2rem 0; color:#fff;">${video.title}</h3>
+                            <p style="color:#ccc; font-size:0.95rem;">${video.description.substring(0, 120)}...</p>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+        })
+        .catch(err => {
+            const container = document.getElementById('latest-videos-container');
+            container.innerHTML = '<div class="text-danger">Could not load latest videos.</div>';
+        });
+});
 // Load recent questions on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadRecentQuestions();
