@@ -29,10 +29,12 @@ if (isset($playlistData['items'])) {
         $snippet = $item['snippet'];
         $videos[] = [
             'title' => $snippet['title'],
-            'description' => $snippet['description'],
+$apiKey = YOUTUBE_API_KEY; // Load API key from config.php
             'videoId' => $snippet['resourceId']['videoId'],
             'thumbnail' => $snippet['thumbnails']['medium']['url'],
         ];
+// IMPORTANT: Make sure config.php is in your .gitignore so your API key is never committed to git!
+require_once __DIR__ . '/../config.php';
     }
 }
 
