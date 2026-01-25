@@ -166,41 +166,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('searchResults');
     const resultsContainer = document.getElementById('resultsContainer');
     const resultCount = document.getElementById('resultCount');
-    
+    const searchInput = document.getElementById('searchQuery');
+
+    // Prefill search box if 'q' param is present
+    const urlParams = new URLSearchParams(window.location.search);
+    const qParam = urlParams.get('q');
+    if (qParam) {
+        searchInput.value = qParam;
+        setTimeout(() => performSearch(), 100); // Run search after DOM is ready
+    }
+
     // Handle form submission
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         performSearch();
     });
-    
+
     // Handle clear button
     document.getElementById('clearForm').addEventListener('click', function() {
         resultsDiv.style.display = 'none';
         form.reset();
     });
-    
+
     // Handle search suggestions
     document.querySelectorAll('.search-suggestion').forEach(button => {
         button.addEventListener('click', function() {
-            document.getElementById('searchQuery').value = this.dataset.query;
+            searchInput.value = this.dataset.query;
             performSearch();
         });
     });
-    
+
     function performSearch() {
         const formData = new FormData(form);
         const params = new URLSearchParams();
-        
+
         for (let [key, value] of formData.entries()) {
             if (value.trim()) {
                 params.append(key, value.trim());
             }
         }
-        
+
         // Show loading
         resultsContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
         resultsDiv.style.display = 'block';
-        
+
         // Perform search
         fetch('/api/search.php?' + params.toString())
             .then(response => response.json())
@@ -211,17 +220,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsContainer.innerHTML = '<div class="alert alert-danger">Error performing search. Please try again.</div>';
             });
     }
-    
+
     function displayResults(data) {
         if (data.success) {
             const results = data.results;
             resultCount.textContent = `${results.length} results`;
-            
+
             if (results.length === 0) {
                 resultsContainer.innerHTML = '<div class="text-center text-muted">No results found. Try different search terms or browse categories.</div>';
                 return;
             }
-            
+
             let html = '';
             results.forEach(result => {
                 if (result.category_name && result.category_name !== 'undefined') {
@@ -238,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 }
             });
-            
+
             resultsContainer.innerHTML = html;
         } else {
             resultsContainer.innerHTML = '<div class="alert alert-warning">Search error: ' + data.message + '</div>';
