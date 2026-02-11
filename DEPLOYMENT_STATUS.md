@@ -17,4 +17,5 @@ Uses environment variables for database configuration:
 - DB_NAME
 
 Or connection string:
+
 - DATABASE_URL (for cloud databases like PlanetScale)

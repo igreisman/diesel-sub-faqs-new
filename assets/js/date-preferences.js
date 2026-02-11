@@ -158,8 +158,8 @@ const DatePreferences = {
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dateFormatDropdown">
                 <li><h6 class="dropdown-header">Date Format</h6></li>
                 ${Object.entries(this.formats)
-                  .map(
-                    ([key, value]) => `
+        .map(
+          ([key, value]) => `
                     <li>
                         <a class="dropdown-item ${key === currentFormat ? "active" : ""}" 
                            href="#" data-format="${key}">
@@ -167,8 +167,8 @@ const DatePreferences = {
                         </a>
                     </li>
                 `,
-                  )
-                  .join("")}
+        )
+        .join("")}
             </ul>
         `;
 

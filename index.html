@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Redirecting…</title>
@@ -10,7 +11,7 @@
       const parts = value.split(`; ${name}=`);
       if (parts.length === 2) return parts.pop().split(';').shift();
     }
-    
+
     // Redirect to welcome page for first-time visitors, otherwise to main site
     if (!getCookie('visited')) {
       window.location.href = 'welcome.html';
@@ -19,7 +20,9 @@
     }
   </script>
 </head>
+
 <body>
   <p>If you are not redirected automatically, <a href="welcome.html">click here</a>.</p>
 </body>
+
 </html>

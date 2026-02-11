@@ -73,9 +73,6 @@ include 'includes/header.php';
                             <?php if ($boat['boat_number']) { ?>
                             <p><strong>Hull Number:</strong> <?php echo htmlspecialchars($boat['boat_number']); ?></p>
                             <?php } ?>
-                            <?php if ($boat['class_info']) { ?>
-                            <p><strong>Class:</strong> <?php echo htmlspecialchars($boat['class_info']); ?></p>
-                            <?php } ?>
                             <?php if ($boat['last_captain']) { ?>
                             <p><strong>Last Captain:</strong> <?php echo htmlspecialchars($boat['last_captain']); ?></p>
                             <?php } ?>
@@ -97,6 +94,17 @@ include 'includes/header.php';
                     </div>
                 </div>
             </div>
+
+            <?php if ($boat['construction']) { ?>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Construction</h3>
+                </div>
+                <div class="card-body">
+                    <?php echo nl2br(htmlspecialchars($boat['construction'])); ?>
+                </div>
+            </div>
+            <?php } ?>
 
             <?php if ($boat['loss_narrative']) { ?>
             <div class="card mb-4">

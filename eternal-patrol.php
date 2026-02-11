@@ -133,51 +133,61 @@ try {
 <?php if ($isAjax) {
     echo '<div id="resultsSection">';
     if ('list' === $view) {
-        echo '<div class="card mb-4"><div class="card-body"><ul class="list-group list-group-flush">';
+        echo '<div class="table-responsive"><table class="table table-bordered table-hover table-sm mb-0">';
+        echo '<tbody>';
         $currentEra = null;
         foreach ($boats as $boat) {
-            // Add era header when era changes
             if ($currentEra !== $boat['calculated_era']) {
-                $currentEra = $boat['calculated_era'];
-                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                if (null !== $currentEra) {
-                    echo '<li class="list-group-item bg-light fw-bold">Submarines lost '.htmlspecialchars($eraLabel).'</li>';
+                if ($currentEra !== null) {
+                    echo '<tr><td colspan="5" class="border-0 p-0" style="height:1.25rem"></td></tr>';
                 }
+                $currentEra = $boat['calculated_era'];
+                $eraLabel = str_replace('Ww2', 'WW2', ucwords(str_replace('-', ' ', $currentEra)));
+                echo '<tr><td colspan="5" class="fw-bold text-uppercase small ps-3 py-2 table-secondary">Submarines Lost '.htmlspecialchars($eraLabel).'</td></tr>';
+                echo '<tr class="table-light"><th style="width:8em">Name</th><th style="white-space:nowrap">Hull #</th><th style="width:4%;min-width:20em">Date Lost</th><th>Cause</th><th>Lost</th></tr>';
             }
-            echo '<li class="list-group-item d-flex justify-content-between align-items-center ps-4">';
-            echo '<a href="boat.php?id='.$boat['id'].'">'.htmlspecialchars($boat['designation'] ?: $boat['name']).'</a>';
-            echo '<span class="text-muted small locale-date" data-date="'.htmlspecialchars($boat['date_lost']).'">'.htmlspecialchars($boat['date_lost']).'</span>';
-            echo '</li>';
+            echo '<tr>';
+            echo '<td><a href="boat.php?id='.$boat['id'].'" class="text-decoration-none">'.htmlspecialchars(trim(preg_replace('/\s*\([^)]*\)$/', '', $boat['designation'] ?: $boat['name']))).'</a></td>';
+            echo '<td class="text-nowrap">'.htmlspecialchars($boat['boat_number']).'</td>';
+            echo '<td class="locale-date" style="min-width:20em" data-date="'.htmlspecialchars($boat['date_lost']).'">'.htmlspecialchars($boat['date_lost']).'</td>';
+            echo '<td>'.htmlspecialchars($boat['cause']).'</td>';
+            echo '<td>'.str_replace('\r\n', '<br>', htmlspecialchars($boat['fatalities'])).'</td>';
+            echo '</tr>';
         }
-        echo '</ul></div></div>';
+        echo '</tbody></table></div>';
     } else {
-        echo '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
         $currentEra = null;
+        $rowOpen = false;
         foreach ($boats as $boat) {
             // Add era header when era changes
             if ($currentEra !== $boat['calculated_era']) {
-                $currentEra = $boat['calculated_era'];
-                $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                if (null !== $currentEra) {
-                    echo '<div class="col-12"><h4 class="border-bottom pb-2 mb-3">Submarines lost '.htmlspecialchars($eraLabel).'</h4></div>';
+                if ($rowOpen) {
+                    echo '</div>'; // close previous row
                 }
+                $currentEra = $boat['calculated_era'];
+                $eraLabel = str_replace('Ww2', 'WW2', ucwords(str_replace('-', ' ', $currentEra)));
+                echo '<h4 class="border-start border-4 border-primary ps-3 py-2 mb-4 mt-4 bg-light rounded-end fw-semibold">Submarines Lost '.htmlspecialchars($eraLabel).'</h4>';
+                echo '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
+                $rowOpen = true;
             }
             echo '<div class="col ms-3"><div class="card h-100"><div class="card-body">';
             echo '<h5 class="card-title mb-1">'.htmlspecialchars($boat['designation'] ?: $boat['name']).'</h5>';
             echo '<p class="text-muted small"><i class="fas fa-calendar"></i> <span class="locale-date" data-date="'.htmlspecialchars($boat['date_lost']).'">'.htmlspecialchars($boat['date_lost']).'</span></p>';
             if ($boat['fatalities']) {
-                echo '<p class="small mb-2"><strong><i class="fas fa-users"></i> Fatalities:</strong> '.htmlspecialchars($boat['fatalities']).'</p>';
+                echo '<p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-users"></i>&nbsp;</span><span><strong>Fatalities:</strong> '.str_replace('\r\n', '<br>', htmlspecialchars($boat['fatalities'])).'</span></p>';
             }
             if ($boat['location']) {
-                echo '<p class="small"><strong>Location:</strong> '.htmlspecialchars($boat['location']).'</p>';
+                echo '<p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-map-marker-alt"></i>&nbsp;</span><span><strong>Location:</strong> '.htmlspecialchars($boat['location']).'</span></p>';
             }
             if ($boat['cause']) {
-                echo '<p class="small"><strong>Cause:</strong> '.htmlspecialchars(substr($boat['cause'], 0, 150)).'...</p>';
+                echo '<p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-exclamation-circle"></i>&nbsp;</span><span><strong>Cause:</strong> '.htmlspecialchars(substr($boat['cause'], 0, 150)).'</span></p>';
             }
             echo '<a href="boat.php?id='.$boat['id'].'" class="btn btn-outline-primary btn-sm">View Full Details <i class="fas fa-arrow-right"></i></a>';
             echo '</div></div></div>';
         }
-        echo '</div>';
+        if ($rowOpen) {
+            echo '</div>'; // close last row
+        }
     }
     echo '</div>';
 
@@ -295,33 +305,38 @@ try {
     <div id="resultsSection">
     <?php if ('list' === $view) { ?>
     <!-- List View -->
-    <div class="card">
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                <?php if (empty($boats)) { ?>
-                <li class="alert alert-info">No submarines found matching your criteria.</li>
-                <?php } else { ?>
+    <?php if (empty($boats)) { ?>
+    <div class="alert alert-info">No submarines found matching your criteria.</div>
+    <?php } else { ?>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm mb-0">
+            <tbody>
                 <?php
                 $currentEra = null;
-                    foreach ($boats as $boat) {
-                        // Add era header when era changes
-                        if ($currentEra !== $boat['calculated_era']) {
-                            $currentEra = $boat['calculated_era'];
-                            $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
-                            ?>
-                <li class="fw-bold text-primary mt-3 mb-2" style="list-style: none;">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></li>
+                foreach ($boats as $boat) {
+                    if ($currentEra !== $boat['calculated_era']) {
+                        if ($currentEra !== null) { ?>
+                <tr><td colspan="5" class="border-0 p-0" style="height:1.25rem"></td></tr>
+                        <?php } ?>
+                        <?php
+                        $currentEra = $boat['calculated_era'];
+                        $eraLabel = str_replace('Ww2', 'WW2', ucwords(str_replace('-', ' ', $currentEra)));
+                        ?>
+                <tr><td colspan="5" class="fw-bold text-uppercase small ps-3 py-2 table-secondary">Submarines Lost <?php echo htmlspecialchars($eraLabel); ?></td></tr>
+                <tr class="table-light"><th style="width:8em">Name</th><th style="white-space:nowrap">Hull #</th><th style="width:4%;min-width:20em">Date Lost</th><th>Cause</th><th>Lost</th></tr>
                 <?php } ?>
-                <li class="mb-2 ps-4">
-                    <a href="boat.php?id=<?php echo $boat['id']; ?>" class="text-decoration-none">
-                        <i class="fas fa-ship"></i> <?php echo htmlspecialchars($boat['designation'] ?: $boat['name']); ?>
-                    </a>
-                    <span class="text-muted small">- <?php echo htmlspecialchars($boat['date_lost']); ?></span>
-                </li>
+                <tr>
+                    <td><a href="boat.php?id=<?php echo $boat['id']; ?>" class="text-decoration-none"><?php echo htmlspecialchars(trim(preg_replace('/\s*\([^)]*\)$/', '', $boat['designation'] ?: $boat['name']))); ?></a></td>
+                    <td class="text-nowrap"><?php echo htmlspecialchars($boat['boat_number']); ?></td>
+                    <td class="locale-date" style="min-width:20em" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></td>
+                    <td><?php echo htmlspecialchars($boat['cause']); ?></td>
+                    <td><?php echo str_replace('\r\n', '<br>', htmlspecialchars($boat['fatalities'])); ?></td>
+                </tr>
                 <?php } ?>
-                <?php } ?>
-            </ul>
-        </div>
+            </tbody>
+        </table>
     </div>
+    <?php } ?>
     <?php } else { ?>
     <!-- Card View -->
     <div class="row">
@@ -338,10 +353,10 @@ try {
                 // Add era header when era changes
                 if ($currentEra !== $boat['calculated_era']) {
                     $currentEra = $boat['calculated_era'];
-                    $eraLabel = ucwords(str_replace('-', ' ', $currentEra));
+                    $eraLabel = str_replace('Ww2', 'WW2', ucwords(str_replace('-', ' ', $currentEra)));
                     ?>
         <div class="col-12">
-            <h4 class="border-bottom pb-2 mb-3 mt-3">Submarines lost <?php echo htmlspecialchars($eraLabel); ?></h4>
+            <h4 class="border-start border-4 border-primary ps-3 py-2 mb-4 mt-4 bg-light rounded-end fw-semibold">Submarines Lost <?php echo htmlspecialchars($eraLabel); ?></h4>
         </div>
         <?php } ?>
         <div class="col-md-6 mb-4 ms-3">
@@ -354,15 +369,13 @@ try {
                         <i class="fas fa-calendar"></i> <span class="locale-date" data-date="<?php echo htmlspecialchars($boat['date_lost']); ?>"><?php echo htmlspecialchars($boat['date_lost']); ?></span>
                     </p>
                     <?php if ($boat['fatalities']) { ?>
-                    <p class="small mb-2">
-                        <strong><i class="fas fa-users"></i> Fatalities:</strong> <?php echo htmlspecialchars($boat['fatalities']); ?>
-                    </p>
+                    <p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-users"></i>&nbsp;</span><span><strong>Fatalities:</strong> <?php echo str_replace('\r\n', '<br>', htmlspecialchars($boat['fatalities'])); ?></span></p>
                     <?php } ?>
                     <?php if ($boat['location']) { ?>
-                    <p class="small"><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></p>
+                    <p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-map-marker-alt"></i>&nbsp;</span><span><strong>Location:</strong> <?php echo htmlspecialchars($boat['location']); ?></span></p>
                     <?php } ?>
                     <?php if ($boat['cause']) { ?>
-                    <p class="small"><strong>Cause:</strong> <?php echo htmlspecialchars(substr($boat['cause'], 0, 150)); ?>...</p>
+                    <p class="small mb-2 d-flex"><span class="flex-shrink-0"><i class="fas fa-exclamation-circle"></i>&nbsp;</span><span><strong>Cause:</strong> <?php echo htmlspecialchars(substr($boat['cause'], 0, 150)); ?></span></p>
                     <?php } ?>
                     <a href="boat.php?id=<?php echo $boat['id']; ?>" class="btn btn-outline-primary btn-sm">
                         View Full Details <i class="fas fa-arrow-right"></i>
