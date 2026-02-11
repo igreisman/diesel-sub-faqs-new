@@ -201,6 +201,9 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && !isset($_POST['prefilled'])) {
 
     $location = trim($_POST['location'] ?? '');
     $last_captain = trim($_POST['last_captain'] ?? '');
+    $fatalities = trim($_POST['fatalities'] ?? '');
+    $fatalities_num = trim($_POST['fatalities_num'] ?? '');
+    $fatalities_num = '' !== $fatalities_num ? (int) $fatalities_num : null;
     $loss_narrative = trim($_POST['loss_narrative'] ?? '');
 
     // Handle image uploads or use existing URLs
@@ -230,12 +233,12 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && !isset($_POST['prefilled'])) {
 
                 // Build the update query dynamically to include extra image if provided
                 $updateFields = 'boat_number = ?, name = ?, designation = ?, date_lost = ?, date_lost_sort = ?,
-                                 location = ?, last_captain = ?, loss_narrative = ?,
-                                 photo_boat = ?, photo_captain = ?';
+                                 location = ?, last_captain = ?, fatalities = ?, fatalities_num = ?,
+                                 loss_narrative = ?, photo_boat = ?, photo_captain = ?';
                 $params = [
                     $boat_number, $name, $designation, $date_lost, $date_lost_sort,
-                    $location, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain,
+                    $location, $last_captain, $fatalities, $fatalities_num,
+                    $loss_narrative, $photo_boat, $photo_captain,
                 ];
 
                 // Add extra image field if provided
@@ -249,6 +252,15 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && !isset($_POST['prefilled'])) {
                     $params[] = $extraImageSubtitle;
                 }
 
+                // Update existing image subtitles
+                for ($i = 1; $i <= 10; ++$i) {
+                    $subField = 'image'.$i.'_subtitle';
+                    if (isset($_POST[$subField])) {
+                        $updateFields .= ", {$subField} = ?";
+                        $params[] = trim($_POST[$subField]);
+                    }
+                }
+
                 $params[] = $id; // Add ID for WHERE clause
 
                 $stmt = $pdo->prepare("
@@ -260,12 +272,12 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && !isset($_POST['prefilled'])) {
                 $message = 'Submarine updated successfully!';
             } else {
                 // Insert new submarine
-                $insertFields = 'boat_number, name, designation, date_lost, date_lost_sort, location, last_captain, loss_narrative, photo_boat, photo_captain, display_order';
-                $insertPlaceholders = '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0';
+                $insertFields = 'boat_number, name, designation, date_lost, date_lost_sort, location, last_captain, fatalities, fatalities_num, loss_narrative, photo_boat, photo_captain, display_order';
+                $insertPlaceholders = '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0';
                 $params = [
                     $boat_number, $name, $designation, $date_lost, $date_lost_sort,
-                    $location, $last_captain, $loss_narrative,
-                    $photo_boat, $photo_captain,
+                    $location, $last_captain, $fatalities, $fatalities_num,
+                    $loss_narrative, $photo_boat, $photo_captain,
                 ];
 
                 // Add extra image field if provided
@@ -308,6 +320,8 @@ if (isset($_POST['prefilled']) && '1' == $_POST['prefilled']) {
         'date_lost' => $_POST['date_lost'] ?? '',
         'location' => $_POST['location'] ?? '',
         'loss_narrative' => $_POST['description'] ?? '',
+        'fatalities' => $_POST['fatalities'] ?? '',
+        'fatalities_num' => $_POST['fatalities_num'] ?? '',
         'photo_boat' => '',
         'photo_captain' => '',
         // 'photo_url_extra' => ''
@@ -513,56 +527,27 @@ elseif ($isEdit) {
                                    placeholder="LT Richard G. Voge">
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="fatalities" class="form-label">Fatalities</label>
+                                <input type="text" class="form-control" id="fatalities" name="fatalities"
+                                       value="<?php echo htmlspecialchars($submarine['fatalities'] ?? ''); ?>"
+                                       placeholder="All hands lost (85 men)">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="fatalities_num" class="form-label">Fatalities (Number)</label>
+                                <input type="number" class="form-control" id="fatalities_num" name="fatalities_num"
+                                       value="<?php echo htmlspecialchars($submarine['fatalities_num'] ?? ''); ?>"
+                                       placeholder="85" min="0">
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="loss_narrative" class="form-label">Loss Narrative</label>
                             <textarea class="form-control" id="loss_narrative" name="loss_narrative" 
                                       rows="8" placeholder="Describe the circumstances of the submarine's loss..."><?php echo htmlspecialchars($submarine['loss_narrative'] ?? ''); ?></textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Additional Images & Subtitles</label>
-                            <div id="dynamic-images-section"></div>
-                            <button type="button" class="btn btn-outline-primary mt-2" id="add-image-btn">Add Image + Subtitle</button>
-                            <small class="text-muted d-block mt-1">You may add up to 10 images with subtitles. Supported: JPEG/PNG/GIF/WebP</small>
-                        </div>
-                        <script>
-                        let imageCount = 0;
-                        function addImageField(img = '', subtitle = '') {
-                            if (imageCount >= 10) return;
-                            imageCount++;
-                            const section = document.getElementById('dynamic-images-section');
-                            const div = document.createElement('div');
-                            div.className = 'row mb-2 align-items-end';
-                            div.innerHTML = `
-                                <div class="col-md-5">
-                                    <input type="file" class="form-control" name="image${imageCount}_file" accept="image/*">
-                                    <input type="hidden" name="image${imageCount}" value="${img}">
-                                </div>
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control" name="image${imageCount}_subtitle" placeholder="Subtitle" value="${subtitle}">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger remove-image-btn">Remove</button>
-                                </div>
-                            `;
-                            section.appendChild(div);
-                            div.querySelector('.remove-image-btn').onclick = function() {
-                                section.removeChild(div);
-                                imageCount--;
-                            };
-                        }
-                        document.getElementById('add-image-btn').onclick = function() {
-                            addImageField();
-                        };
-                        // Optionally, prepopulate with existing images/subtitles from PHP
-                        <?php for ($i = 1; $i <= 10; ++$i) {
-                            $img = htmlspecialchars($submarine['image'.$i] ?? '');
-                            $sub = htmlspecialchars($submarine['image'.$i.'_subtitle'] ?? '');
-                            if ($img || $sub) { ?>
-                            addImageField("<?php echo $img; ?>", "<?php echo $sub; ?>");
-                        <?php }
-                            } ?>
-                        </script>
                         <div class="mb-3">
                             <label for="photo_boat" class="form-label">Boat Photo</label>
                             <div class="photo-upload-zone" id="photo_boat_zone" data-field="photo_boat">
@@ -632,8 +617,11 @@ elseif ($isEdit) {
                                                              class="img-fluid rounded">
                                                     </div>
                                                     <div class="col-md-8">
-                                                        <p class="mb-1"><strong>Subtitle:</strong></p>
-                                                        <p class="text-muted"><?php echo htmlspecialchars($submarine[$subtitleField] ?? 'No subtitle'); ?></p>
+                                                        <label class="form-label mb-1"><strong>Subtitle:</strong></label>
+                                                        <input type="text" class="form-control"
+                                                               name="<?php echo $subtitleField; ?>"
+                                                               value="<?php echo htmlspecialchars($submarine[$subtitleField] ?? ''); ?>"
+                                                               placeholder="Enter subtitle">
                                                     </div>
                                                 </div>
                                             </div>
